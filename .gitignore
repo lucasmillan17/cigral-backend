@@ -1,0 +1,16 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userprefs
+
+# Compilados y Temporales (¡Muy importante!)
+bin/
+obj/
+Debug/
+Release/
+
+# Archivos de entorno (Seguridad)
+appsettings.Development.json
+appsettings.local.json
+.env
