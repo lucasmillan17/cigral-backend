@@ -1,3 +1,8 @@
+using CigralBackend.Infraestructure.Database;
+using CigralBackend.Infraestructure.Database.Interfaces;
+using CigralBackend.Application.Services.Interfaces;
+using CigralBackend.Application.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace CigralBackend
 {
@@ -8,8 +13,16 @@ namespace CigralBackend
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers();
+            
+            // Configurar DbContext
+            builder.Services.AddDbContext<CigralBackendContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Registrar el repositorio
+            builder.Services.AddScoped<IRepository, EfRepository>();
+            builder.Services.AddScoped<IProductoService, ProductoService>();
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -26,7 +39,6 @@ namespace CigralBackend
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

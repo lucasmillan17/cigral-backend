@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CigralBackend.Domain\CigralBackend.Domain.csproj" />
+    <ProjectReference Include="..\CigralBackend.Infraestructure\CigralBackend.Infraestructure.csproj" />
+  </ItemGroup>
+
 </Project>
