@@ -72,40 +72,40 @@ El proyecto sigue una arquitectura en capas basada en Clean Architecture:
 
 ```
 CigralBackend/
-??? CigralBackend.Api/                 # Web API
-?   ??? Controllers/                   # Controladores REST
-?   ??? Program.cs                     # Configuracion de la aplicacion
-?   ??? appsettings.json              # Configuracion (conexion DB)
-?
-??? CigralBackend.Application/         # Logica de aplicacion
-?   ??? Dtos/                         # Data Transfer Objects
-?   ?   ??? *Dto.cs                   # DTOs basicos
-?   ?   ??? *Model.cs                 # Modelos con validaciones
-?   ?   ??? *Requests.cs              # Request/Response records
-?   ??? Services/                     # Servicios de negocio
-?       ??? Interfaces/
-?       ??? *.Service.cs
-?
-??? CigralBackend.Domain/              # Dominio
-?   ??? Bases/                        # Clases base
-?   ?   ??? EntityBase.cs             # Entidad base con Id
-?   ?   ??? RemitoBase.cs             # Base para remitos
-?   ??? Cliente.cs
-?   ??? Proveedor.cs
-?   ??? Producto.cs
-?   ??? Lote.cs
-?   ??? Deposito.cs
-?   ??? Existencia.cs
-?   ??? DetalleRemito.cs
-?   ??? RemitoCliente.cs
-?   ??? RemitoProveedor.cs
-?
-??? CigralBackend.Infrastructure/      # Infraestructura
-    ??? Database/
-        ??? CigralBackendContext.cs   # DbContext
-        ??? EfRepository.cs           # Implementacion del repositorio
-        ??? Interfaces/
-            ??? IRepository.cs        # Interfaz del repositorio
+|-- CigralBackend.Api/                 # Web API
+|   |-- Controllers/                   # Controladores REST
+|   |-- Program.cs                     # Configuracion de la aplicacion
+|   +-- appsettings.json              # Configuracion (conexion DB)
+|
+|-- CigralBackend.Application/         # Logica de aplicacion
+|   |-- Dtos/                         # Data Transfer Objects
+|   |   |-- *Dto.cs                   # DTOs basicos
+|   |   |-- *Model.cs                 # Modelos con validaciones
+|   |   +-- *Requests.cs              # Request/Response records
+|   +-- Services/                     # Servicios de negocio
+|       |-- Interfaces/
+|       +-- *.Service.cs
+|
+|-- CigralBackend.Domain/              # Dominio
+|   |-- Bases/                        # Clases base
+|   |   |-- EntityBase.cs             # Entidad base con Id
+|   |   +-- RemitoBase.cs             # Base para remitos
+|   |-- Cliente.cs
+|   |-- Proveedor.cs
+|   |-- Producto.cs
+|   |-- Lote.cs
+|   |-- Deposito.cs
+|   |-- Existencia.cs
+|   |-- DetalleRemito.cs
+|   |-- RemitoCliente.cs
+|   +-- RemitoProveedor.cs
+|
++-- CigralBackend.Infrastructure/      # Infraestructura
+    +-- Database/
+        |-- CigralBackendContext.cs   # DbContext
+        |-- EfRepository.cs           # Implementacion del repositorio
+        +-- Interfaces/
+            +-- IRepository.cs        # Interfaz del repositorio
 ```
 
 ## Configuracion Inicial
