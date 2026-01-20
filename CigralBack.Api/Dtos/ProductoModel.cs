@@ -25,7 +25,7 @@ namespace CigralBackend.Application.Dtos
 
     public record ProductoModelResponse
     (
-        Guid Id,
+        int Id,
         string Nombre,
         string Descripcion,
         string GTIN,

@@ -14,6 +14,6 @@ namespace CigralBackend.Application.Dtos
         [MaxLength(50, ErrorMessage = "El número de remito no puede superar los 50 caracteres")]
         string? NumeroRemito,
         [Required(ErrorMessage = "El cliente es obligatorio")]
-        Guid ClienteId
+        int ClienteId
     );
 }

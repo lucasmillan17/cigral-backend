@@ -8,7 +8,7 @@ namespace CigralBackend.Domain.Bases
 {
     /// <summary>
     /// Clase base abstracta para todas las entidades del dominio.
-    /// Proporciona un identificador único (GUID) común para todas las entidades.
+    /// Proporciona un identificador único común para todas las entidades.
     /// </summary>
     public abstract class EntityBase
     {
@@ -20,9 +20,9 @@ namespace CigralBackend.Domain.Bases
         }
 
         /// <summary>
-        /// Identificador único de la entidad (GUID).
+        /// Identificador único de la entidad.
         /// Se genera automáticamente al crear una nueva entidad.
         /// </summary>
-        public Guid Id { get; set; }
+        public int Id { get; set; }
     }
 }

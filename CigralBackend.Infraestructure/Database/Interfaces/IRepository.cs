@@ -39,7 +39,7 @@ namespace CigralBackend.Infraestructure.Database.Interfaces
         /// <param name="id">El identificador único de la entidad</param>
         /// <param name="include">Propiedades de navegación a incluir (eager loading)</param>
         /// <returns>La entidad encontrada o null si no existe</returns>
-        Task<T?> GetById<T>(Guid id, params string[] include) where T : EntityBase;
+        Task<T?> GetById<T>(int id, params string[] include) where T : EntityBase;
 
         /// <summary>
         /// Obtiene la primera entidad que cumple con el predicado especificado.

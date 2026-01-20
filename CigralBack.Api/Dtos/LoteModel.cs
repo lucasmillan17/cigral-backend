@@ -13,6 +13,6 @@ namespace CigralBackend.Application.Dtos
         [Range(0, int.MaxValue, ErrorMessage = "La cantidad disponible debe ser mayor o igual a 0")]
         int CantidadDisponible,
         [Required(ErrorMessage = "El producto es obligatorio")]
-        Guid ProductoId
+        int ProductoId
     );
 }

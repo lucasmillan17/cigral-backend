@@ -66,7 +66,7 @@ namespace CigralBackend.Infraestructure.Database
         }
 
         /// <inheritdoc/>
-        public async Task<T?> GetById<T>(Guid id, params string[] include) where T : EntityBase
+        public async Task<T?> GetById<T>(int id, params string[] include) where T : EntityBase
         {
             return await Include(_context.Set<T>(), include).FirstOrDefaultAsync(e => e.Id == id);
         }

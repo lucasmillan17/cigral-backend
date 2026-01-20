@@ -11,6 +11,6 @@ namespace CigralBackend.Domain
     {
         public RemitoCliente() { }
         public Cliente Cliente { get; set; }
-        public Guid ClienteId { get; set; }
+        public int ClienteId { get; set; }
     }
 }
