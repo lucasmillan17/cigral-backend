@@ -200,15 +200,16 @@ namespace CigralBackend.Application.Services
                 );
             }
 
+            var marca = (Marca?)null;
             // Si se especifica una marca, validar que exista
-            if (r.MarcaId.HasValue)
+            if (!string.IsNullOrEmpty(r.Marca))
             {
-                var marca = await _repository.GetById<Marca>(r.MarcaId.Value);
+                marca = await _repository.First<Marca>(p => p.Nombre == r.Marca);
                 if (marca == null)
                 {
                     throw new DomainException(
                         DomainErrorCode.MarcaNoValida,
-                        $"La marca con ID {r.MarcaId.Value} no existe."
+                        $"La marca con Nombre {r.Marca} no existe."
                     );
                 }
             }
@@ -219,7 +220,7 @@ namespace CigralBackend.Application.Services
             producto.GTIN = r.GTIN;
             producto.EsUnitario = r.EsUnitario ?? false;
             producto.Precio = r.Precio;
-            producto.MarcaId = r.MarcaId;
+            producto.MarcaId = marca?.Id;
 
             await _repository.Update(producto);
 
