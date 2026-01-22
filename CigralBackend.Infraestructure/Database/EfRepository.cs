@@ -2,6 +2,7 @@
 using CigralBackend.Infraestructure.Database.Interfaces;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using CigralBackend.Domain.Wrappers;
 
 namespace CigralBackend.Infraestructure.Database
 {
@@ -61,12 +62,14 @@ namespace CigralBackend.Infraestructure.Database
                 Items = items,
                 TotalCount = totalCount,
                 PageNumber = pageNumber,
-                PageSize = pageSize
+                PageSize = pageSize,
+                
             };
+
         }
 
         /// <inheritdoc/>
-        public async Task<T?> GetById<T>(Guid id, params string[] include) where T : EntityBase
+        public async Task<T?> GetById<T>(int id, params string[] include) where T : EntityBase
         {
             return await Include(_context.Set<T>(), include).FirstOrDefaultAsync(e => e.Id == id);
         }

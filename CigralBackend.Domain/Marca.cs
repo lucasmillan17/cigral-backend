@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 
 namespace CigralBackend.Domain
 {
-    public class RemitoCliente : RemitoBase
+    public class Marca : EntityBase
     {
-        public RemitoCliente() { }
-        public Cliente Cliente { get; set; }
-        public int ClienteId { get; set; }
+        public Marca() { }
+        public Marca(string nombre) 
+        {
+            Nombre = nombre;
+        }
+
+        public string Nombre { get; set; }
     }
 }

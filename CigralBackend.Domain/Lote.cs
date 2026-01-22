@@ -15,6 +15,6 @@ namespace CigralBackend.Domain
         public DateTime FechaVencimiento { get; set; }
         public int CantidadDisponible { get; set; }
         public Producto Producto { get; set; }
-        public Guid ProductoId { get; set; }
+        public int ProductoId { get; set; }
     }
 }

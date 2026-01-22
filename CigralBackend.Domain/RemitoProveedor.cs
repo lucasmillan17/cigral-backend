@@ -11,6 +11,6 @@ namespace CigralBackend.Domain
     {
         public RemitoProveedor() { }
         public Proveedor Proveedor { get; set; }
-        public Guid ProveedorId { get; set; }
+        public int ProveedorId { get; set; }
     }
 }

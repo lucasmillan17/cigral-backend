@@ -1,12 +1,12 @@
-# Guía de Desarrollo - CigralBackend
+# Guia de Desarrollo - CigralBackend
 
-## Configuración del Entorno de Desarrollo
+## Configuracion del Entorno de Desarrollo
 
 ### Prerrequisitos
 
 1. **.NET 8 SDK**
    - Descargar de [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/8.0)
-   - Verificar instalación: `dotnet --version`
+   - Verificar instalacion: `dotnet --version`
 
 2. **SQL Server**
    - SQL Server 2019+ o SQL Server Express
@@ -22,7 +22,7 @@
 4. **Git**
    - Para control de versiones
 
-### Configuración Inicial
+### Configuracion Inicial
 
 1. **Clonar el repositorio**
    ```bash
@@ -30,7 +30,7 @@
    cd cigral-backend
    ```
 
-2. **Configurar la cadena de conexión**
+2. **Configurar la cadena de conexion**
    
    Editar `CigralBackend.Api/appsettings.json`:
    ```json
@@ -53,22 +53,22 @@
    dotnet ef database update --project ..\CigralBackend.Infraestructure --startup-project .
    ```
 
-5. **Ejecutar la aplicación**
+5. **Ejecutar la aplicacion**
    ```bash
    dotnet run --project CigralBackend.Api
    ```
 
 6. **Verificar**
    - Abrir navegador en `https://localhost:5001/swagger`
-   - Deberías ver la documentación de Swagger
+   - Deberas ver la documentacion de Swagger
 
 ## Estructura de Branches
 
 ### Main Branches
 
-- **`main`**: Código en producción, siempre estable
+- **`main`**: Codigo en produccion, siempre estable
 - **`development`**: Rama de desarrollo principal
-- **`staging`**: Pre-producción
+- **`staging`**: Pre-produccion
 
 ### Feature Branches
 
@@ -80,24 +80,24 @@ git checkout development
 git checkout -b feature/agregar-autenticacion
 # ... hacer cambios ...
 git add .
-git commit -m "feat: agregar autenticación JWT"
+git commit -m "feat: agregar autenticacion JWT"
 git push origin feature/agregar-autenticacion
 ```
 
 ### Otros Branches
 
 - **`bugfix/`**: Para correcciones de bugs
-- **`hotfix/`**: Para correcciones urgentes en producción
+- **`hotfix/`**: Para correcciones urgentes en produccion
 - **`refactor/`**: Para refactorizaciones
-- **`docs/`**: Para documentación
+- **`docs/`**: Para documentacion
 
-## Convenciones de Código
+## Convenciones de Codigo
 
 ### Naming Conventions
 
-#### Clases y Métodos
+#### Clases y Metodos
 ```csharp
-// PascalCase para clases, métodos, propiedades
+// PascalCase para clases, metodos, propiedades
 public class ProductoService
 {
     public async Task<Producto> GetProductoById(Guid id)
@@ -107,9 +107,9 @@ public class ProductoService
 }
 ```
 
-#### Variables y Parámetros
+#### Variables y Parametros
 ```csharp
-// camelCase para variables locales y parámetros
+// camelCase para variables locales y parametros
 public void ProcesarProducto(Producto producto)
 {
     var nombreProducto = producto.Nombre;
@@ -131,13 +131,13 @@ private readonly IRepository _repository;
 private int _contador;
 ```
 
-### Organización de Archivos
+### Organizacion de Archivos
 
 #### Un archivo por clase
 ```
 ? Producto.cs
 ? ProductoService.cs
-? Modelos.cs (con múltiples clases)
+? Modelos.cs (con multiples clases)
 ```
 
 #### Namespaces coinciden con carpetas
@@ -152,30 +152,23 @@ namespace CigralBackend.Application.Services
 }
 ```
 
-### Comentarios y Documentación
+### Comentarios y Documentacion
 
-#### XML Documentation para APIs públicas
+#### XML Documentation para APIs publicas
 ```csharp
 /// <summary>
-/// Obtiene un producto por su identificador único.
+/// Obtiene un producto por su identificador unico.
 /// </summary>
 /// <param name="id">El identificador del producto</param>
 /// <returns>El producto encontrado o null</returns>
-/// <exception cref="ArgumentException">Si el id es vacío</exception>
+/// <exception cref="ArgumentException">Si el id es vacio</exception>
 public async Task<Producto?> GetProductoById(Guid id)
 {
     if (id == Guid.Empty)
-        throw new ArgumentException("El id no puede estar vacío", nameof(id));
+        throw new ArgumentException("El id no puede estar vacio", nameof(id));
         
     return await _repository.GetById<Producto>(id);
 }
-```
-
-#### Comentarios TODO
-```csharp
-// TODO: Implementar caché para mejorar performance
-// FIXME: Corregir validación de GTIN
-// HACK: Solución temporal hasta refactorizar
 ```
 
 ### Commits
@@ -188,16 +181,16 @@ Usar [Conventional Commits](https://www.conventionalcommits.org/):
 
 # Tipos
 feat:     Nueva funcionalidad
-fix:      Corrección de bug
-docs:     Cambios en documentación
-style:    Cambios de formato (sin afectar código)
-refactor: Refactorización
+fix:      Correccion de bug
+docs:     Cambios en documentacion
+style:    Cambios de formato (sin afectar codigo)
+refactor: Refactorizacion
 test:     Agregar o modificar tests
 chore:    Cambios en build, CI, etc.
 
 # Ejemplos
-git commit -m "feat(producto): agregar validación de GTIN"
-git commit -m "fix(repository): corregir paginación en GetAll"
+git commit -m "feat(producto): agregar validacion de GTIN"
+git commit -m "fix(repository): corregir paginacion en GetAll"
 git commit -m "docs: actualizar README con instrucciones de deploy"
 ```
 
@@ -223,7 +216,7 @@ dotnet build
 
 # Commit frecuentes
 git add .
-git commit -m "feat: descripción del cambio"
+git commit -m "feat: descripcion del cambio"
 ```
 
 ### 3. Antes de Push
@@ -243,28 +236,9 @@ dotnet test
 git push origin feature/nueva-funcionalidad
 ```
 
-### 4. Pull Request
-
-1. Ir a GitHub
-2. Crear Pull Request de `feature/nueva-funcionalidad` ? `development`
-3. Completar template de PR
-4. Solicitar revisión
-5. Esperar aprobación y CI/CD verde
-
-### 5. Code Review Checklist
-
-- [ ] El código compila sin errores
-- [ ] Los tests pasan
-- [ ] Se agregaron tests para nueva funcionalidad
-- [ ] La documentación está actualizada
-- [ ] Se siguieron las convenciones de código
-- [ ] No hay código comentado innecesario
-- [ ] Las variables tienen nombres descriptivos
-- [ ] Se agregó documentación XML a APIs públicas
-
 ## Agregar Nueva Funcionalidad
 
-### Ejemplo: Agregar Categorías de Productos
+### Ejemplo: Agregar Categorias de Productos
 
 #### 1. Crear Entidad (Domain)
 
@@ -272,26 +246,12 @@ git push origin feature/nueva-funcionalidad
 // CigralBackend.Domain/Categoria.cs
 namespace CigralBackend.Domain
 {
-    /// <summary>
-    /// Representa una categoría de productos.
-    /// </summary>
     public class Categoria : EntityBase
     {
         public Categoria() { }
         
-        /// <summary>
-        /// Nombre de la categoría.
-        /// </summary>
         public string Nombre { get; set; }
-        
-        /// <summary>
-        /// Descripción de la categoría.
-        /// </summary>
         public string? Descripcion { get; set; }
-        
-        /// <summary>
-        /// Productos asociados a esta categoría.
-        /// </summary>
         public List<Producto>? Productos { get; set; }
     }
 }
@@ -310,20 +270,13 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
     modelBuilder.Entity<Categoria>(entity =>
     {
         entity.HasKey(e => e.Id);
-        entity.Property(e => e.Nombre)
-            .HasMaxLength(100)
-            .IsRequired();
-        entity.Property(e => e.Descripcion)
-            .HasMaxLength(500);
-        entity.HasMany(e => e.Productos)
-            .WithOne(p => p.Categoria)
-            .HasForeignKey(p => p.CategoriaId)
-            .OnDelete(DeleteBehavior.Restrict);
+        entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
+        entity.Property(e => e.Descripcion).HasMaxLength(500);
     });
 }
 ```
 
-#### 3. Crear Migración
+#### 3. Crear Migracion
 
 ```bash
 cd CigralBackend
@@ -334,17 +287,6 @@ dotnet ef database update --project ..\CigralBackend.Infraestructure --startup-p
 #### 4. Crear DTOs (Application)
 
 ```csharp
-// CigralBackend.Application/Dtos/CategoriaDto.cs
-namespace CigralBackend.Application.Dtos
-{
-    public class CategoriaDto
-    {
-        public Guid Id { get; set; }
-        public string Nombre { get; set; }
-        public string? Descripcion { get; set; }
-    }
-}
-
 // CigralBackend.Application/Dtos/CategoriaModel.cs
 using System.ComponentModel.DataAnnotations;
 
@@ -365,76 +307,31 @@ namespace CigralBackend.Application.Dtos
 #### 5. Crear Servicio (Application)
 
 ```csharp
-// CigralBackend.Application/Services/Interfaces/ICategoriaService.cs
-namespace CigralBackend.Application.Services.Interfaces
-{
-    public interface ICategoriaService
-    {
-        Task<PagedResult<Categoria>> GetAllCategorias(int pageNumber, int pageSize);
-        Task<Categoria?> GetCategoriaById(Guid id);
-        Task<Categoria> CreateCategoria(CategoriaModelRequest request);
-        Task<Categoria> UpdateCategoria(Guid id, CategoriaModelRequest request);
-        Task DeleteCategoria(Guid id);
-    }
-}
-
 // CigralBackend.Application/Services/CategoriaService.cs
-using CigralBackend.Application.Services.Interfaces;
-using CigralBackend.Infrastructure.Database.Interfaces;
-
-namespace CigralBackend.Application.Services
+public class CategoriaService : ICategoriaService
 {
-    public class CategoriaService : ICategoriaService
+    private readonly IRepository _repository;
+
+    public CategoriaService(IRepository repository)
     {
-        private readonly IRepository _repository;
+        _repository = repository;
+    }
 
-        public CategoriaService(IRepository repository)
+    public async Task<PagedResult<Categoria>> GetAllCategorias(int pageNumber, int pageSize)
+    {
+        return await _repository.GetAll<Categoria>(pageNumber, pageSize);
+    }
+
+    public async Task<Categoria> CreateCategoria(CategoriaModelRequest request)
+    {
+        var categoria = new Categoria
         {
-            _repository = repository;
-        }
+            Id = Guid.NewGuid(),
+            Nombre = request.Nombre,
+            Descripcion = request.Descripcion
+        };
 
-        public async Task<PagedResult<Categoria>> GetAllCategorias(int pageNumber, int pageSize)
-        {
-            return await _repository.GetAll<Categoria>(pageNumber, pageSize, "Productos");
-        }
-
-        public async Task<Categoria?> GetCategoriaById(Guid id)
-        {
-            return await _repository.GetById<Categoria>(id, "Productos");
-        }
-
-        public async Task<Categoria> CreateCategoria(CategoriaModelRequest request)
-        {
-            var categoria = new Categoria
-            {
-                Id = Guid.NewGuid(),
-                Nombre = request.Nombre,
-                Descripcion = request.Descripcion
-            };
-
-            return await _repository.Add(categoria);
-        }
-
-        public async Task<Categoria> UpdateCategoria(Guid id, CategoriaModelRequest request)
-        {
-            var categoria = await _repository.GetById<Categoria>(id);
-            if (categoria == null)
-                throw new KeyNotFoundException($"Categoría con id {id} no encontrada");
-
-            categoria.Nombre = request.Nombre;
-            categoria.Descripcion = request.Descripcion;
-
-            return await _repository.Update(categoria);
-        }
-
-        public async Task DeleteCategoria(Guid id)
-        {
-            var categoria = await _repository.GetById<Categoria>(id);
-            if (categoria == null)
-                throw new KeyNotFoundException($"Categoría con id {id} no encontrada");
-
-            await _repository.Delete(categoria);
-        }
+        return await _repository.Add(categoria);
     }
 }
 ```
@@ -443,103 +340,31 @@ namespace CigralBackend.Application.Services
 
 ```csharp
 // CigralBackend.Api/Controllers/CategoriasController.cs
-using CigralBackend.Application.Dtos;
-using CigralBackend.Application.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-
-namespace CigralBackend.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class CategoriasController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class CategoriasController : ControllerBase
+    private readonly ICategoriaService _categoriaService;
+
+    public CategoriasController(ICategoriaService categoriaService)
     {
-        private readonly ICategoriaService _categoriaService;
+        _categoriaService = categoriaService;
+    }
 
-        public CategoriasController(ICategoriaService categoriaService)
-        {
-            _categoriaService = categoriaService;
-        }
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<Categoria>>> GetAll(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var result = await _categoriaService.GetAllCategorias(pageNumber, pageSize);
+        return Ok(result);
+    }
 
-        /// <summary>
-        /// Obtiene todas las categorías con paginación.
-        /// </summary>
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<PagedResult<Categoria>>> GetAll(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            var result = await _categoriaService.GetAllCategorias(pageNumber, pageSize);
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Obtiene una categoría por su ID.
-        /// </summary>
-        [HttpGet("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Categoria>> GetById(Guid id)
-        {
-            var categoria = await _categoriaService.GetCategoriaById(id);
-            if (categoria == null)
-                return NotFound();
-
-            return Ok(categoria);
-        }
-
-        /// <summary>
-        /// Crea una nueva categoría.
-        /// </summary>
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Categoria>> Create(
-            [FromBody] CategoriaModelRequest request)
-        {
-            var categoria = await _categoriaService.CreateCategoria(request);
-            return CreatedAtAction(nameof(GetById), new { id = categoria.Id }, categoria);
-        }
-
-        /// <summary>
-        /// Actualiza una categoría existente.
-        /// </summary>
-        [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Categoria>> Update(
-            Guid id,
-            [FromBody] CategoriaModelRequest request)
-        {
-            try
-            {
-                var categoria = await _categoriaService.UpdateCategoria(id, request);
-                return Ok(categoria);
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-        }
-
-        /// <summary>
-        /// Elimina una categoría.
-        /// </summary>
-        [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            try
-            {
-                await _categoriaService.DeleteCategoria(id);
-                return NoContent();
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-        }
+    [HttpPost]
+    public async Task<ActionResult<Categoria>> Create([FromBody] CategoriaModelRequest request)
+    {
+        var categoria = await _categoriaService.CreateCategoria(request);
+        return CreatedAtAction(nameof(GetAll), new { id = categoria.Id }, categoria);
     }
 }
 ```
@@ -574,50 +399,10 @@ dotnet run --project CigralBackend.Api
 
 ### Visual Studio Code
 
-1. Configurar `launch.json`:
-```json
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": ".NET Core Launch (web)",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/CigralBackend.Api/bin/Debug/net8.0/CigralBackend.Api.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/CigralBackend.Api",
-            "stopAtEntry": false,
-            "serverReadyAction": {
-                "action": "openExternally",
-                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
-            },
-            "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
-            }
-        }
-    ]
-}
-```
-
+1. Configurar `launch.json`
 2. Presionar F5
 
-## Tips y Tricks
-
-### Snippets Útiles
-
-#### Crear una entidad rápidamente
-```csharp
-// Escribir "prop" + Tab + Tab
-public string Nombre { get; set; }
-
-// Escribir "ctor" + Tab + Tab para constructor
-public MiClase()
-{
-}
-```
-
-### Comandos dotnet útiles
+## Comandos Utiles
 
 ```bash
 # Ver info del proyecto
@@ -634,19 +419,6 @@ dotnet list package
 
 # Actualizar paquete
 dotnet add package Microsoft.EntityFrameworkCore --version 8.0.1
-```
-
-### SQL Server Tips
-
-```sql
--- Ver todas las tablas
-SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
-
--- Ver estructura de una tabla
-sp_help 'Productos'
-
--- Ver datos
-SELECT TOP 10 * FROM Productos
 ```
 
 ## Recursos

@@ -1,38 +1,38 @@
-# Guía de Arquitectura - CigralBackend
+# Guia de Arquitectura - CigralBackend
 
-## Principios de Diseño
+## Principios de Diseno
 
-El proyecto CigralBackend sigue los principios de **Clean Architecture** y **Domain-Driven Design (DDD)**, organizando el código en capas bien definidas con responsabilidades claras.
+El proyecto CigralBackend sigue los principios de **Clean Architecture** y **Domain-Driven Design (DDD)**, organizando el codigo en capas bien definidas con responsabilidades claras.
 
-## Capas de la Aplicación
+## Capas de la Aplicacion
 
-### 1. Domain (Dominio) ??
+### 1. Domain (Dominio)
 
-**Ubicación**: `CigralBackend.Domain`
+**Ubicacion**: `CigralBackend.Domain`
 
-**Responsabilidad**: Contiene las entidades del negocio y la lógica de dominio puro.
+**Responsabilidad**: Contiene las entidades del negocio y la logica de dominio puro.
 
-**Características**:
-- ? No tiene dependencias externas
-- ? Contiene solo entidades y reglas de negocio
-- ? Es el núcleo de la aplicación
-- ? Define las interfaces que necesita (pero no las implementa)
+**Caracteristicas**:
+- No tiene dependencias externas
+- Contiene solo entidades y reglas de negocio
+- Es el nucleo de la aplicacion
+- Define las interfaces que necesita (pero no las implementa)
 
 **Estructura**:
 ```
 CigralBackend.Domain/
-??? Bases/
-?   ??? EntityBase.cs           # Clase base con Id
-?   ??? RemitoBase.cs           # Base para remitos
-??? Cliente.cs                  # Entidad Cliente
-??? Proveedor.cs                # Entidad Proveedor
-??? Producto.cs                 # Entidad Producto
-??? Lote.cs                     # Entidad Lote
-??? Deposito.cs                 # Entidad Depósito
-??? Existencia.cs               # Entidad Existencia
-??? DetalleRemito.cs            # Entidad DetalleRemito
-??? RemitoCliente.cs            # Entidad RemitoCliente
-??? RemitoProveedor.cs          # Entidad RemitoProveedor
+|-- Bases/
+|   |-- EntityBase.cs           # Clase base con Id
+|   +-- RemitoBase.cs           # Base para remitos
+|-- Cliente.cs                  # Entidad Cliente
+|-- Proveedor.cs                # Entidad Proveedor
+|-- Producto.cs                 # Entidad Producto
+|-- Lote.cs                     # Entidad Lote
+|-- Deposito.cs                 # Entidad Deposito
+|-- Existencia.cs               # Entidad Existencia
+|-- DetalleRemito.cs            # Entidad DetalleRemito
+|-- RemitoCliente.cs            # Entidad RemitoCliente
++-- RemitoProveedor.cs          # Entidad RemitoProveedor
 ```
 
 **Ejemplo**:
@@ -46,31 +46,31 @@ public class Producto : EntityBase
 }
 ```
 
-### 2. Application (Aplicación) ??
+### 2. Application (Aplicacion)
 
-**Ubicación**: `CigralBackend.Application`
+**Ubicacion**: `CigralBackend.Application`
 
-**Responsabilidad**: Orquesta la lógica de negocio, coordina el flujo de datos entre capas.
+**Responsabilidad**: Orquesta la logica de negocio, coordina el flujo de datos entre capas.
 
-**Características**:
-- ? Depende del Domain
-- ? Define servicios de aplicación
-- ? Contiene DTOs y modelos de validación
-- ? Implementa casos de uso
-- ? No depende de Infrastructure ni de detalles técnicos
+**Caracteristicas**:
+- Depende del Domain
+- Define servicios de aplicacion
+- Contiene DTOs y modelos de validacion
+- Implementa casos de uso
+- No depende de Infrastructure ni de detalles tecnicos
 
 **Estructura**:
 ```
 CigralBackend.Application/
-??? Dtos/
-?   ??? ClienteDto.cs
-?   ??? ClienteModel.cs          # Con validaciones
-?   ??? ClienteRequests.cs       # Request/Response
-?   ??? ...
-??? Services/
-    ??? Interfaces/
-    ?   ??? IProductoService.cs
-    ??? ProductoService.cs
+|-- Dtos/
+|   |-- ClienteDto.cs
+|   |-- ClienteModel.cs          # Con validaciones
+|   |-- ClienteRequests.cs       # Request/Response
+|   +-- ...
++-- Services/
+    |-- Interfaces/
+    |   +-- IProductoService.cs
+    +-- ProductoService.cs
 ```
 
 **Ejemplo de Servicio**:
@@ -95,28 +95,28 @@ public class ProductoService : IProductoService
 
 - **DTOs** (`*Dto.cs`): Objetos simples para transferencia de datos
 - **Models** (`*Model.cs`): Records con validaciones (Data Annotations)
-- **Requests** (`*Requests.cs`): Records para Create/Update/Response específicos
+- **Requests** (`*Requests.cs`): Records para Create/Update/Response especificos
 
-### 3. Infrastructure (Infraestructura) ??
+### 3. Infrastructure (Infraestructura)
 
-**Ubicación**: `CigralBackend.Infrastructure`
+**Ubicacion**: `CigralBackend.Infrastructure`
 
-**Responsabilidad**: Implementa detalles técnicos como acceso a datos, servicios externos, etc.
+**Responsabilidad**: Implementa detalles tecnicos como acceso a datos, servicios externos, etc.
 
-**Características**:
-- ? Depende del Domain
-- ? Implementa interfaces definidas en Application/Domain
-- ? Contiene DbContext y repositorios
-- ? Gestiona la persistencia de datos
+**Caracteristicas**:
+- Depende del Domain
+- Implementa interfaces definidas en Application/Domain
+- Contiene DbContext y repositorios
+- Gestiona la persistencia de datos
 
 **Estructura**:
 ```
 CigralBackend.Infrastructure/
-??? Database/
-    ??? CigralBackendContext.cs    # DbContext de EF Core
-    ??? EfRepository.cs            # Implementación del repositorio
-    ??? Interfaces/
-        ??? IRepository.cs         # Interfaz del repositorio
++-- Database/
+    |-- CigralBackendContext.cs    # DbContext de EF Core
+    |-- EfRepository.cs            # Implementacion del repositorio
+    +-- Interfaces/
+        +-- IRepository.cs         # Interfaz del repositorio
 ```
 
 **DbContext**:
@@ -128,7 +128,7 @@ public class CigralBackendContext : DbContext
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Configuración Fluent API
+        // Configuracion Fluent API
         modelBuilder.Entity<Cliente>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -139,27 +139,27 @@ public class CigralBackendContext : DbContext
 }
 ```
 
-### 4. API (Presentación) ??
+### 4. API (Presentacion)
 
-**Ubicación**: `CigralBackend.Api`
+**Ubicacion**: `CigralBackend.Api`
 
-**Responsabilidad**: Punto de entrada de la aplicación, expone endpoints HTTP.
+**Responsabilidad**: Punto de entrada de la aplicacion, expone endpoints HTTP.
 
-**Características**:
-- ? Depende de Application e Infrastructure
-- ? Contiene Controllers
-- ? Configura servicios e inyección de dependencias
-- ? Gestiona autenticación y autorización
-- ? Configura middleware
+**Caracteristicas**:
+- Depende de Application e Infrastructure
+- Contiene Controllers
+- Configura servicios e inyeccion de dependencias
+- Gestiona autenticacion y autorizacion
+- Configura middleware
 
 **Estructura**:
 ```
 CigralBackend.Api/
-??? Controllers/
-?   ??? ProductController.cs
-??? Program.cs                  # Configuración de la app
-??? appsettings.json           # Configuración
-??? appsettings.Development.json
+|-- Controllers/
+|   +-- ProductController.cs
+|-- Program.cs                  # Configuracion de la app
+|-- appsettings.json           # Configuracion
++-- appsettings.Development.json
 ```
 
 **Ejemplo de Controller**:
@@ -189,50 +189,49 @@ public class ProductsController : ControllerBase
 ## Flujo de Datos
 
 ```
-????????????????
-?   Cliente    ?
-?   (HTTP)     ?
-????????????????
-       ?
-       ?
-????????????????????????????????????????
-?         API Layer                    ?
-?  ??????????????                      ?
-?  ? Controller ? ??? Validation       ?
-?  ??????????????                      ?
-????????????????????????????????????????
-         ?
-         ?
-????????????????????????????????????????
-?      Application Layer               ?
-?  ???????????     ????????????        ?
-?  ? Service ? ??? ?   DTOs   ?        ?
-?  ???????????     ????????????        ?
-????????????????????????????????????????
-        ?
-        ?
-????????????????????????????????????????
-?      Domain Layer                    ?
-?  ????????????????                    ?
-?  ?   Entities   ?                    ?
-?  ? (Business    ?                    ?
-?  ?   Rules)     ?                    ?
-?  ????????????????                    ?
-????????????????????????????????????????
-        ?
-        ?
-????????????????????????????????????????
-?    Infrastructure Layer              ?
-?  ??????????????    ????????????      ?
-?  ? Repository ? ???? DbContext?      ?
-?  ??????????????    ????????????      ?
-????????????????????????????????????????
-                          ?
-                          ?
-                   ???????????????
-                   ?  Database   ?
-                   ? SQL Server  ?
-                   ???????????????
++----------------+
+|   Cliente      |
+|   (HTTP)       |
++-------+--------+
+        |
+        v
++----------------------------------------+
+|         API Layer                      |
+|  +--------------+                      |
+|  | Controller   | <-- Validation       |
+|  +--------------+                      |
++----------------------------------------+
+         |
+         v
++----------------------------------------+
+|      Application Layer                 |
+|  +-----------+     +------------+      |
+|  | Service   | --> |   DTOs     |      |
+|  +-----------+     +------------+      |
++----------------------------------------+
+        |
+        v
++----------------------------------------+
+|      Domain Layer                      |
+|  +------------------+                  |
+|  |   Entities       |                  |
+|  | (Business Rules) |                  |
+|  +------------------+                  |
++----------------------------------------+
+        |
+        v
++----------------------------------------+
+|    Infrastructure Layer                |
+|  +--------------+    +------------+    |
+|  | Repository   | -->| DbContext  |    |
+|  +--------------+    +------------+    |
++----------------------------------------+
+                          |
+                          v
+                   +---------------+
+                   |  Database     |
+                   | SQL Server    |
+                   +---------------+
 ```
 
 ## Patrones Implementados
@@ -251,9 +250,9 @@ public interface IRepository
 ```
 
 **Beneficios**:
-- ? Desacopla la lógica de negocio del acceso a datos
-- ? Facilita el testing (mock del repositorio)
-- ? Centraliza las consultas
+- Desacopla la logica de negocio del acceso a datos
+- Facilita el testing (mock del repositorio)
+- Centraliza las consultas
 
 ### 2. Dependency Injection
 
@@ -272,9 +271,9 @@ builder.Services.AddScoped<IProductoService, ProductoService>();
 ```
 
 **Beneficios**:
-- ? Bajo acoplamiento
-- ? Mayor testabilidad
-- ? Facilita el cambio de implementaciones
+- Bajo acoplamiento
+- Mayor testabilidad
+- Facilita el cambio de implementaciones
 
 ### 3. DTO Pattern
 
@@ -285,7 +284,7 @@ Separa las entidades del dominio de las representaciones externas:
 public class Producto : EntityBase
 {
     public string Nombre { get; set; }
-    public List<Lote> Lotes { get; set; }  // Relación compleja
+    public List<Lote> Lotes { get; set; }  // Relacion compleja
 }
 
 // DTO para API
@@ -293,68 +292,68 @@ public class ProductoDto
 {
     public Guid Id { get; set; }
     public string Nombre { get; set; }
-    // Sin Lotes completos, solo información necesaria
+    // Sin Lotes completos, solo informacion necesaria
 }
 ```
 
 **Beneficios**:
-- ? Controla qué datos se exponen
-- ? Evita sobre-serialización
-- ? Optimiza el tamaño de las respuestas
+- Controla que datos se exponen
+- Evita sobre-serializacion
+- Optimiza el tamano de las respuestas
 
 ## Principios SOLID Aplicados
 
 ### Single Responsibility (S)
-Cada clase tiene una única responsabilidad:
+Cada clase tiene una unica responsabilidad:
 - `ProductoService`: Solo gestiona operaciones de productos
 - `EfRepository`: Solo gestiona acceso a datos
 
 ### Open/Closed (O)
-Abierto para extensión, cerrado para modificación:
-- `IRepository` permite nuevas implementaciones sin cambiar código existente
+Abierto para extension, cerrado para modificacion:
+- `IRepository` permite nuevas implementaciones sin cambiar codigo existente
 
 ### Liskov Substitution (L)
 Las implementaciones pueden sustituir a sus interfaces:
-- `EfRepository` puede reemplazarse por cualquier implementación de `IRepository`
+- `EfRepository` puede reemplazarse por cualquier implementacion de `IRepository`
 
 ### Interface Segregation (I)
-Interfaces específicas en lugar de genéricas:
-- `IProductoService` en lugar de un `IService` genérico
+Interfaces especificas en lugar de genericas:
+- `IProductoService` en lugar de un `IService` generico
 
 ### Dependency Inversion (D)
 Depender de abstracciones, no de concreciones:
 - Services dependen de `IRepository`, no de `EfRepository`
 
-## Mejores Prácticas
+## Mejores Practicas
 
-### ? DO (Hacer)
+### DO (Hacer)
 
 1. **Mantener el Domain limpio**: Sin dependencias externas
 2. **Usar DTOs**: Para transferencia de datos
-3. **Validar en el límite**: Validaciones en la capa de API
+3. **Validar en el limite**: Validaciones en la capa de API
 4. **Usar async/await**: Para operaciones I/O
-5. **Documentar con XML**: Comentarios en interfaces públicas
+5. **Documentar con XML**: Comentarios en interfaces publicas
 
-### ? DON'T (No hacer)
+### DON'T (No hacer)
 
 1. **No referenciar Infrastructure desde Domain**
-2. **No poner lógica de negocio en Controllers**
+2. **No poner logica de negocio en Controllers**
 3. **No exponer entidades directamente en la API**
 4. **No hacer queries en Controllers**
-5. **No ignorar la paginación en listas grandes**
+5. **No ignorar la paginacion en listas grandes**
 
 ## Testing Strategy
 
 ```
 Tests/
-??? Unit/
-?   ??? Services/          # Tests de servicios (mockeando repository)
-?   ??? Domain/            # Tests de entidades y lógica de negocio
-??? Integration/
-?   ??? Controllers/       # Tests de endpoints
-?   ??? Repository/        # Tests con BD en memoria
-??? E2E/
-    ??? Scenarios/         # Tests end-to-end
+|-- Unit/
+|   |-- Services/          # Tests de servicios (mockeando repository)
+|   +-- Domain/            # Tests de entidades y logica de negocio
+|-- Integration/
+|   |-- Controllers/       # Tests de endpoints
+|   +-- Repository/        # Tests con BD en memoria
++-- E2E/
+    +-- Scenarios/         # Tests end-to-end
 ```
 
 ## Referencias

@@ -1,12 +1,14 @@
-# CigralBackend - Entity Framework Core Setup
+# DATABASE SETUP - CigralBackend
 
-## Configuración de la Base de Datos
+Guia completa de configuracion de Entity Framework Core y migraciones.
+
+## Configuracion de la Base de Datos
 
 Este proyecto utiliza Entity Framework Core con SQL Server para la persistencia de datos.
 
-### Cadena de Conexión
+### Cadena de Conexion
 
-La cadena de conexión se encuentra en `appsettings.json`:
+La cadena de conexion se encuentra en `appsettings.json`:
 
 ```json
 {
@@ -16,19 +18,19 @@ La cadena de conexión se encuentra en `appsettings.json`:
 }
 ```
 
-**Nota:** Modifica la cadena de conexión según tu configuración de SQL Server.
+**Nota:** Modifica la cadena de conexion segun tu configuracion de SQL Server.
 
 ### Crear y Aplicar Migraciones
 
-#### 1. Crear la primera migración
+#### 1. Crear la primera migracion
 
-Desde el directorio raíz de la solución, ejecuta:
+Desde el directorio raiz de la solucion, ejecuta:
 
 ```bash
 dotnet ef migrations add InitialCreate --project CigralBackend.Infraestructure --startup-project CigralBackend
 ```
 
-#### 2. Aplicar la migración a la base de datos
+#### 2. Aplicar la migracion a la base de datos
 
 ```bash
 dotnet ef database update --project CigralBackend.Infraestructure --startup-project CigralBackend
@@ -41,28 +43,28 @@ dotnet ef migrations add NombreDeLaMigracion --project CigralBackend.Infraestruc
 dotnet ef database update --project CigralBackend.Infraestructure --startup-project CigralBackend
 ```
 
-#### 4. Revertir una migración
+#### 4. Revertir una migracion
 
 ```bash
 dotnet ef database update NombreMigracionAnterior --project CigralBackend.Infraestructure --startup-project CigralBackend
 ```
 
-#### 5. Eliminar la última migración
+#### 5. Eliminar la ultima migracion
 
 ```bash
 dotnet ef migrations remove --project CigralBackend.Infraestructure --startup-project CigralBackend
 ```
 
-## Características Implementadas
+## Caracteristicas Implementadas
 
 ### 1. DbContext Configurado
 
 - **CigralBackendContext**: Contexto de Entity Framework con todas las entidades del dominio
-- Configuración completa de relaciones entre entidades
+- Configuracion completa de relaciones entre entidades
 - Restricciones de longitud en campos de texto
-- Configuración de tipos decimales para precios
+- Configuracion de tipos decimales para precios
 
-### 2. Repositorio Genérico con Paginación
+### 2. Repositorio Generico con Paginacion
 
 El `EfRepository` implementa:
 
@@ -71,19 +73,19 @@ El `EfRepository` implementa:
 - **Delete**: Eliminar entidades
 - **GetById**: Obtener por ID con includes opcionales
 - **First**: Obtener la primera coincidencia de un filtro
-- **GetAll**: Obtener todos los registros con **paginación**
-- **GetFiltered**: Obtener registros filtrados con **paginación**
+- **GetAll**: Obtener todos los registros con **paginacion**
+- **GetFiltered**: Obtener registros filtrados con **paginacion**
 
-#### Ejemplo de uso de paginación:
+#### Ejemplo de uso de paginacion:
 
 ```csharp
-// Obtener la página 2 con 20 elementos por página
+// Obtener la pagina 2 con 20 elementos por pagina
 var result = await _repository.GetAll<Producto>(pageNumber: 2, pageSize: 20, "Lotes");
 
 Console.WriteLine($"Total de productos: {result.TotalCount}");
-Console.WriteLine($"Página {result.PageNumber} de {result.TotalPages}");
-Console.WriteLine($"Tiene página anterior: {result.HasPreviousPage}");
-Console.WriteLine($"Tiene página siguiente: {result.HasNextPage}");
+Console.WriteLine($"Pagina {result.PageNumber} de {result.TotalPages}");
+Console.WriteLine($"Tiene pagina anterior: {result.HasPreviousPage}");
+Console.WriteLine($"Tiene pagina siguiente: {result.HasNextPage}");
 
 foreach (var producto in result.Items)
 {
@@ -95,25 +97,25 @@ foreach (var producto in result.Items)
 
 Todas las entidades heredan de `EntityBase` y tienen `Id` de tipo `Guid`:
 
-- **Cliente**: Información de clientes
-- **Proveedor**: Información de proveedores
-- **Producto**: Catálogo de productos
+- **Cliente**: Informacion de clientes
+- **Proveedor**: Informacion de proveedores
+- **Producto**: Catalogo de productos
 - **Lote**: Lotes de productos con vencimiento
-- **Deposito**: Almacenes o depósitos
-- **Existencia**: Stock de productos por depósito
-- **DetalleRemito**: Líneas de items en remitos
+- **Deposito**: Almacenes o depositos
+- **Existencia**: Stock de productos por deposito
+- **DetalleRemito**: Lineas de items en remitos
 - **RemitoCliente**: Remitos de salida a clientes
 - **RemitoProveedor**: Remitos de entrada de proveedores
 
 ### 4. DTOs y Modelos
 
-- **DTOs**: Representación de datos para transferencia
+- **DTOs**: Representacion de datos para transferencia
 - **Request Models**: Modelos con validaciones para crear/actualizar entidades
 - **Response Models**: Modelos para respuestas de la API
 
-## Inyección de Dependencias
+## Inyeccion de Dependencias
 
-El `Program.cs` ya está configurado con:
+El `Program.cs` ya esta configurado con:
 
 ```csharp
 // DbContext
@@ -124,9 +126,9 @@ builder.Services.AddDbContext<CigralBackendContext>(options =>
 builder.Services.AddScoped<IRepository, EfRepository>();
 ```
 
-## Próximos Pasos
+## Proximos Pasos
 
 1. Crear las migraciones con los comandos anteriores
-2. Implementar servicios de aplicación que usen el repositorio
+2. Implementar servicios de aplicacion que usen el repositorio
 3. Crear controladores que consuman los servicios
 4. Agregar AutoMapper para mapeo entre entidades y DTOs
