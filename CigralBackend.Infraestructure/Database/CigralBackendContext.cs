@@ -75,8 +75,7 @@ namespace CigralBackend.Infraestructure.Database
             modelBuilder.Entity<Marca>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
-                entity.Property(e => e.Prefijo).HasMaxLength(10).IsRequired();
+                entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();                
             });
 
             // Configuración de Lote

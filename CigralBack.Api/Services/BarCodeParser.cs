@@ -46,8 +46,15 @@ namespace CigralBackend.Application.Services
                         if (currentIndex + 6 <= raw.Length)
                         {
                             string fechaStr = raw.Substring(currentIndex, 6);
+                            // Usar ParseExact con ajuste de año
                             if (DateTime.TryParseExact(fechaStr, "yyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fecha))
                             {
+                                // Ajustar el año: si el año es menor a 50, asumimos 2000+, sino 1900+
+                                // Por ejemplo: 30 -> 2030, 80 -> 1980
+                                if (fecha.Year < 1950)
+                                {
+                                    fecha = fecha.AddYears(100);
+                                }
                                 result.FechaVencimiento = fecha;
                             }
                             currentIndex += 6;
@@ -57,7 +64,7 @@ namespace CigralBackend.Application.Services
                     else if (currentAi == "10")
                     {
                         // LOTE: Variable hasta 20
-                        int endIndex = FindEndOfField(raw, currentIndex);
+                        int endIndex = FindEndOfField(raw, currentIndex, "10");
                         int length = endIndex - currentIndex;
 
                         // Guardamos y quitamos el separador GS si existe
@@ -68,7 +75,7 @@ namespace CigralBackend.Application.Services
                     else if (currentAi == "21")
                     {
                         // SERIE: Variable hasta 20
-                        int endIndex = FindEndOfField(raw, currentIndex);
+                        int endIndex = FindEndOfField(raw, currentIndex, "21");
                         int length = endIndex - currentIndex;
 
                         result.NumeroSerie = raw.Substring(currentIndex, length).Replace(GS.ToString(), "");
@@ -78,7 +85,7 @@ namespace CigralBackend.Application.Services
                     else if (currentAi == "30")
                     {
                         // CANTIDAD: Variable hasta 8
-                        int endIndex = FindEndOfField(raw, currentIndex);
+                        int endIndex = FindEndOfField(raw, currentIndex, "30");
                         int length = endIndex - currentIndex;
 
                         string cantStr = raw.Substring(currentIndex, length).Replace(GS.ToString(), "");
@@ -124,64 +131,100 @@ namespace CigralBackend.Application.Services
         /// <summary>
         /// Encuentra dónde termina un campo variable.
         /// Prioridad 1: Busca el caracter <GS>.
-        /// Prioridad 2: Busca heurísticamente el siguiente AI conocido.
+        /// Prioridad 2: Busca el siguiente AI válido (sin GS, el parser continúa hasta el final).
         /// </summary>
-        private int FindEndOfField(string raw, int startIndex)
+        private int FindEndOfField(string raw, int startIndex, string currentAi)
         {
             // 1. Buscamos el separador oficial <GS>
             int gsIndex = raw.IndexOf(GS, startIndex);
             if (gsIndex != -1) return gsIndex;
 
-            // 2. Si no hay GS, usamos heurística buscando los AIs más comunes (10, 17, 21, 30)
-            // Validamos que lo que sigue al AI tenga sentido para evitar falsos positivos dentro del dato.
-
+            // 2. Si no hay GS, intentamos encontrar el siguiente AI
+            // Esto es complicado porque los AIs pueden aparecer dentro del contenido
+            // Estrategia: buscar posiciones donde TODOS los AIs son candidatos y elegir el más cercano
+            
             int minIndex = raw.Length;
-            var candidates = new List<string> { "10", "17", "21", "30", "01" };
-
-            foreach (var ai in candidates)
+            
+            // Para cada AI que buscamos, intentamos encontrar la primera ocurrencia válida
+            var aiCandidates = new[] { "01", "17", "10", "21", "30" };
+            
+            foreach (var ai in aiCandidates)
             {
-                int idx = raw.IndexOf(ai, startIndex);
-
-                // Mientras encontremos el AI en el string...
-                while (idx != -1 && idx < minIndex)
+                // No buscar el mismo AI que estamos parseando
+                if (ai == currentAi)
+                    continue;
+                
+                int candidate = FindNextValidAi(raw, startIndex, ai);
+                if (candidate != -1 && candidate < minIndex)
                 {
-                    bool isValidCandidate = false;
-
-                    // Validaciones rápidas para confirmar que es un AI real y no parte del Lote
-                    if (ai == "17") // El 17 debe ser seguido de 6 dígitos numéricos
-                    {
-                        if (idx + 2 + 6 <= raw.Length)
-                        {
-                            string checkDigits = raw.Substring(idx + 2, 6);
-                            if (long.TryParse(checkDigits, out _)) isValidCandidate = true;
-                        }
-                    }
-                    else if (ai == "01") // El 01 debe ser seguido de 14 dígitos
-                    {
-                        if (idx + 2 + 14 <= raw.Length) isValidCandidate = true;
-                    }
-                    else
-                    {
-                        // Para 10, 21, 30 asumimos que es válido si lo encontramos
-                        isValidCandidate = true;
-                    }
-
-                    if (isValidCandidate)
-                    {
-                        minIndex = idx;
-                        break; // Encontramos el corte más cercano, salimos del while interno
-                    }
-
-                    // Falso positivo, buscamos la siguiente ocurrencia del mismo AI
-                    idx = raw.IndexOf(ai, idx + 1);
+                    minIndex = candidate;
                 }
             }
 
             return minIndex;
         }
-    }
-}
 
+        /// <summary>
+        /// Encuentra la próxima ocurrencia válida de un AI específico.
+        /// </summary>
+        private int FindNextValidAi(string raw, int startIndex, string ai)
+        {
+            int position = startIndex;
+            
+            while (position < raw.Length - 1)
+            {
+                int idx = raw.IndexOf(ai, position);
+                
+                if (idx == -1)
+                    return -1;
+                
+                // Verificar si esta posición es un AI válido
+                if (idx + 2 <= raw.Length)
+                {
+                    // Para AI "01" (GTIN): debe tener exactamente 14 dígitos después
+                    if (ai == "01" && idx + 16 <= raw.Length)
+                    {
+                        string content = raw.Substring(idx + 2, 14);
+                        if (content.All(char.IsDigit))
+                            return idx;
+                    }
+                    // Para AI "17" (Fecha): debe tener exactly 6 dígitos y ser fecha válida
+                    else if (ai == "17" && idx + 8 <= raw.Length)
+                    {
+                        string content = raw.Substring(idx + 2, 6);
+                        if (content.All(char.IsDigit) && 
+                            DateTime.TryParseExact(content, "yyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+                            return idx;
+                    }
+                    // Para AI "30" (Cantidad): debe venir seguido de dígitos
+                    else if (ai == "30" && idx + 3 <= raw.Length)
+                    {
+                        char nextChar = raw[idx + 2];
+                        if (char.IsDigit(nextChar))
+                            return idx;
+                    }
+                    // Para AI "10" y "21": aceptamos si tiene contenido después
+                    else if ((ai == "10" || ai == "21") && idx + 3 <= raw.Length)
+                    {
+                        return idx;
+                    }
+                }
+                
+                // No fue válido, continuar buscando
+                position = idx + 1;
+            }
+            
+            return -1;
+        }
+
+        /// <summary>
+        /// Verifica si un string de 2 caracteres es un AI conocido.
+        /// </summary>
+        private bool IsKnownAi(string ai)
+        {
+            return ai == "01" || ai == "10" || ai == "17" || ai == "21" || ai == "30";
+        }
+    }
 
     public class BarCodeParsed
     {
@@ -206,4 +249,5 @@ namespace CigralBackend.Application.Services
         /// </summary>
         public bool EsValido => !string.IsNullOrEmpty(Gtin);
     }
+}
 
