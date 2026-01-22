@@ -2,6 +2,7 @@
 using CigralBackend.Infraestructure.Database.Interfaces;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using CigralBackend.Domain.Wrappers;
 
 namespace CigralBackend.Infraestructure.Database
 {
@@ -61,8 +62,10 @@ namespace CigralBackend.Infraestructure.Database
                 Items = items,
                 TotalCount = totalCount,
                 PageNumber = pageNumber,
-                PageSize = pageSize
+                PageSize = pageSize,
+                
             };
+
         }
 
         /// <inheritdoc/>

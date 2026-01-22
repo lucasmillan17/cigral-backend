@@ -18,18 +18,30 @@ namespace CigralBackend.Application.Dtos
         [MaxLength(14, ErrorMessage = "El GTIN no puede superar los 14 caracteres")]
         string GTIN,
         [Required(ErrorMessage = "El campo EsUnitario es obligatorio")]
-        bool EsUnitario,
+        bool? EsUnitario,
         [Range(0, double.MaxValue, ErrorMessage = "El precio debe ser un valor positivo")]
-        decimal? Precio
+        decimal? Precio,
+        string? Marca
     );
 
     public record ProductoModelResponse
     (
         int Id,
+        string? Marca,
         string Nombre,
         string Descripcion,
         string GTIN,
-        bool EsUnitario,
         decimal? Precio
+    );
+
+    public record ProductoFilters
+    (
+        string? Nombre,
+        string? Gtin,
+        string? Marca,
+        [Range(1, int.MaxValue, ErrorMessage = "La página debe ser mayor a 0")]
+        int PageNumber = 1,
+        [Range(1, 100, ErrorMessage = "El tamaño de página no puede superar los 100 items")]
+        int PageSize = 10
     );
 }

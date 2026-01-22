@@ -11,6 +11,7 @@ namespace CigralBackend.Infraestructure.Database
         }
 
         public DbSet<Cliente> Clientes { get; set; }
+        public DbSet<Marca> Marcas { get; set; }
         public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Lote> Lotes { get; set; }
@@ -60,10 +61,22 @@ namespace CigralBackend.Infraestructure.Database
                 entity.Property(e => e.Descripcion).HasMaxLength(500);
                 entity.Property(e => e.GTIN).HasMaxLength(14).IsRequired();
                 entity.Property(e => e.Precio).HasColumnType("decimal(18,2)");
+                entity.HasOne(e => e.Marca)
+                      .WithMany()
+                      .HasForeignKey(e => e.MarcaId)
+                      .OnDelete(DeleteBehavior.Restrict);
                 entity.HasMany(e => e.Lotes)
                       .WithOne(l => l.Producto)
                       .HasForeignKey(l => l.ProductoId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            //Configuración de Marca
+            modelBuilder.Entity<Marca>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Prefijo).HasMaxLength(10).IsRequired();
             });
 
             // Configuración de Lote
