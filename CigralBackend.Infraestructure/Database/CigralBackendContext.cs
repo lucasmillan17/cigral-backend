@@ -69,6 +69,7 @@ namespace CigralBackend.Infraestructure.Database
                       .WithOne(l => l.Producto)
                       .HasForeignKey(l => l.ProductoId)
                       .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.GTIN).IsUnique();
             });
 
             //Configuración de Marca
@@ -134,14 +135,14 @@ namespace CigralBackend.Infraestructure.Database
             // Configuración de RemitoBase (compartida)
             modelBuilder.Entity<RemitoBase>(entity =>
             {
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.Observaciones).HasMaxLength(500);
                 entity.Property(e => e.NumeroRemito).HasMaxLength(50);
             });
 
             // Configuración de RemitoCliente
             modelBuilder.Entity<RemitoCliente>(entity =>
-            {
-                entity.HasKey(e => e.Id);
+            {                
                 entity.HasOne(e => e.Cliente)
                       .WithMany()
                       .HasForeignKey(e => e.ClienteId)
@@ -154,7 +155,6 @@ namespace CigralBackend.Infraestructure.Database
             // Configuración de RemitoProveedor
             modelBuilder.Entity<RemitoProveedor>(entity =>
             {
-                entity.HasKey(e => e.Id);
                 entity.HasOne(e => e.Proveedor)
                       .WithMany(p => p.Remitos)
                       .HasForeignKey(e => e.ProveedorId)

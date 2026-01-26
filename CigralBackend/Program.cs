@@ -23,6 +23,8 @@ namespace CigralBackend
             // Registrar el repositorio
             builder.Services.AddScoped<IRepository, EfRepository>();
             builder.Services.AddScoped<IProductoService, ProductoService>();
+            builder.Services.AddScoped<IMarcaService, MarcaService>();
+            builder.Services.AddScoped<IExistenciaService, ExistenciaService>();
             builder.Services.AddSingleton<IBarCodeParser, BarCodeParser>();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

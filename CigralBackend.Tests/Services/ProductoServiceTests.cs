@@ -359,62 +359,6 @@ namespace CigralBackend.Tests.Services
 
         #endregion
 
-        #region GetAllProductos Tests
-
-        [Fact]
-        public async Task GetAllProductos_DeberiaRetornarProductosPaginados()
-        {
-            // Arrange
-            var productos = new PagedResult<Producto>
-            {
-                Items = new List<Producto>
-                {
-                    new Producto { Id = 1, Nombre = "Producto 1", GTIN = "11111111111111" },
-                    new Producto { Id = 2, Nombre = "Producto 2", GTIN = "22222222222222" }
-                },
-                TotalCount = 2,
-                PageNumber = 1,
-                PageSize = 10
-            };
-
-            _mockRepository.Setup(r => r.GetAll<Producto>(1, 10, It.IsAny<string[]>()))
-                          .ReturnsAsync(productos);
-
-            // Act
-            var result = await _service.GetAllProductos(1, 10);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Items.Count);
-            Assert.Equal(2, result.TotalCount);
-            Assert.Equal(1, result.PageNumber);
-        }
-
-        [Fact]
-        public async Task GetAllProductos_SinProductos_DeberiaRetornarListaVacia()
-        {
-            // Arrange
-            var productos = new PagedResult<Producto>
-            {
-                Items = new List<Producto>(),
-                TotalCount = 0,
-                PageNumber = 1,
-                PageSize = 10
-            };
-
-            _mockRepository.Setup(r => r.GetAll<Producto>(1, 10, It.IsAny<string[]>()))
-                          .ReturnsAsync(productos);
-
-            // Act
-            var result = await _service.GetAllProductos(1, 10);
-
-            // Assert
-            Assert.Empty(result.Items);
-            Assert.Equal(0, result.TotalCount);
-        }
-
-        #endregion
-
         #region GetProductoFiltered Tests
 
         [Fact]

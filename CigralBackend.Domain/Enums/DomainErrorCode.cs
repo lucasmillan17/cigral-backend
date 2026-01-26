@@ -37,6 +37,16 @@ namespace CigralBackend.Domain.Enums
         /// </summary>
         NombreProductoDuplicado = 2003,
 
+        /// <summary>
+        /// La marca con ese nombre ya existe.
+        /// </summary>
+        MarcaDuplicada = 2004,
+
+        /// <summary>
+        /// La marca tiene productos asociados y no puede eliminarse.
+        /// </summary>
+        MarcaTieneProductos = 2005,
+
         // 3000 - Errores de Stock/Inventario
         /// <summary>
         /// No hay suficiente stock disponible para la operacion solicitada.
@@ -67,6 +77,11 @@ namespace CigralBackend.Domain.Enums
         /// La existencia solicitada no fue encontrada.
         /// </summary>
         ExistenciaNoEncontrada = 3005,
+
+        /// <summary>
+        /// Producto unitario debe tener cantidad 1.
+        /// </summary>
+        ProductoUnitarioCantidadInvalida = 3006,
 
         // 4000 - Errores de Clientes
         /// <summary>

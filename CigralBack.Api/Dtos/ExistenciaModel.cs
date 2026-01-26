@@ -17,4 +17,37 @@ namespace CigralBackend.Application.Dtos
         [Range(0, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor o igual a 0")]
         int Cantidad
     );
+
+    public record ExistenciaModelResponse(
+    int Id, // ID de la existencia (para editar/borrar)
+
+    // --- Datos del Producto (Flattened / Aplanados) ---
+    int ProductoId,        // Útil para navegar al detalle del producto
+    string ProductoNombre, // ¡INDISPENSABLE! Para mostrar en la grilla
+    string ProductoGtin,   // Muy útil para que el usuario verifique visualmente
+
+    // --- Datos del Depósito ---
+    int DepositoId,
+    string DepositoNombre, // Para saber DÓNDE está (ej: "Depósito Central")
+
+    // --- Datos del Lote ---
+    int? LoteId,
+    string? CodigoLote,    // El humano quiere ver "LOTE-A24", no el ID 58
+
+    // --- Datos de Existencia ---
+    string? NumSerie,
+    DateTime? FechaVencimiento,
+    int Cantidad
+);
+
+    public record ExistenciaFilters
+    (
+        int? DepositoId,
+        int? ProductoId,
+        int? LoteId,
+        [Range(1, int.MaxValue, ErrorMessage = "La página debe ser mayor a 0")]
+        int PageNumber = 1,
+        [Range(1, 100, ErrorMessage = "El tamaño de página no puede superar los 100 items")]
+        int PageSize = 10
+    );
 }

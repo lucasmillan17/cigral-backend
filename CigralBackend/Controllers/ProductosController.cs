@@ -10,11 +10,11 @@ namespace CigralBackend.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductsController : ControllerBase
+    public class ProductosController : ControllerBase
     {
         private readonly IProductoService _productoService;
 
-        public ProductsController(IProductoService productoService)
+        public ProductosController(IProductoService productoService)
         {
             _productoService = productoService;
         }
