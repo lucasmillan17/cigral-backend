@@ -16,14 +16,6 @@ namespace CigralBackend.Application.Services.Interfaces
         Task<ProductoModelResponse> CreateProducto(ProductoModelRequest r);
 
         /// <summary>
-        /// Obtiene todos los productos con paginacion.
-        /// </summary>
-        /// <param name="pageNumber">Numero de pagina</param>
-        /// <param name="pageSize">Tamano de pagina</param>
-        /// <returns>Resultado paginado de productos</returns>
-        Task<PagedResult<ProductoModelResponse>> GetAllProductos(int pageNumber, int pageSize);
-
-        /// <summary>
         /// Obtiene productos filtrados con paginacion.
         /// </summary>
         /// <param name="f">Filtros de busqueda</param>

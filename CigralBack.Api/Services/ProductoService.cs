@@ -119,12 +119,6 @@ namespace CigralBackend.Application.Services
         /// <param name="pageNumber">Numero de pagina</param>
         /// <param name="pageSize">Tamano de pagina</param>
         /// <returns>Resultado paginado de productos</returns>
-        public async Task<PagedResult<ProductoModelResponse>> GetAllProductos(int pageNumber, int pageSize)
-        {
-            var productos = await _repository.GetAll<Producto>(pageNumber, pageSize, "Marca");
-
-            return MapeoProductosResponse(productos);
-        }
 
         /// <summary>
         /// Obtiene productos filtrados con paginacion.
