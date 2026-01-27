@@ -1,7 +1,9 @@
 using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
+using CigralBackend.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace CigralBackend.Controllers
@@ -15,10 +17,12 @@ namespace CigralBackend.Controllers
     public class RemitosController : ControllerBase
     {
         private readonly IRemitoService _remitoService;
+        private readonly IPdfService _pdfService;
 
-        public RemitosController(IRemitoService remitoService)
+        public RemitosController(IRemitoService remitoService, IPdfService pdfService)
         {
             _remitoService = remitoService;
+            _pdfService = pdfService;
         }
 
         /// <summary>
@@ -131,6 +135,80 @@ namespace CigralBackend.Controllers
         {
             var remito = await _remitoService.UpdateRemito(id, request, esIngreso: false);
             return Ok(remito);
+        }
+
+        /// <summary>
+        /// Genera e imprime un PDF del remito de ingreso.
+        /// </summary>
+        /// <param name="id">ID del remito de ingreso</param>
+        /// <returns>Archivo PDF del remito</returns>
+        /// <remarks>
+        /// Retorna un archivo PDF que puede ser:
+        /// - Descargado directamente por el navegador
+        /// - Mostrado en un visor de PDF (iframe, modal, etc.)
+        /// - Impreso directamente desde el frontend
+        /// 
+        /// Ejemplo de uso en frontend:
+        /// 
+        ///     // Descargar
+        ///     window.open('/api/remitos/ingreso/5/pdf', '_blank');
+        ///     
+        ///     // Mostrar en iframe
+        ///     &lt;iframe src="/api/remitos/ingreso/5/pdf" /&gt;
+        ///     
+        ///     // Fetch y crear blob
+        ///     const response = await fetch('/api/remitos/ingreso/5/pdf');
+        ///     const blob = await response.blob();
+        ///     const url = URL.createObjectURL(blob);
+        /// </remarks>
+        [HttpGet("ingreso/{id}/pdf")]
+        [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ImprimirRemitoIngreso(int id)
+        {
+            var pdfBytes = await _pdfService.GenerarPdfRemitoIngreso(id);
+            
+            return File(
+                fileContents: pdfBytes,
+                contentType: "application/pdf",
+                fileDownloadName: $"Remito_Ingreso_{id}_{DateTime.Now:yyyyMMdd}.pdf"
+            );
+        }
+
+        /// <summary>
+        /// Genera e imprime un PDF del remito de egreso.
+        /// </summary>
+        /// <param name="id">ID del remito de egreso</param>
+        /// <returns>Archivo PDF del remito</returns>
+        /// <remarks>
+        /// Retorna un archivo PDF que puede ser:
+        /// - Descargado directamente por el navegador
+        /// - Mostrado en un visor de PDF (iframe, modal, etc.)
+        /// - Impreso directamente desde el frontend
+        /// 
+        /// Ejemplo de uso en frontend:
+        /// 
+        ///     // Descargar
+        ///     window.open('/api/remitos/egreso/10/pdf', '_blank');
+        ///     
+        ///     // Mostrar en modal
+        ///     const response = await fetch('/api/remitos/egreso/10/pdf');
+        ///     const blob = await response.blob();
+        ///     const url = URL.createObjectURL(blob);
+        ///     window.open(url, '_blank');
+        /// </remarks>
+        [HttpGet("egreso/{id}/pdf")]
+        [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ImprimirRemitoEgreso(int id)
+        {
+            var pdfBytes = await _pdfService.GenerarPdfRemitoEgreso(id);
+            
+            return File(
+                fileContents: pdfBytes,
+                contentType: "application/pdf",
+                fileDownloadName: $"Remito_Egreso_{id}_{DateTime.Now:yyyyMMdd}.pdf"
+            );
         }
     }
 }

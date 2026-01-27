@@ -43,11 +43,25 @@ namespace CigralBackend.Application.Services.Interfaces
         Task<ExistenciaModelResponse> GetExistenciaById(int id);
 
         /// <summary>
-        /// Obtiene existencias filtradas con paginacion.
+        /// Obtiene existencias filtradas con paginación.
+        /// Ahora incluye filtros por fecha de vencimiento y días para vencer.
         /// </summary>
         /// <param name="filters">Filtros a aplicar</param>
         /// <returns>Resultado paginado de existencias</returns>
         Task<PagedResult<ExistenciaModelResponse>> GetExistencias(ExistenciaFilters filters);
+
+        /// <summary>
+        /// Obtiene dashboard de productos próximos a vencer agrupados por rangos.
+        /// </summary>
+        /// <returns>Dashboard con estadísticas de vencimientos</returns>
+        Task<DashboardVencimientosResponse> GetDashboardVencimientos();
+
+        /// <summary>
+        /// Obtiene productos próximos a vencer según filtros específicos.
+        /// </summary>
+        /// <param name="filters">Filtros de vencimiento</param>
+        /// <returns>Lista de productos próximos a vencer</returns>
+        Task<List<ProductoProximoVencerDto>> GetProductosProximosVencer(VencimientoFilters filters);
 
         /// <summary>
         /// Elimina una existencia del sistema (solo si cantidad = 0).

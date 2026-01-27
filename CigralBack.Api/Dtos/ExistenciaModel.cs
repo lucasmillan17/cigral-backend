@@ -45,6 +45,13 @@ namespace CigralBackend.Application.Dtos
         int? DepositoId,
         int? ProductoId,
         int? LoteId,
+        
+        // Filtros de vencimiento
+        DateTime? FechaVencimientoDesde,
+        DateTime? FechaVencimientoHasta,
+        int? DiasParaVencer,  // Ej: 90 = productos que vencen en los próximos 90 días
+        bool? SoloConVencimiento = null, // true = solo con fecha de vencimiento, false = solo sin vencimiento
+        
         [Range(1, int.MaxValue, ErrorMessage = "La página debe ser mayor a 0")]
         int PageNumber = 1,
         [Range(1, 100, ErrorMessage = "El tamaño de página no puede superar los 100 items")]
