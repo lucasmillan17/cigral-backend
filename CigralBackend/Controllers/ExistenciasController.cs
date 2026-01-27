@@ -1,6 +1,7 @@
 using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain.Wrappers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ namespace CigralBackend.Controllers
     /// <summary>
     /// Controlador para operaciones de existencias e inventario.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ExistenciasController : ControllerBase

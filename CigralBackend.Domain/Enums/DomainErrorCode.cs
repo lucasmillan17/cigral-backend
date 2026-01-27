@@ -83,6 +83,11 @@ namespace CigralBackend.Domain.Enums
         /// </summary>
         ProductoUnitarioCantidadInvalida = 3006,
 
+        /// <summary>
+        /// El código del depósito ya existe.
+        /// </summary>
+        CodigoDepositoDuplicado = 3007,
+
         // 4000 - Errores de Clientes
         /// <summary>
         /// El cliente especificado no existe.
@@ -134,6 +139,32 @@ namespace CigralBackend.Domain.Enums
         /// <summary>
         /// La cantidad en el detalle del remito es invalida.
         /// </summary>
-        CantidadInvalida = 6003
+        CantidadInvalida = 6003,
+
+        // 7000 - Errores de Autenticación
+        /// <summary>
+        /// Credenciales inválidas (usuario o contraseña incorrectos).
+        /// </summary>
+        CredencialesInvalidas = 7000,
+
+        /// <summary>
+        /// El username ya existe.
+        /// </summary>
+        UsernameDeplicado = 7001,
+
+        /// <summary>
+        /// Usuario no activo.
+        /// </summary>
+        UsuarioInactivo = 7002,
+
+        /// <summary>
+        /// Token JWT inválido o expirado.
+        /// </summary>
+        TokenInvalido = 7003,
+
+        /// <summary>
+        /// Se requieren permisos de administrador.
+        /// </summary>
+        PermisosDenegados = 7004
     }
 }

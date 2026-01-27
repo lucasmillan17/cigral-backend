@@ -1,10 +1,11 @@
 using CigralBackend.Domain;
-using CigralBackend.Domain.Bases;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CigralBackend.Infraestructure.Database
 {
-    public class CigralBackendContext : DbContext
+    public class CigralBackendContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
     {
         public CigralBackendContext(DbContextOptions<CigralBackendContext> options) : base(options)
         {
@@ -18,8 +19,9 @@ namespace CigralBackend.Infraestructure.Database
         public DbSet<Deposito> Depositos { get; set; }
         public DbSet<Existencia> Existencias { get; set; }
         public DbSet<DetalleRemito> DetallesRemito { get; set; }
-        public DbSet<RemitoCliente> RemitosCliente { get; set; }
-        public DbSet<RemitoProveedor> RemitosProveedor { get; set; }
+        public DbSet<RemitoEgreso> RemitosEgreso { get; set; }
+        public DbSet<RemitoIngreso> RemitosIngreso { get; set; }
+        public DbSet<MovimientoStock> MovimientosStock { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,11 +32,15 @@ namespace CigralBackend.Infraestructure.Database
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.RazonSocial).HasMaxLength(200);
-                entity.Property(e => e.GLN).HasMaxLength(13).IsRequired();
+                entity.Property(e => e.GLN).HasMaxLength(13);
                 entity.Property(e => e.Email).HasMaxLength(100);
                 entity.Property(e => e.Cuit).HasMaxLength(11);
                 entity.Property(e => e.Telefono).HasMaxLength(20);
                 entity.Property(e => e.Direccion).HasMaxLength(200);
+                entity.HasMany(e => e.Remitos)
+                      .WithOne(r => r.Cliente)
+                      .HasForeignKey(r => r.ClienteId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Configuración de Proveedor
@@ -42,7 +48,7 @@ namespace CigralBackend.Infraestructure.Database
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.RazonSocial).HasMaxLength(200);
-                entity.Property(e => e.GLN).HasMaxLength(13).IsRequired();
+                entity.Property(e => e.GLN).HasMaxLength(13);
                 entity.Property(e => e.Email).HasMaxLength(100);
                 entity.Property(e => e.Cuit).HasMaxLength(11);
                 entity.Property(e => e.Telefono).HasMaxLength(20);
@@ -122,46 +128,92 @@ namespace CigralBackend.Infraestructure.Database
             modelBuilder.Entity<DetalleRemito>(entity =>
             {
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.NumeroSerie).HasMaxLength(100);
                 entity.HasOne(e => e.Producto)
                       .WithMany()
-                      .HasForeignKey("ProductoId")
+                      .HasForeignKey(e => e.ProductoId)
                       .OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.Lote)
                       .WithMany()
-                      .HasForeignKey("LoteId")
+                      .HasForeignKey(e => e.LoteId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Configuración de RemitoBase (compartida)
-            modelBuilder.Entity<RemitoBase>(entity =>
+            // Configuración de RemitoEgreso
+            modelBuilder.Entity<RemitoEgreso>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Observaciones).HasMaxLength(500);
                 entity.Property(e => e.NumeroRemito).HasMaxLength(50);
-            });
-
-            // Configuración de RemitoCliente
-            modelBuilder.Entity<RemitoCliente>(entity =>
-            {                
+                entity.Property(e => e.Fecha).IsRequired();
+                
                 entity.HasOne(e => e.Cliente)
-                      .WithMany()
+                      .WithMany(c => c.Remitos)
                       .HasForeignKey(e => e.ClienteId)
                       .OnDelete(DeleteBehavior.Restrict);
                 entity.HasMany(e => e.Detalles)
-                      .WithOne()
+                      .WithOne(d => d.RemitoEgreso)
+                      .HasForeignKey(d => d.RemitoEgresoId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Configuración de RemitoProveedor
-            modelBuilder.Entity<RemitoProveedor>(entity =>
+            // Configuración de RemitoIngreso
+            modelBuilder.Entity<RemitoIngreso>(entity =>
             {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Observaciones).HasMaxLength(500);
+                entity.Property(e => e.NumeroRemito).HasMaxLength(50);
+                entity.Property(e => e.Fecha).IsRequired();
+                
                 entity.HasOne(e => e.Proveedor)
                       .WithMany(p => p.Remitos)
                       .HasForeignKey(e => e.ProveedorId)
                       .OnDelete(DeleteBehavior.Restrict);
                 entity.HasMany(e => e.Detalles)
-                      .WithOne()
+                      .WithOne(d => d.RemitoIngreso)
+                      .HasForeignKey(d => d.RemitoIngresoId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configuración de MovimientoStock
+            modelBuilder.Entity<MovimientoStock>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.FechaMovimiento).IsRequired();
+                entity.Property(e => e.Tipo).IsRequired();
+                entity.Property(e => e.NumeroSerie).HasMaxLength(100);
+                entity.Property(e => e.Usuario).HasMaxLength(100);
+                entity.Property(e => e.Observaciones).HasMaxLength(500);
+
+                entity.HasOne(e => e.Producto)
+                      .WithMany()
+                      .HasForeignKey(e => e.ProductoId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Deposito)
+                      .WithMany()
+                      .HasForeignKey(e => e.DepositoId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Lote)
+                      .WithMany()
+                      .HasForeignKey(e => e.LoteId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.RemitoIngreso)
+                      .WithMany()
+                      .HasForeignKey(e => e.RemitoIngresoId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.RemitoEgreso)
+                      .WithMany()
+                      .HasForeignKey(e => e.RemitoEgresoId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Índices para consultas rápidas
+                entity.HasIndex(e => e.FechaMovimiento);
+                entity.HasIndex(e => new { e.ProductoId, e.DepositoId });
+                entity.HasIndex(e => e.Tipo);
             });
         }
     }

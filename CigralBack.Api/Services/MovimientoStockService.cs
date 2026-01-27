@@ -1,0 +1,107 @@
+using CigralBackend.Application.Dtos;
+using CigralBackend.Application.Services.Interfaces;
+using CigralBackend.Domain;
+using CigralBackend.Domain.Exceptions;
+using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database.Interfaces;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace CigralBackend.Application.Services
+{
+    /// <summary>
+    /// Servicio para consultar la auditoría de movimientos de stock.
+    /// </summary>
+    public class MovimientoStockService : IMovimientoStockService
+    {
+        private readonly IRepository _repository;
+
+        public MovimientoStockService(IRepository repository)
+        {
+            _repository = repository;
+        }
+
+        /// <summary>
+        /// Obtiene movimientos de stock filtrados con paginación.
+        /// </summary>
+        public async Task<PagedResult<MovimientoStockResponse>> GetMovimientos(MovimientoStockFilters filters)
+        {
+            var resultadoEntidad = await _repository.GetFiltered<MovimientoStock>(
+                predicate: m =>
+                    (!filters.ProductoId.HasValue || m.ProductoId == filters.ProductoId.Value) &&
+                    (!filters.DepositoId.HasValue || m.DepositoId == filters.DepositoId.Value) &&
+                    (!filters.LoteId.HasValue || m.LoteId == filters.LoteId.Value) &&
+                    (!filters.Tipo.HasValue || m.Tipo == filters.Tipo.Value) &&
+                    (!filters.RemitoIngresoId.HasValue || m.RemitoIngresoId == filters.RemitoIngresoId.Value) &&
+                    (!filters.RemitoEgresoId.HasValue || m.RemitoEgresoId == filters.RemitoEgresoId.Value) &&
+                    (!filters.FechaDesde.HasValue || m.FechaMovimiento >= filters.FechaDesde.Value) &&
+                    (!filters.FechaHasta.HasValue || m.FechaMovimiento <= filters.FechaHasta.Value),
+                pageNumber: filters.PageNumber,
+                pageSize: filters.PageSize,
+                include: new[] { "Producto", "Deposito", "Lote" }
+            );
+
+            var itemsDto = resultadoEntidad.Items.Select(m => new MovimientoStockResponse(
+                Id: m.Id,
+                Tipo: m.Tipo.ToString(),
+                FechaMovimiento: m.FechaMovimiento,
+                ProductoId: m.ProductoId,
+                ProductoNombre: m.Producto?.Nombre ?? "Sin Nombre",
+                DepositoId: m.DepositoId,
+                DepositoNombre: m.Deposito?.Nombre ?? "Sin Depósito",
+                LoteId: m.LoteId,
+                CodigoLote: m.Lote?.CodigoLote,
+                NumeroSerie: m.NumeroSerie,
+                Cantidad: m.Cantidad,
+                StockAnterior: m.StockAnterior,
+                StockNuevo: m.StockNuevo,
+                RemitoIngresoId: m.RemitoIngresoId,
+                RemitoEgresoId: m.RemitoEgresoId,
+                Usuario: m.Usuario,
+                Observaciones: m.Observaciones
+            )).ToList();
+
+            return new PagedResult<MovimientoStockResponse>
+            {
+                Items = itemsDto,
+                TotalCount = resultadoEntidad.TotalCount,
+                PageNumber = resultadoEntidad.PageNumber,
+                PageSize = resultadoEntidad.PageSize
+            };
+        }
+
+        /// <summary>
+        /// Obtiene un movimiento de stock por su ID.
+        /// </summary>
+        public async Task<MovimientoStockResponse> GetMovimientoById(int id)
+        {
+            var movimiento = await _repository.GetById<MovimientoStock>(id, "Producto", "Deposito", "Lote");
+
+            if (movimiento == null)
+            {
+                throw new NotFoundException(nameof(MovimientoStock), id);
+            }
+
+            return new MovimientoStockResponse(
+                Id: movimiento.Id,
+                Tipo: movimiento.Tipo.ToString(),
+                FechaMovimiento: movimiento.FechaMovimiento,
+                ProductoId: movimiento.ProductoId,
+                ProductoNombre: movimiento.Producto?.Nombre ?? "Sin Nombre",
+                DepositoId: movimiento.DepositoId,
+                DepositoNombre: movimiento.Deposito?.Nombre ?? "Sin Depósito",
+                LoteId: movimiento.LoteId,
+                CodigoLote: movimiento.Lote?.CodigoLote,
+                NumeroSerie: movimiento.NumeroSerie,
+                Cantidad: movimiento.Cantidad,
+                StockAnterior: movimiento.StockAnterior,
+                StockNuevo: movimiento.StockNuevo,
+                RemitoIngresoId: movimiento.RemitoIngresoId,
+                RemitoEgresoId: movimiento.RemitoEgresoId,
+                Usuario: movimiento.Usuario,
+                Observaciones: movimiento.Observaciones
+            );
+        }
+    }
+}

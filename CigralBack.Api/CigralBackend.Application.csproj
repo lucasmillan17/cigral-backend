@@ -11,4 +11,9 @@
     <ProjectReference Include="..\CigralBackend.Infraestructure\CigralBackend.Infraestructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+  </ItemGroup>
+
 </Project>

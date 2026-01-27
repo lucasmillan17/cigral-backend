@@ -46,13 +46,56 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
+        /// Registra un movimiento de stock en la tabla de auditoría.
+        /// </summary>
+        private async Task RegistrarMovimiento(
+            TipoMovimiento tipo,
+            int productoId,
+            int depositoId,
+            int? loteId,
+            string? numeroSerie,
+            int cantidad,
+            int stockAnterior,
+            int stockNuevo,
+            int? remitoIngresoId = null,
+            int? remitoEgresoId = null,
+            string? observaciones = null,
+            string? usuario = null)
+        {
+            var movimiento = new MovimientoStock
+            {
+                Tipo = tipo,
+                FechaMovimiento = DateTime.Now,
+                ProductoId = productoId,
+                DepositoId = depositoId,
+                LoteId = loteId,
+                NumeroSerie = numeroSerie,
+                Cantidad = cantidad,
+                StockAnterior = stockAnterior,
+                StockNuevo = stockNuevo,
+                RemitoIngresoId = remitoIngresoId,
+                RemitoEgresoId = remitoEgresoId,
+                Observaciones = observaciones,
+                Usuario = usuario
+            };
+
+            await _repository.Add(movimiento);
+        }
+
+        /// <summary>
         /// Aumenta el stock de un producto. Si la existencia no existe, la crea. Si existe, suma la cantidad.
+        /// Registra el movimiento en la auditoría.
         /// </summary>
         /// <param name="r">Datos del movimiento de stock</param>
+        /// <param name="remitoIngresoId">ID del remito de ingreso (opcional)</param>
+        /// <param name="observaciones">Observaciones adicionales (opcional)</param>
         /// <returns>La existencia actualizada o creada</returns>
         /// <exception cref="NotFoundException">Si el producto, deposito o lote no existen</exception>
         /// <exception cref="DomainException">Si las validaciones de negocio fallan</exception>
-        public async Task<ExistenciaModelResponse> AumentarStock(ExistenciaModelRequest r)
+        public async Task<ExistenciaModelResponse> AumentarStock(
+            ExistenciaModelRequest r, 
+            int? remitoIngresoId = null,
+            string? observaciones = null)
         {
             // Validar cantidad
             if (r.Cantidad <= 0)
@@ -129,10 +172,14 @@ namespace CigralBackend.Application.Services
                      (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie)
             );
 
+            int stockAnterior = existencia?.Cantidad ?? 0;
+            int stockNuevo;
+
             if (existencia != null)
             {
                 // Aumentar cantidad existente
                 existencia.Cantidad += r.Cantidad;
+                stockNuevo = existencia.Cantidad;
                 await _repository.Update(existencia);
             }
             else
@@ -148,19 +195,40 @@ namespace CigralBackend.Application.Services
                     Cantidad = r.Cantidad
                 };
                 existencia = await _repository.Add(existencia);
+                stockNuevo = existencia.Cantidad;
             }
+
+            // Registrar movimiento en auditoría
+            await RegistrarMovimiento(
+                tipo: remitoIngresoId.HasValue ? TipoMovimiento.Ingreso : TipoMovimiento.AjustePositivo,
+                productoId: r.ProductoId,
+                depositoId: r.DepositoId,
+                loteId: r.LoteId,
+                numeroSerie: r.NumSerie,
+                cantidad: r.Cantidad,
+                stockAnterior: stockAnterior,
+                stockNuevo: stockNuevo,
+                remitoIngresoId: remitoIngresoId,
+                observaciones: observaciones
+            );
 
             return ResponseGenerator(existencia, producto, deposito, lote);
         }
 
         /// <summary>
         /// Disminuye el stock de un producto. Si la existencia queda en 0, se mantiene el registro.
+        /// Registra el movimiento en la auditoría.
         /// </summary>
         /// <param name="r">Datos del movimiento de stock</param>
+        /// <param name="remitoEgresoId">ID del remito de egreso (opcional)</param>
+        /// <param name="observaciones">Observaciones adicionales (opcional)</param>
         /// <returns>La existencia actualizada</returns>
         /// <exception cref="NotFoundException">Si el producto, deposito, lote o existencia no existen</exception>
         /// <exception cref="DomainException">Si las validaciones de negocio fallan</exception>
-        public async Task<ExistenciaModelResponse> DisminuirStock(ExistenciaModelRequest r)
+        public async Task<ExistenciaModelResponse> DisminuirStock(
+            ExistenciaModelRequest r,
+            int? remitoEgresoId = null,
+            string? observaciones = null)
         {
             // Validar cantidad
             if (r.Cantidad <= 0)
@@ -230,9 +298,26 @@ namespace CigralBackend.Application.Services
                 );
             }
 
+            int stockAnterior = existencia.Cantidad;
+
             // Disminuir cantidad
             existencia.Cantidad -= r.Cantidad;
+            int stockNuevo = existencia.Cantidad;
             await _repository.Update(existencia);
+
+            // Registrar movimiento en auditoría
+            await RegistrarMovimiento(
+                tipo: remitoEgresoId.HasValue ? TipoMovimiento.Egreso : TipoMovimiento.AjusteNegativo,
+                productoId: r.ProductoId,
+                depositoId: r.DepositoId,
+                loteId: r.LoteId,
+                numeroSerie: r.NumSerie,
+                cantidad: -r.Cantidad, // Negativo para egreso
+                stockAnterior: stockAnterior,
+                stockNuevo: stockNuevo,
+                remitoEgresoId: remitoEgresoId,
+                observaciones: observaciones
+            );
 
             return ResponseGenerator(existencia, producto, deposito, lote);
         }

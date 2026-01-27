@@ -1,13 +1,16 @@
 ﻿using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain.Wrappers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace CigralBackend.Controllers
 {
     /// <summary>
-    /// Controlador para operaciones de productos.
+    /// Controlador para operaciones CRUD de productos.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ProductosController : ControllerBase

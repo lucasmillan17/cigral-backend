@@ -16,7 +16,7 @@ namespace CigralBackend.Domain
         public string? Cuit { get; set; }
         public string? Telefono { get; set; }
         public string? Direccion { get; set; }
-        public string GLN { get; set; }
-        public List<RemitoProveedor> Remitos { get; set; }
+        public string? GLN { get; set; }
+        public List<RemitoIngreso> Remitos { get; set; }
     }
 }

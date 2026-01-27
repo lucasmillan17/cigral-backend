@@ -7,10 +7,16 @@ using System.Threading.Tasks;
 
 namespace CigralBackend.Domain
 {
-    public class RemitoCliente : RemitoBase
+    public class RemitoEgreso : RemitoBase
     {
-        public RemitoCliente() { }
-        public Cliente Cliente { get; set; }
+        public RemitoEgreso() 
+        {
+            Detalles = new List<DetalleRemito>();
+        }
+        
         public int ClienteId { get; set; }
+        public Cliente Cliente { get; set; }
+        
+        public List<DetalleRemito> Detalles { get; set; }
     }
 }
