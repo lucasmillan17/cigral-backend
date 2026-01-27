@@ -353,17 +353,41 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Obtiene existencias filtradas con paginacion.
+        /// Obtiene existencias filtradas con paginación.
+        /// Ahora incluye filtros por fecha de vencimiento y días para vencer.
         /// </summary>
         /// <param name="filters">Filtros a aplicar</param>
         /// <returns>Resultado paginado de existencias</returns>
         public async Task<PagedResult<ExistenciaModelResponse>> GetExistencias(ExistenciaFilters filters)
         {
+            var hoy = DateTime.Now.Date;
+            var fechaLimiteVencimiento = filters.DiasParaVencer.HasValue
+                ? hoy.AddDays(filters.DiasParaVencer.Value)
+                : (DateTime?)null;
+
             var resultadoEntidad = await _repository.GetFiltered<Existencia>(
                 predicate: e =>
                     (!filters.ProductoId.HasValue || e.ProductoId == filters.ProductoId.Value) &&
                     (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
-                    (!filters.LoteId.HasValue || e.LoteId == filters.LoteId.Value),
+                    (!filters.LoteId.HasValue || e.LoteId == filters.LoteId.Value) &&
+                    
+                    // Filtros de vencimiento
+                    (!filters.FechaVencimientoDesde.HasValue || 
+                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= filters.FechaVencimientoDesde.Value) ||
+                        (e.Lote != null && e.Lote.FechaVencimiento >= filters.FechaVencimientoDesde.Value)) &&
+                    
+                    (!filters.FechaVencimientoHasta.HasValue || 
+                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= filters.FechaVencimientoHasta.Value) ||
+                        (e.Lote != null && e.Lote.FechaVencimiento <= filters.FechaVencimientoHasta.Value)) &&
+                    
+                    (!fechaLimiteVencimiento.HasValue ||
+                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= fechaLimiteVencimiento.Value) ||
+                        (e.Lote != null && e.Lote.FechaVencimiento <= fechaLimiteVencimiento.Value)) &&
+                    
+                    (!filters.SoloConVencimiento.HasValue ||
+                        (filters.SoloConVencimiento.Value && (e.FechaVencimiento.HasValue || e.Lote != null)) ||
+                        (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && e.Lote == null)),
+
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
                 include: new[] { "Producto", "Deposito", "Lote" }
@@ -390,6 +414,119 @@ namespace CigralBackend.Application.Services
                 PageNumber = resultadoEntidad.PageNumber,
                 PageSize = resultadoEntidad.PageSize
             };
+        }
+
+        /// <summary>
+        /// Obtiene productos próximos a vencer según filtros específicos.
+        /// </summary>
+        public async Task<List<ProductoProximoVencerDto>> GetProductosProximosVencer(VencimientoFilters filters)
+        {
+            var hoy = DateTime.Now.Date;
+            var fechaMinima = filters.DiasDesde.HasValue ? hoy.AddDays(filters.DiasDesde.Value) : hoy;
+            var fechaMaxima = filters.DiasHasta.HasValue ? hoy.AddDays(filters.DiasHasta.Value) : hoy.AddDays(90);
+
+            // Obtener todas las existencias con vencimiento
+            var existencias = await _repository.GetFiltered<Existencia>(
+                predicate: e =>
+                    // Solo con fecha de vencimiento
+                    (e.FechaVencimiento.HasValue || e.Lote != null) &&
+                    
+                    // Dentro del rango de fechas
+                    ((e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= fechaMinima && e.FechaVencimiento.Value <= fechaMaxima) ||
+                     (e.Lote != null && e.Lote.FechaVencimiento >= fechaMinima && e.Lote.FechaVencimiento <= fechaMaxima)) &&
+                    
+                    // Filtros opcionales
+                    (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
+                    (!filters.ProductoId.HasValue || e.ProductoId == filters.ProductoId.Value) &&
+                    
+                    // Incluir vencidos solo si se solicita
+                    (filters.IncluirVencidos || 
+                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= hoy) ||
+                        (e.Lote != null && e.Lote.FechaVencimiento >= hoy)),
+                
+                pageNumber: 1,
+                pageSize: int.MaxValue, // Sin paginación
+                include: new[] { "Producto", "Deposito", "Lote" }
+            );
+
+            var resultado = existencias.Items
+                .Select(e =>
+                {
+                    var fechaVenc = e.Lote?.FechaVencimiento ?? e.FechaVencimiento ?? hoy;
+                    var diasParaVencer = (int)(fechaVenc.Date - hoy).TotalDays;
+
+                    return new ProductoProximoVencerDto(
+                        ExistenciaId: e.Id,
+                        ProductoId: e.ProductoId,
+                        ProductoNombre: e.Producto?.Nombre ?? "Sin Nombre",
+                        ProductoGtin: e.Producto?.GTIN ?? "Sin GTIN",
+                        DepositoId: e.DepositoId,
+                        DepositoNombre: e.Deposito?.Nombre ?? "Sin Depósito",
+                        LoteId: e.LoteId,
+                        CodigoLote: e.Lote?.CodigoLote,
+                        NumeroSerie: e.NumSerie,
+                        FechaVencimiento: fechaVenc,
+                        DiasParaVencer: diasParaVencer,
+                        Cantidad: e.Cantidad
+                    );
+                })
+                .OrderBy(p => p.FechaVencimiento)
+                .ToList();
+
+            return resultado;
+        }
+
+        /// <summary>
+        /// Obtiene dashboard de productos próximos a vencer agrupados por rangos.
+        /// </summary>
+        public async Task<DashboardVencimientosResponse> GetDashboardVencimientos()
+        {
+            var hoy = DateTime.Now.Date;
+
+            // Obtener productos que vencen en los próximos 6 meses
+            var productosProximosVencer = await GetProductosProximosVencer(new VencimientoFilters(
+                DiasDesde: 0,
+                DiasHasta: 180,
+                DepositoId: null,
+                ProductoId: null,
+                IncluirVencidos: false
+            ));
+
+            // Definir rangos
+            var rangos = new[]
+            {
+                new { Nombre = "Vencidos", Min = int.MinValue, Max = -1 },
+                new { Nombre = "0-30 días", Min = 0, Max = 30 },
+                new { Nombre = "31-60 días", Min = 31, Max = 60 },
+                new { Nombre = "61-90 días", Min = 61, Max = 90 },
+                new { Nombre = "91-120 días", Min = 91, Max = 120 },
+                new { Nombre = "121-180 días", Min = 121, Max = 180 }
+            };
+
+            var estadisticas = rangos.Select(rango =>
+            {
+                var itemsEnRango = productosProximosVencer
+                    .Where(p => p.DiasParaVencer >= rango.Min && p.DiasParaVencer <= rango.Max)
+                    .ToList();
+
+                return new VencimientoStats(
+                    Rango: rango.Nombre,
+                    DiasMinimo: rango.Min,
+                    DiasMaximo: rango.Max,
+                    TotalProductos: itemsEnRango.Select(i => i.ProductoId).Distinct().Count(),
+                    TotalLotes: itemsEnRango.Select(i => i.LoteId).Distinct().Count(),
+                    CantidadTotal: itemsEnRango.Sum(i => i.Cantidad),
+                    Items: itemsEnRango
+                );
+            }).ToList();
+
+            return new DashboardVencimientosResponse(
+                FechaConsulta: hoy,
+                TotalProductosProximosVencer: productosProximosVencer.Select(p => p.ProductoId).Distinct().Count(),
+                TotalLotesProximosVencer: productosProximosVencer.Where(p => p.LoteId.HasValue).Select(p => p.LoteId).Distinct().Count(),
+                CantidadTotalProximaVencer: productosProximosVencer.Sum(p => p.Cantidad),
+                Rangos: estadisticas
+            );
         }
 
         /// <summary>
