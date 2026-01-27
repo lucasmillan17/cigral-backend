@@ -1,29 +1,29 @@
-# ?? Documentación CigralBackend v1.0
+# Documentacion CigralBackend v1.0
 
-> Sistema de Gestión de Inventario con .NET 8 - Clean Architecture
-
----
-
-## ?? Índice
-
-1. [Inicio Rápido](#-inicio-rápido)
-2. [Arquitectura](#-arquitectura)
-3. [Funcionalidades Principales](#-funcionalidades-principales)
-4. [API Endpoints](#-api-endpoints)
-5. [Manejo de Errores](#-manejo-de-errores)
-6. [Autenticación](#-autenticación)
-7. [Despliegue](#-despliegue)
+> Sistema de Gestion de Inventario con .NET 8 - Clean Architecture
 
 ---
 
-## ?? Inicio Rápido
+## Indice
+
+1. [Inicio Rapido](#inicio-rapido)
+2. [Arquitectura](#arquitectura)
+3. [Funcionalidades Principales](#funcionalidades-principales)
+4. [API Endpoints](#api-endpoints)
+5. [Manejo de Errores](#manejo-de-errores)
+6. [Autenticacion](#autenticacion)
+7. [Despliegue](#despliegue)
+
+---
+
+## Inicio Rapido
 
 ### Requisitos Previos
 - .NET 8 SDK
 - SQL Server 2019+
 - Visual Studio 2022 o VS Code
 
-### Configuración Inicial
+### Configuracion Inicial
 
 ```bash
 # 1. Clonar repositorio
@@ -64,103 +64,103 @@ POST /api/auth/register
 
 ---
 
-## ??? Arquitectura
+## Arquitectura
 
 ### Clean Architecture - Capas
 
 ```
-???????????????????????????????????????????
-?          API Layer (Controllers)        ?
-?  - ProductosController                  ?
-?  - MarcasController                     ?
-?  - ExistenciasController                ?
-?  - RemitosController                    ?
-?  - AuthController                       ?
-???????????????????????????????????????????
-                  ?
-                  ?
-???????????????????????????????????????????
-?      Application Layer (Services)       ?
-?  - ProductoService                      ?
-?  - MarcaService                         ?
-?  - ExistenciaService                    ?
-?  - RemitoService                        ?
-?  - AuthService                          ?
-???????????????????????????????????????????
-                  ?
-                  ?
-???????????????????????????????????????????
-?        Domain Layer (Entities)          ?
-?  - Producto, Marca, Cliente             ?
-?  - Existencia, Lote                     ?
-?  - RemitoIngreso, RemitoEgreso          ?
-?  - Exceptions, DomainErrorCode          ?
-???????????????????????????????????????????
-                  ?
-                  ?
-???????????????????????????????????????????
-?   Infrastructure (Database, Services)   ?
-?  - EfRepository (EF Core)               ?
-?  - PdfService (QuestPDF)                ?
-?  - BarCodeParser (GS1)                  ?
-???????????????????????????????????????????
++------------------------------------------+
+|          API Layer (Controllers)         |
+|  - ProductosController                   |
+|  - MarcasController                      |
+|  - ExistenciasController                 |
+|  - RemitosController                     |
+|  - AuthController                        |
++------------------------------------------+
+                  |
+                  v
++------------------------------------------+
+|      Application Layer (Services)        |
+|  - ProductoService                       |
+|  - MarcaService                          |
+|  - ExistenciaService                     |
+|  - RemitoService                         |
+|  - AuthService                           |
++------------------------------------------+
+                  |
+                  v
++------------------------------------------+
+|        Domain Layer (Entities)           |
+|  - Producto, Marca, Cliente              |
+|  - Existencia, Lote                      |
+|  - RemitoIngreso, RemitoEgreso           |
+|  - Exceptions, DomainErrorCode           |
++------------------------------------------+
+                  |
+                  v
++------------------------------------------+
+|   Infrastructure (Database, Services)    |
+|  - EfRepository (EF Core)                |
+|  - PdfService (QuestPDF)                 |
+|  - BarCodeParser (GS1)                   |
++------------------------------------------+
 ```
 
 ### Principios Aplicados
-- ? **SOLID** - Todos los principios
-- ? **DRY** - Sin código duplicado
-- ? **KISS** - Código simple y directo
-- ? **Fail-Fast** - Validaciones tempranas
-- ? **Clean Code** - Nombres descriptivos
+- SOLID - Todos los principios
+- DRY - Sin codigo duplicado
+- KISS - Codigo simple y directo
+- Fail-Fast - Validaciones tempranas
+- Clean Code - Nombres descriptivos
 
 ---
 
-## ?? Funcionalidades Principales
+## Funcionalidades Principales
 
-### 1. Gestión de Productos
-- ? CRUD completo
-- ? Validación de GTIN (código de barras)
-- ? Productos unitarios vs. fraccionables
-- ? Asignación de marcas
-- ? Búsqueda y filtrado
+### 1. Gestion de Productos
+- CRUD completo
+- Validacion de GTIN (codigo de barras)
+- Productos unitarios vs. fraccionables
+- Asignacion de marcas
+- Busqueda y filtrado
 
 ### 2. Control de Inventario (Existencias)
-- ? Stock por producto/depósito/lote
-- ? Números de serie
-- ? Fechas de vencimiento
-- ? Aumentar/Disminuir stock
-- ? Auditoría de movimientos
-- ? **Dashboard de vencimientos** ??
+- Stock por producto/deposito/lote
+- Numeros de serie
+- Fechas de vencimiento
+- Aumentar/Disminuir stock
+- Auditoria de movimientos
+- **Dashboard de vencimientos**
 
 ### 3. Remitos
-- ? Remitos de Ingreso (compras)
-- ? Remitos de Egreso (ventas)
-- ? Movimientos automáticos de stock
-- ? **Generación de PDF** ??
-- ? Asociación con clientes/proveedores
+- Remitos de Ingreso (compras)
+- Remitos de Egreso (ventas)
+- Movimientos automaticos de stock
+- **Generacion de PDF**
+- Asociacion con clientes/proveedores
 
 ### 4. Sistema de Vencimientos
-- ? Dashboard con rangos (0-30, 31-60, 61-90 días)
-- ? Filtros por depósito/producto
-- ? Estadísticas agrupadas
-- ? Alertas de productos críticos
+- Dashboard con rangos (0-30, 31-60, 61-90 dias)
+- Filtros por deposito/producto
+- Estadisticas agrupadas
+- Alertas de productos criticos
 
-### 5. Generación de PDFs
-- ? PDFs profesionales de remitos
-- ? Plantilla A4 con QuestPDF
-- ? Información completa (cliente, productos, totales)
-- ? Secciones de firmas
+### 5. Generacion de PDFs
+- PDFs profesionales de remitos
+- Plantilla A4 con QuestPDF
+- Informacion completa (cliente, productos, totales)
+- Secciones de firmas
 
-### 6. Parser de Códigos GS1
-- ? Parseo de códigos de barras GS1
-- ? Extracción de GTIN, lote, vencimiento, serie
-- ? Validación de formato
+### 6. Parser de Codigos GS1
+- Parseo de codigos de barras GS1
+- Extraccion de GTIN, lote, vencimiento, serie
+- Validacion de formato
 
 ---
 
-## ?? API Endpoints
+## API Endpoints
 
-### Autenticación
+### Autenticacion
 
 ```http
 POST   /api/auth/register         # Registrar usuario
@@ -182,7 +182,7 @@ DELETE /api/products/{id}         # Eliminar
 POST /api/products
 {
   "nombre": "Paracetamol 500mg",
-  "descripcion": "Analgésico",
+  "descripcion": "Analgesico",
   "gtin": "7790123456789",
   "esUnitario": false,
   "marcaId": 1
@@ -200,14 +200,14 @@ DELETE /api/existencias/{id}               # Eliminar
 ```
 
 **Filtros disponibles:**
-- `depositoId` - Por depósito
+- `depositoId` - Por deposito
 - `productoId` - Por producto
 - `loteId` - Por lote
-- `diasParaVencer` - Productos que vencen en X días
+- `diasParaVencer` - Productos que vencen en X dias
 - `fechaVencimientoDesde/Hasta` - Rango de fechas
 - `soloConVencimiento` - true/false
 
-**Ejemplo - Productos que vencen en 30 días:**
+**Ejemplo - Productos que vencen en 30 dias:**
 ```http
 GET /api/existencias?diasParaVencer=30
 ```
@@ -228,7 +228,7 @@ GET    /api/existencias/proximos-vencer           # Query personalizada
   "cantidadTotalProximaVencer": 2340,
   "rangos": [
     {
-      "rango": "0-30 días",
+      "rango": "0-30 dias",
       "totalProductos": 12,
       "totalLotes": 8,
       "cantidadTotal": 345,
@@ -245,8 +245,8 @@ POST   /api/remitos/ingreso                # Crear remito de ingreso
 POST   /api/remitos/egreso                 # Crear remito de egreso
 PUT    /api/remitos/ingreso/{id}           # Actualizar
 PUT    /api/remitos/egreso/{id}            # Actualizar
-GET    /api/remitos/ingreso/{id}/pdf       # ?? Generar PDF
-GET    /api/remitos/egreso/{id}/pdf        # ?? Generar PDF
+GET    /api/remitos/ingreso/{id}/pdf       # Generar PDF
+GET    /api/remitos/egreso/{id}/pdf        # Generar PDF
 ```
 
 **Ejemplo - Crear Remito:**
@@ -269,7 +269,7 @@ POST /api/remitos/ingreso
 
 ---
 
-## ?? Manejo de Errores
+## Manejo de Errores
 
 ### Sistema de Excepciones Tipadas
 
@@ -307,15 +307,15 @@ POST /api/remitos/ingreso
    ```json
    {
      "error": "InternalServerError",
-     "message": "Ocurrió un error inesperado.",
+     "message": "Ocurrio un error inesperado.",
      "statusCode": 500,
      "timestamp": "2025-01-27T10:30:00Z"
    }
    ```
 
-### Códigos de Error
+### Codigos de Error
 
-| Rango | Categoría | Códigos |
+| Rango | Categoria | Codigos |
 |-------|-----------|---------|
 | 1000-1999 | Generales | UnknownError, NetworkError |
 | 2000-2999 | Productos | GtinDuplicado, MarcaNoValida |
@@ -328,7 +328,7 @@ POST /api/remitos/ingreso
 
 ---
 
-## ?? Autenticación
+## Autenticacion
 
 ### JWT (JSON Web Tokens)
 
@@ -359,7 +359,7 @@ GET /api/products
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
-**Configuración JWT:**
+**Configuracion JWT:**
 ```json
 // appsettings.json
 {
@@ -374,9 +374,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 
 ---
 
-## ?? Despliegue
+## Despliegue
 
-### Producción
+### Produccion
 
 **1. Configurar appsettings.Production.json:**
 ```json
@@ -428,9 +428,9 @@ ENTRYPOINT ["dotnet", "CigralBackend.Api.dll"]
 
 ---
 
-## ?? Estadísticas v1.0
+## Estadisticas v1.0
 
-### Código
+### Codigo
 - **Proyectos**: 4 (Api, Application, Domain, Infrastructure)
 - **Servicios**: 8 (Producto, Marca, Existencia, Remito, etc.)
 - **Controladores**: 5
@@ -438,32 +438,32 @@ ENTRYPOINT ["dotnet", "CigralBackend.Api.dll"]
 - **Entidades**: 12
 
 ### Funcionalidades
-- ? CRUD de Productos/Marcas
-- ? Control de Inventario completo
-- ? Remitos de Ingreso/Egreso
-- ? Dashboard de Vencimientos
-- ? Generación de PDFs
-- ? Autenticación JWT
-- ? Auditoría de Movimientos
-- ? Parser GS1
+- CRUD de Productos/Marcas
+- Control de Inventario completo
+- Remitos de Ingreso/Egreso
+- Dashboard de Vencimientos
+- Generacion de PDFs
+- Autenticacion JWT
+- Auditoria de Movimientos
+- Parser GS1
 
 ---
 
-## ?? Próximos Pasos (Roadmap v2.0)
+## Proximos Pasos (Roadmap v2.0)
 
 ### Funcionalidades Planeadas
 - [ ] Reportes avanzados
 - [ ] Notificaciones por email
-- [ ] Exportación a Excel
-- [ ] Gestión de usuarios y roles
-- [ ] Dashboard analítico
-- [ ] App móvil (Flutter)
+- [ ] Exportacion a Excel
+- [ ] Gestion de usuarios y roles
+- [ ] Dashboard analitico
+- [ ] App movil (Flutter)
 
 ---
 
-## ?? Soporte
+## Soporte
 
-### Documentación Adicional
+### Documentacion Adicional
 
 - **Arquitectura Detallada:** `docs/ARCHITECTURE.md`
 - **Desarrollo:** `docs/DEVELOPMENT.md`
@@ -477,5 +477,6 @@ ENTRYPOINT ["dotnet", "CigralBackend.Api.dll"]
 
 ---
 
-**CigralBackend v1.0** - Sistema de Gestión de Inventario
-**Última actualización:** 27 de Enero, 2025
+**CigralBackend v1.0** - Sistema de Gestion de Inventario
+
+**Ultima actualizacion:** 27 de Enero, 2025
