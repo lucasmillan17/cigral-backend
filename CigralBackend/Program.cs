@@ -110,11 +110,11 @@ namespace CigralBackend
             app.UseGlobalExceptionHandler();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+            //if (app.Environment.IsDevelopment())
+            //{
                 app.UseSwagger();
                 app.UseSwaggerUI();
-            }
+           // }
 
             app.UseHttpsRedirection();
 
@@ -124,6 +124,23 @@ namespace CigralBackend
             app.UseAuthorization();
 
             app.MapControllers();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var context = services.GetRequiredService<CigralBackendContext>();
+                    // Esto aplica todas las migraciones pendientes.
+                    // Si la BD no existe, la crea. Si existe pero está vieja, la actualiza.
+                    context.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "Ocurrió un error al migrar la base de datos.");
+                }
+            }
 
             app.Run();
         }
