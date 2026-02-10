@@ -1,281 +1,108 @@
 # Sistema de Manejo de Errores de Dominio - CigralBackend
 
-## Resumen de Implementacion
+Este documento describe los `DomainErrorCode` disponibles, su significado y cómo deben ser manejados por el cliente (frontend).
 
-Se ha implementado un sistema robusto de manejo de errores de dominio siguiendo las mejores practicas de Clean Architecture.
+Resumen:
+- Los códigos están definidos en `CigralBackend.Domain/Enums/DomainErrorCode.cs` como un `enum` con valores numéricos.
+- Las excepciones de negocio lanzan `DomainException` con una instancia de `DomainErrorCode` y un mensaje descriptivo.
+- Se recomienda un middleware global que convierta `DomainException` en respuestas HTTP 400 con el `code` y `codeValue` para que el frontend los maneje fácilmente.
 
-## Archivos Creados
+Formato de respuesta recomendado por el middleware para `DomainException`:
 
-### 1. Domain Layer - Enums
-
-**Archivo**: `CigralBackend.Domain/Enums/DomainErrorCode.cs`
-
-Enum que define codigos de error organizados por rangos numericos:
-
-- **1000 - Errores Generales**: UnknownError, NetworkError
-- **2000 - Productos**: ProductoNoExiste, GtinDuplicado, MarcaNoValida, NombreProductoDuplicado
-- **3000 - Stock/Inventario**: StockInsuficiente, LoteVencido, DepositoNoEncontrado, SerieDuplicada, LoteNoEncontrado, ExistenciaNoEncontrada
-- **4000 - Clientes**: ClienteNoExiste, GlnClienteDuplicado, CuitClienteDuplicado
-- **5000 - Proveedores**: ProveedorNoExiste, GlnProveedorDuplicado, CuitProveedorDuplicado
-- **6000 - Remitos**: RemitoNoExiste, NumeroRemitoDuplicado, RemitoSinDetalles, CantidadInvalida
-
-### 2. Domain Layer - Excepciones
-
-**Archivo**: `CigralBackend.Domain/Exceptions/NotFoundException.cs`
-
-Excepcion especializada para entidades no encontradas:
-
-```csharp
-throw new NotFoundException(nameof(Producto), id);
-// Mensaje: "La entidad Producto (5) no fue encontrada."
-```
-
-**Propiedades**:
-- `EntityName`: Nombre de la entidad
-- `Key`: Identificador de la entidad
-
-**Archivo**: `CigralBackend.Domain/Exceptions/DomainException.cs`
-
-Excepcion base para errores de dominio y reglas de negocio:
-
-```csharp
-throw new DomainException(
-    DomainErrorCode.GtinDuplicado,
-    "El GTIN ya existe en otro producto."
-);
-```
-
-**Propiedades**:
-- `Code`: Codigo de error de dominio (DomainErrorCode)
-
-**Caracteristicas**:
-- Mensajes por defecto basados en el codigo de error
-- Soporte para mensajes personalizados
-- Soporte para InnerException
-
-## Refactorizacion de Servicios
-
-### ProductoService
-
-**Archivo**: `CigralBackend.Application/Services/ProductoService.cs`
-
-#### Metodos Implementados:
-
-1. **CreateProducto**
-   - Valida GTIN duplicado -> `DomainException(GtinDuplicado)`
-   - Valida nombre duplicado -> `DomainException(NombreProductoDuplicado)`
-   - Valida existencia de Marca -> `DomainException(MarcaNoValida)`
-
-2. **GetProductoById**
-   - Valida existencia -> `NotFoundException(Producto, id)`
-
-3. **UpdateProducto**
-   - Valida existencia del producto -> `NotFoundException(Producto, id)`
-   - Valida GTIN duplicado en otro producto -> `DomainException(GtinDuplicado)`
-   - Valida nombre duplicado en otro producto -> `DomainException(NombreProductoDuplicado)`
-   - Valida existencia de Marca -> `DomainException(MarcaNoValida)`
-
-4. **DeleteProducto**
-   - Valida existencia -> `NotFoundException(Producto, id)`
-
-5. **GetAllProductos**
-   - Incluye eager loading de Marca
-
-6. **GetProductoFiltered**
-   - Incluye eager loading de Marca
-   - Filtra por Nombre y GTIN
-
-#### Principios Aplicados:
-
-- **NO se usa try-catch**: Las excepciones suben al middleware
-- **Validaciones tempranas**: Fail-fast approach
-- **Mensajes descriptivos**: Contexto completo del error
-- **Codigos de error**: Facilita manejo en el cliente
-
-## Actualizaciones en DTOs
-
-### ProductoModelRequest
-
-Se agrego el campo `MarcaId` opcional:
-
-```csharp
-public record ProductoModelRequest
-(
-    // ...campos existentes...
-    int? MarcaId
-);
-```
-
-## Actualizaciones en Controllers
-
-### ProductsController
-
-**Archivo**: `CigralBackend.Api/Controllers/ProductsController.cs`
-
-#### Endpoints Implementados:
-
-1. **POST /api/products** - Crear producto
-2. **GET /api/products** - Listar con filtros y paginacion
-3. **GET /api/products/{id}** - Obtener por ID
-4. **PUT /api/products/{id}** - Actualizar producto
-5. **DELETE /api/products/{id}** - Eliminar producto
-
-#### Atributos de Documentacion:
-
-- `[ProducesResponseType]`: Documenta codigos de respuesta
-- Comentarios XML en cada endpoint
-
-## Proximo Paso Recomendado: Middleware de Manejo de Excepciones
-
-Para completar el sistema, se recomienda crear un middleware global que:
-
-1. Capture `NotFoundException` -> Retorne 404
-2. Capture `DomainException` -> Retorne 400 con codigo de error
-3. Capture excepciones generales -> Retorne 500
-
-### Ejemplo de Middleware:
-
-```csharp
-public class ExceptionHandlingMiddleware
-{
-    private readonly RequestDelegate _next;
-
-    public ExceptionHandlingMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
-    public async Task InvokeAsync(HttpContext context)
-    {
-        try
-        {
-            await _next(context);
-        }
-        catch (NotFoundException ex)
-        {
-            context.Response.StatusCode = StatusCodes.Status404NotFound;
-            await context.Response.WriteAsJsonAsync(new
-            {
-                error = "NotFound",
-                message = ex.Message,
-                entityName = ex.EntityName,
-                key = ex.Key
-            });
-        }
-        catch (DomainException ex)
-        {
-            context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await context.Response.WriteAsJsonAsync(new
-            {
-                error = "DomainError",
-                code = ex.Code.ToString(),
-                codeValue = (int)ex.Code,
-                message = ex.Message
-            });
-        }
-        catch (Exception ex)
-        {
-            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            await context.Response.WriteAsJsonAsync(new
-            {
-                error = "InternalServerError",
-                message = "Ocurrio un error inesperado."
-            });
-        }
-    }
-}
-
-// Registrar en Program.cs:
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-```
-
-## Ventajas del Sistema Implementado
-
-1. **Separacion de Responsabilidades**: Errores de dominio separados de errores de infraestructura
-2. **Codigos de Error Tipados**: Enum previene errores de escritura
-3. **Mensajes Consistentes**: Mensajes por defecto uniformes
-4. **Facilita Testing**: Excepciones predecibles y testeables
-5. **Mejor Experiencia del Cliente**: Errores claros y accionables
-6. **Trazabilidad**: Codigos numericos facilitan logging y monitoreo
-
-## Ejemplos de Uso en el Cliente
-
-### Ejemplo 1: Producto No Encontrado
-
-**Request**:
-```http
-GET /api/products/999
-```
-
-**Response** (404):
-```json
-{
-  "error": "NotFound",
-  "message": "La entidad Producto (999) no fue encontrada.",
-  "entityName": "Producto",
-  "key": 999
-}
-```
-
-### Ejemplo 2: GTIN Duplicado
-
-**Request**:
-```http
-POST /api/products
-{
-  "nombre": "Producto Test",
-  "gtin": "1234567890123",  // Ya existe
-  "esUnitario": true
-}
-```
-
-**Response** (400):
 ```json
 {
   "error": "DomainError",
-  "code": "GtinDuplicado",
+  "code": "NombreDelCodigo",
   "codeValue": 2001,
-  "message": "El producto con GTIN 1234567890123 ya existe."
+  "message": "Mensaje descriptivo para el usuario"
 }
 ```
 
-## Recomendaciones para Extender el Sistema
+Lista completa y explicación de todos los `DomainErrorCode` actuales
 
-1. **Logging**: Integrar con Serilog para registrar todas las excepciones
-2. **Metricas**: Contar ocurrencias de cada codigo de error
-3. **Localizacion**: Soporte multi-idioma en mensajes
-4. **Validaciones Complejas**: Crear FluentValidation para reglas complejas
-5. **Retry Policies**: Para NetworkError usar Polly
-6. **Circuit Breaker**: Proteccion contra fallos en cascada
+- 1000 - Errores Generales
+  - `UnknownError` (1000): Error no identificado. Usar cuando no hay detalle específico.
+  - `NetworkError` (1001): Error de conexión o recursos de red.
 
-## Testing
+- 2000 - Productos / Marcas
+  - `ProductoNoExiste` (2000): El producto solicitado no existe.
+  - `GtinDuplicado` (2001): El GTIN proporcionado ya existe en otro producto.
+  - `MarcaNoValida` (2002): La marca indicada no existe o no es válida.
+  - `NombreProductoDuplicado` (2003): El nombre del producto ya está en uso.
+  - `MarcaDuplicada` (2004): Existe otra marca con el mismo identificador/nombre.
+  - `MarcaTieneProductos` (2005): No se puede eliminar la marca porque tiene productos asociados.
 
-### Ejemplo de Test Unitario:
+- 3000 - Stock / Inventario
+  - `StockInsuficiente` (3000): No hay suficiente stock para completar la operación.
+  - `LoteVencido` (3001): El lote está vencido y no puede usarse.
+  - `DepositoNoEncontrado` (3002): El depósito indicado no existe.
+  - `SerieDuplicada` (3003): El número de serie ya existe para ese producto.
+  - `LoteNoEncontrado` (3004): El lote indicado no existe.
+  - `ExistenciaNoEncontrada` (3005): No existe registro de existencia para el producto/depósito indicado.
+  - `ProductoUnitarioCantidadInvalida` (3006): Para productos unitarios la cantidad debe ser 1.
+  - `CodigoDepositoDuplicado` (3007): El código del depósito ya existe.
 
-```csharp
-[Fact]
-public async Task CreateProducto_ConGtinDuplicado_DeberiaLanzarDomainException()
-{
-    // Arrange
-    var mockRepo = new Mock<IRepository>();
-    mockRepo.Setup(r => r.First<Producto>(It.IsAny<Expression<Func<Producto, bool>>>()))
-            .ReturnsAsync(new Producto { GTIN = "1234567890123" });
-    
-    var service = new ProductoService(mockRepo.Object);
-    var request = new ProductoModelRequest(
-        "Test", "Desc", "1234567890123", true, 100, null
-    );
-    
-    // Act & Assert
-    var exception = await Assert.ThrowsAsync<DomainException>(
-        () => service.CreateProducto(request)
-    );
-    
-    Assert.Equal(DomainErrorCode.GtinDuplicado, exception.Code);
-}
-```
+- 4000 - Clientes
+  - `ClienteNoExiste` (4000): El cliente no existe.
+  - `GlnClienteDuplicado` (4001): El GLN del cliente ya está en uso.
+  - `CuitClienteDuplicado` (4002): El CUIT del cliente ya está en uso.
 
----
+- 5000 - Proveedores
+  - `ProveedorNoExiste` (5000): El proveedor no existe.
+  - `GlnProveedorDuplicado` (5001): El GLN del proveedor ya está en uso.
+  - `CuitProveedorDuplicado` (5002): El CUIT del proveedor ya está en uso.
 
-**Implementacion Completa**: Todos los archivos estan listos para compilar y usar.
-**Proximo Paso**: Implementar el Middleware de manejo global de excepciones.
+- 6000 - Remitos / Cantidades
+  - `RemitoNoExiste` (6000): El remito no existe.
+  - `NumeroRemitoDuplicado` (6001): El número de remito ya está en uso.
+  - `RemitoSinDetalles` (6002): El remito no contiene detalles obligatorios.
+  - `CantidadInvalida` (6003): La cantidad indicada es inválida (ej. <= 0).
+
+- 7000 - Autenticación y Usuarios
+  - `CredencialesInvalidas` (7000): Usuario o contraseña incorrectos.
+  - `UsernameDuplicado` (7001): El nombre de usuario ya existe. (Se corrigió el typo anterior `UsernameDeplicado`)
+  - `UsuarioInactivo` (7002): El usuario está inactivo y no puede autenticarse.
+  - `TokenInvalido` (7003): Token JWT inválido o expirado.
+  - `PermisosDenegados` (7004): Se requieren permisos de administrador o similares.
+  - `UsuarioNoExiste` (7005): El usuario no fue encontrado.
+  - `ContrasenaDuplicada` (7006): La nueva contraseña es igual a la anterior o no cumple la regla solicitada.
+
+Notas importantes para el frontend
+
+1. Usar `codeValue` (entero) cuando se necesite comparaciones rápidas o métricas, y `code` (string) para reglas de negocio legibles.
+2. Nunca parsear mensajes libres (`message`) para control de flujo; usar `code`/`codeValue` para lógica.
+3. Implementar un mapeo en el frontend que traduzca `DomainErrorCode` a mensajes de UI y acciones (por ejemplo: redirigir al login si `TokenInvalido`).
+4. Algunos códigos se pueden mapear a estados HTTP especiales en el middleware:
+   - `NotFoundException` -> 404 (no incluye `DomainErrorCode`, sino entidad + key)
+   - `DomainException` -> 400 (incluye `code` y `codeValue`)
+   - Errores infraestructura (p.ej. `UnknownError`) -> 500
+
+Ejemplos de manejo en frontend (pseudocódigo)
+
+- Caso: registrar usuario -> recibir `UsernameDuplicado`
+  ```javascript
+  if (response.code === 'UsernameDuplicado') {
+    showError("El nombre de usuario ya está en uso.");
+  }
+  ```
+
+- Caso: cambiar contraseña -> recibir `ContrasenaDuplicada`
+  ```javascript
+  if (response.codeValue === 7006) {
+    showError("La nueva contraseña no puede ser igual a la anterior.");
+  }
+  ```
+
+Cambios realizados en el repositorio
+
+- Se corrigió el `enum` en `CigralBackend.Domain/Enums/DomainErrorCode.cs`: cambio de `UsernameDeplicado` a `UsernameDuplicado` y se agregó `ContrasenaDuplicada`.
+- Se actualizó `AuthService` (`CigralBack.Api/Services/AuthService.cs`) para usar `UsernameDuplicado` y lanzar `ContrasenaDuplicada` cuando corresponda.
+- Se actualizó esta documentación para listar todos los códigos y sus significados.
+
+Recomendación final
+
+Añadir/poner en uso un middleware global de manejo de excepciones que traduzca `DomainException` a una respuesta JSON estandarizada (ver ejemplo al inicio). De este modo el frontend tendrá un contrato claro y estable para manejar errores.
+
+Si quieres, puedo:
+- Agregar el middleware de ejemplo al proyecto y registrar su uso en `Program.cs`.
+- Generar un archivo JSON con la lista completa de `DomainErrorCode` para que el equipo de frontend lo consuma automáticamente.

@@ -1,3 +1,4 @@
+using Azure.Core;
 using CigralBackend.Application.Services;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
@@ -15,7 +16,7 @@ namespace CigralBackend
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -164,14 +165,50 @@ namespace CigralBackend
                 try
                 {
                     var context = services.GetRequiredService<CigralBackendContext>();
-                    // Esto aplica todas las migraciones pendientes.
-                    // Si la BD no existe, la crea. Si existe pero está vieja, la actualiza.
+
+                    // 1. Migrar la base de datos (ya lo tenías)
                     context.Database.Migrate();
+
+                    // 2. INICIO NUEVO CÓDIGO: Crear Admin si no existe
+                    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+
+                    // Verificamos si la tabla de usuarios está vacía
+                    if (!context.Users.Any())
+                    {
+                        var adminUser = new ApplicationUser
+                        {
+                            UserName = "adminCigral",
+                            NombreCompleto = "Admin Cigral",
+                            Email = "admin@cigral.com",
+                            EmailConfirmed = true, // Usar como flag "Activo"
+                            EsAdmin = true,
+                            FechaCreacion = DateTime.Now
+                            // Agrega aquí otros campos obligatorios de tu entidad ApplicationUser si los tienes
+                        };
+
+                        // Creamos el usuario con la contraseña que tú elijas
+                        // ¡IMPORTANTE! La contraseña debe cumplir tus reglas (mayúscula, minúscula, número, no alfanumérico)
+                        var result = await userManager.CreateAsync(adminUser, "b6@$1[E3>8£{");
+
+                        if (result.Succeeded)
+                        {
+                            // Opcional: Si usas roles, aquí podrías asignarle el rol de Admin
+                            // await userManager.AddToRoleAsync(adminUser, "Admin");
+                            var logger = services.GetRequiredService<ILogger<Program>>();
+                            logger.LogInformation("Usuario Admin creado exitosamente.");
+                        }
+                        else
+                        {
+                            var logger = services.GetRequiredService<ILogger<Program>>();
+                            logger.LogError("Error al crear el usuario Admin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                        }
+                    }
+                    // FIN NUEVO CÓDIGO
                 }
                 catch (Exception ex)
                 {
                     var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "Ocurrió un error al migrar la base de datos.");
+                    logger.LogError(ex, "Ocurrió un error durante la migración o el seeding.");
                 }
             }
 

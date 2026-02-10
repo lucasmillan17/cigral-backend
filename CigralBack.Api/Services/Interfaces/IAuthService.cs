@@ -22,5 +22,10 @@ namespace CigralBackend.Application.Services.Interfaces
         /// Valida si un usuario es administrador.
         /// </summary>
         Task<bool> IsAdmin(string username);
+
+        /// <summary>
+        /// Cambia la contraseña de un usuario.
+        /// </summary>
+        Task ChangePassword(string username, string currentPassword, string newPassword);
     }
 }

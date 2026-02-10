@@ -61,5 +61,24 @@ namespace CigralBackend.Controllers
             var usuario = await _authService.Register(request, username);
             return CreatedAtAction(nameof(Register), new { id = usuario.Id }, usuario);
         }
+
+        /// <summary>
+        /// Cambiar contraseña del usuario autenticado.
+        /// Comprobacion: la nueva contraseña no puede ser igual a la actual.
+        /// </summary>
+        [HttpPost("change-password")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
+            if (string.IsNullOrEmpty(username))
+                return Unauthorized("Token inválido");
+
+            await _authService.ChangePassword(username, request.CurrentPassword, request.NewPassword);
+            return NoContent();
+        }
     }
 }
