@@ -150,7 +150,7 @@ namespace CigralBackend.Domain.Enums
         /// <summary>
         /// El username ya existe.
         /// </summary>
-        UsernameDeplicado = 7001,
+        UsernameDuplicado = 7001,
 
         /// <summary>
         /// Usuario no activo.
@@ -165,6 +165,16 @@ namespace CigralBackend.Domain.Enums
         /// <summary>
         /// Se requieren permisos de administrador.
         /// </summary>
-        PermisosDenegados = 7004
+        PermisosDenegados = 7004,
+
+        /// <summary>
+        /// Usuario no existe.
+        /// </summary>
+        UsuarioNoExiste = 7005,
+
+        /// <summary>
+        /// Nueva contraseña igual a la anterior.
+        /// </summary>
+        ContrasenaDuplicada = 7006
     }
 }

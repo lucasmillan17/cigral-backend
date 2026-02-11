@@ -107,7 +107,7 @@ namespace CigralBackend.Application.Services
             if (existeUsuario != null)
             {
                 throw new DomainException(
-                    DomainErrorCode.UsernameDeplicado,
+                    DomainErrorCode.UsernameDuplicado,
                     $"El username '{request.Username}' ya existe."
                 );
             }
@@ -154,6 +154,51 @@ namespace CigralBackend.Application.Services
         {
             var usuario = await _userManager.FindByNameAsync(username);
             return usuario != null && usuario.EsAdmin;
+        }
+
+        /// <summary>
+        /// Cambia la contraseña del usuario. Solo comprueba que la nueva no sea igual a la actual.
+        /// </summary>
+        public async Task ChangePassword(string username, string currentPassword, string newPassword)
+        {
+            var usuario = await _userManager.FindByNameAsync(username);
+            if (usuario == null)
+            {
+                throw new DomainException(
+                    DomainErrorCode.UsuarioNoExiste,
+                    "Usuario no encontrado."
+                );
+            }
+
+            // Verificar que la contraseña actual sea correcta
+            var checkCurrent = await _signInManager.CheckPasswordSignInAsync(usuario, currentPassword, lockoutOnFailure: false);
+            if (!checkCurrent.Succeeded)
+            {
+                throw new DomainException(
+                    DomainErrorCode.CredencialesInvalidas,
+                    "Contraseña actual incorrecta."
+                );
+            }
+
+            // Comprobación solicitada: nueva contraseña no puede ser igual a la actual
+            if (currentPassword == newPassword)
+            {
+                throw new DomainException(
+                    DomainErrorCode.ContrasenaDuplicada,
+                    "La nueva contraseña no puede ser igual a la actual."
+                );
+            }
+
+            // Usar UserManager para cambiar la contraseña (verificando el hash y actualizando)
+            var result = await _userManager.ChangePasswordAsync(usuario, currentPassword, newPassword);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new DomainException(
+                    DomainErrorCode.UnknownError,
+                    $"Error al cambiar la contraseña: {errors}"
+                );
+            }
         }
 
         /// <summary>

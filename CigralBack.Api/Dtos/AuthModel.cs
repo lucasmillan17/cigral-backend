@@ -39,6 +39,19 @@ namespace CigralBackend.Application.Dtos
     );
 
     /// <summary>
+    /// Request para cambiar contraseña.
+    /// </summary>
+    public record ChangePasswordRequest
+    (
+        [Required(ErrorMessage = "La contraseña actual es obligatoria")]
+        string CurrentPassword,
+
+        [Required(ErrorMessage = "La nueva contraseña es obligatoria")]
+        [MinLength(6, ErrorMessage = "La nueva contraseña debe tener al menos 6 caracteres")]
+        string NewPassword
+    );
+
+    /// <summary>
     /// Respuesta de autenticación exitosa.
     /// </summary>
     public record AuthResponse
