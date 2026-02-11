@@ -103,11 +103,11 @@ namespace CigralBackend.Middleware
                 Message = exception.Message,
                 StatusCode = context.Response.StatusCode,
                 Timestamp = DateTime.UtcNow,
-                Details = new Dictionary<string, object>
-                {
-                    { "code", exception.Code.ToString() },
-                    { "codeValue", (int)exception.Code }
-                }
+                // Top-level properties required by frontend contract
+                Code = exception.Code.ToString(),
+                CodeValue = (int)exception.Code,
+                // keep details null by default to match doc format
+                Details = null
             };
         }
 
@@ -172,6 +172,16 @@ namespace CigralBackend.Middleware
         /// Timestamp del error en UTC.
         /// </summary>
         public DateTime Timestamp { get; set; }
+
+        /// <summary>
+        /// Codigo de error de dominio (string) - usado para DomainError.
+        /// </summary>
+        public string? Code { get; set; }
+
+        /// <summary>
+        /// Valor numerico del codigo de error de dominio - usado para DomainError.
+        /// </summary>
+        public int? CodeValue { get; set; }
 
         /// <summary>
         /// Detalles adicionales del error (opcional).
