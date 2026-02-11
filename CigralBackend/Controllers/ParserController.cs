@@ -20,6 +20,7 @@ namespace CigralBackend.Api.Controllers
         }
 
         [HttpGet("analyze")]
+        [ProducesResponseType(typeof(ScanResponseDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> Analyze([FromQuery] string rawCode)
         {
             // El controlador NO sabe que es GS1, solo sabe que "parsea".
