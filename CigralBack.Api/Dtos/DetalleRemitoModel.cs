@@ -6,10 +6,9 @@ namespace CigralBackend.Application.Dtos
     (
         [Required(ErrorMessage = "El producto es obligatorio")]
         int ProductoId,
-        [Required(ErrorMessage = "El lote es obligatorio")]
-        int LoteId,
-        [Required(ErrorMessage = "La cantidad es obligatoria")]
+        string? NumSerie,
+        string? CodigoLote,
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
-        int Cantidad
+        int? Cantidad
     );
 }

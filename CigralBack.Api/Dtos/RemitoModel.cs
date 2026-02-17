@@ -42,12 +42,11 @@ namespace CigralBackend.Application.Dtos
         [Required(ErrorMessage = "El producto es obligatorio")]
         int ProductoId,
 
-        int? LoteId,
+        string? CodigoLote,
 
         [MaxLength(100, ErrorMessage = "El número de serie no puede superar los 100 caracteres")]
         string? NumeroSerie,
 
-        [Required(ErrorMessage = "La cantidad es obligatoria")]
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
         int Cantidad
     );

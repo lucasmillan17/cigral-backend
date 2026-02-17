@@ -4,6 +4,7 @@ using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Infraestructure.Database.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ namespace CigralBackend.Application.Services
 
         /// <summary>
         /// Registra un remito de ingreso (entrada de mercadería de proveedor).
+        /// Se ejecuta dentro de una transacción para evitar inconsistencias cuando hay muchas operaciones concurrentes.
         /// </summary>
         /// <param name="request">Datos del remito de ingreso</param>
         /// <returns>Información del remito creado</returns>
@@ -62,7 +64,7 @@ namespace CigralBackend.Application.Services
                 var existeNumero = await _repository.First<RemitoIngreso>(
                     r => r.NumeroRemito == request.NumeroRemito
                 );
-                
+
                 if (existeNumero != null)
                 {
                     throw new DomainException(
@@ -72,68 +74,85 @@ namespace CigralBackend.Application.Services
                 }
             }
 
-            // Crear la cabecera del remito
-            var remito = new RemitoIngreso
+            // Iniciar transacción para todo el proceso (cabecera, detalles y movimientos de stock)
+            using var transaction = await _repository.BeginTransaction();
+            try
             {
-                Fecha = DateTime.Now,
-                NumeroRemito = request.NumeroRemito,
-                Observaciones = request.Observaciones,
-                ProveedorId = request.EntidadId,
-                DepositoId = request.DepositoId
-            };
-
-            remito = await _repository.Add(remito);
-
-            int cantidadTotal = 0;
-
-            // Procesar cada detalle
-            foreach (var detalle in request.Detalles)
-            {
-                // Crear el detalle del remito
-                var detalleRemito = new DetalleRemito
+                // Crear la cabecera del remito
+                var remito = new RemitoIngreso
                 {
-                    RemitoIngresoId = remito.Id,
-                    ProductoId = detalle.ProductoId,
-                    LoteId = detalle.LoteId,
-                    NumeroSerie = detalle.NumeroSerie,
-                    Cantidad = detalle.Cantidad
+                    Fecha = DateTime.Now,
+                    NumeroRemito = request.NumeroRemito,
+                    Observaciones = request.Observaciones,
+                    ProveedorId = request.EntidadId,
+                    DepositoId = request.DepositoId
                 };
 
-                await _repository.Add(detalleRemito);
+                remito = await _repository.Add(remito);
 
-                // Aumentar el stock en existencias pasando el ID del remito
-                var existenciaRequest = new ExistenciaModelRequest(
-                    DepositoId: request.DepositoId,
-                    ProductoId: detalle.ProductoId,
-                    NumSerie: detalle.NumeroSerie,
-                    LoteId: detalle.LoteId,
-                    FechaVencimiento: null,
-                    Cantidad: detalle.Cantidad
+                int cantidadTotal = 0;
+
+                // Procesar cada detalle
+                foreach (var detalle in request.Detalles)
+                {
+                    var lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote);
+
+                    // Crear el detalle del remito
+                    var detalleRemito = new DetalleRemito
+                    {
+                        RemitoIngresoId = remito.Id,
+                        ProductoId = detalle.ProductoId,
+                        LoteId = lote?.Id,
+                        NumeroSerie = detalle.NumeroSerie,
+                        Cantidad = detalle.Cantidad
+                    };
+
+                    await _repository.Add(detalleRemito);
+
+                    // Aumentar el stock en existencias pasando el ID del remito
+                    var existenciaRequest = new ExistenciaModelRequest(
+                        DepositoId: request.DepositoId,
+                        ProductoId: detalle.ProductoId,
+                        NumSerie: detalle.NumeroSerie,
+                        CodigoLote: detalle.CodigoLote,
+                        FechaVencimiento: null,
+                        Cantidad: detalle.Cantidad
+                    );
+
+                    // Llamamos al servicio de existencias que internamente hará validaciones y guardados.
+                    // Como estamos dentro de la transacción, los cambios se aplicarán de forma atómica.
+                    await _existenciaService.AumentarStock(
+                        existenciaRequest,
+                        remitoIngresoId: remito.Id,
+                        observaciones: $"Remito de ingreso {request.NumeroRemito ?? remito.Id.ToString()}"
+                    );
+
+                    cantidadTotal += detalle.Cantidad;
+                }
+
+                await transaction.CommitAsync();
+
+                return new RemitoResponse(
+                    Id: remito.Id,
+                    NumeroRemito: remito.NumeroRemito,
+                    Fecha: remito.Fecha,
+                    DepositoId: remito.DepositoId,
+                    EntidadId: remito.ProveedorId,
+                    Observaciones: remito.Observaciones,
+                    CantidadDetalles: request.Detalles.Count,
+                    CantidadTotal: cantidadTotal
                 );
-
-                await _existenciaService.AumentarStock(
-                    existenciaRequest,
-                    remitoIngresoId: remito.Id,
-                    observaciones: $"Remito de ingreso {request.NumeroRemito ?? remito.Id.ToString()}"
-                );
-
-                cantidadTotal += detalle.Cantidad;
             }
-
-            return new RemitoResponse(
-                Id: remito.Id,
-                NumeroRemito: remito.NumeroRemito,
-                Fecha: remito.Fecha,
-                DepositoId: remito.DepositoId,
-                EntidadId: remito.ProveedorId,
-                Observaciones: remito.Observaciones,
-                CantidadDetalles: request.Detalles.Count,
-                CantidadTotal: cantidadTotal
-            );
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         /// <summary>
         /// Registra un remito de egreso (salida de mercadería a cliente).
+        /// Se ejecuta dentro de una transacción para evitar inconsistencias cuando hay muchas operaciones concurrentes.
         /// </summary>
         /// <param name="request">Datos del remito de egreso</param>
         /// <returns>Información del remito creado</returns>
@@ -180,64 +199,76 @@ namespace CigralBackend.Application.Services
                 }
             }
 
-            // Crear la cabecera del remito
-            var remito = new RemitoEgreso
+            using var transaction = await _repository.BeginTransaction();
+            try
             {
-                Fecha = DateTime.Now,
-                NumeroRemito = request.NumeroRemito,
-                Observaciones = request.Observaciones,
-                ClienteId = request.EntidadId,
-                DepositoId = request.DepositoId
-            };
-
-            remito = await _repository.Add(remito);
-
-            int cantidadTotal = 0;
-
-            // Procesar cada detalle
-            foreach (var detalle in request.Detalles)
-            {
-                // Crear el detalle del remito
-                var detalleRemito = new DetalleRemito
+                // Crear la cabecera del remito
+                var remito = new RemitoEgreso
                 {
-                    RemitoEgresoId = remito.Id,
-                    ProductoId = detalle.ProductoId,
-                    LoteId = detalle.LoteId,
-                    NumeroSerie = detalle.NumeroSerie,
-                    Cantidad = detalle.Cantidad
+                    Fecha = DateTime.Now,
+                    NumeroRemito = request.NumeroRemito,
+                    Observaciones = request.Observaciones,
+                    ClienteId = request.EntidadId,
+                    DepositoId = request.DepositoId
                 };
 
-                await _repository.Add(detalleRemito);
+                remito = await _repository.Add(remito);
 
-                // Disminuir el stock en existencias pasando el ID del remito
-                var existenciaRequest = new ExistenciaModelRequest(
-                    DepositoId: request.DepositoId,
-                    ProductoId: detalle.ProductoId,
-                    NumSerie: detalle.NumeroSerie,
-                    LoteId: detalle.LoteId,
-                    FechaVencimiento: null,
-                    Cantidad: detalle.Cantidad
+                int cantidadTotal = 0;
+
+                // Procesar cada detalle
+                foreach (var detalle in request.Detalles)
+                {
+                    var lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote);
+                    // Crear el detalle del remito
+                    var detalleRemito = new DetalleRemito
+                    {
+                        RemitoEgresoId = remito.Id,
+                        ProductoId = detalle.ProductoId,
+                        LoteId = lote?.Id,
+                        NumeroSerie = detalle.NumeroSerie,
+                        Cantidad = detalle.Cantidad
+                    };
+
+                    await _repository.Add(detalleRemito);
+
+                    // Disminuir el stock en existencias pasando el ID del remito
+                    var existenciaRequest = new ExistenciaModelRequest(
+                        DepositoId: request.DepositoId,
+                        ProductoId: detalle.ProductoId,
+                        NumSerie: detalle.NumeroSerie,
+                        CodigoLote: lote?.CodigoLote,
+                        FechaVencimiento: null,
+                        Cantidad: detalle.Cantidad
+                    );
+
+                    await _existenciaService.DisminuirStock(
+                        existenciaRequest,
+                        remitoEgresoId: remito.Id,
+                        observaciones: $"Remito de egreso {request.NumeroRemito ?? remito.Id.ToString()}"
+                    );
+
+                    cantidadTotal += detalle.Cantidad;
+                }
+
+                await transaction.CommitAsync();
+
+                return new RemitoResponse(
+                    Id: remito.Id,
+                    NumeroRemito: remito.NumeroRemito,
+                    Fecha: remito.Fecha,
+                    DepositoId: remito.DepositoId,
+                    EntidadId: remito.ClienteId,
+                    Observaciones: remito.Observaciones,
+                    CantidadDetalles: request.Detalles.Count,
+                    CantidadTotal: cantidadTotal
                 );
-
-                await _existenciaService.DisminuirStock(
-                    existenciaRequest,
-                    remitoEgresoId: remito.Id,
-                    observaciones: $"Remito de egreso {request.NumeroRemito ?? remito.Id.ToString()}"
-                );
-
-                cantidadTotal += detalle.Cantidad;
             }
-
-            return new RemitoResponse(
-                Id: remito.Id,
-                NumeroRemito: remito.NumeroRemito,
-                Fecha: remito.Fecha,
-                DepositoId: remito.DepositoId,
-                EntidadId: remito.ClienteId,
-                Observaciones: remito.Observaciones,
-                CantidadDetalles: request.Detalles.Count,
-                CantidadTotal: cantidadTotal
-            );
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         /// <summary>

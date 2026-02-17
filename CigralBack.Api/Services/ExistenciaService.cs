@@ -106,6 +106,13 @@ namespace CigralBackend.Application.Services
                 );
             }
 
+            if(string.IsNullOrEmpty(r.NumSerie) && string.IsNullOrEmpty(r.CodigoLote)){
+                throw new DomainException(
+                    DomainErrorCode.SerieYCodigoLoteNoEspecificados,
+                    "Debe especificar al menos un número de serie o un código de lote para aumentar el stock."
+                );
+            }
+
             // Validar que el producto exista
             var producto = await _repository.GetById<Producto>(r.ProductoId);
             if (producto == null)
@@ -131,12 +138,12 @@ namespace CigralBackend.Application.Services
 
             // Validar que el lote exista si se especifica
             Lote? lote = null;
-            if (r.LoteId.HasValue)
+            if (!string.IsNullOrEmpty(r.CodigoLote))
             {
-                lote = await _repository.GetById<Lote>(r.LoteId.Value);
+                lote = await _repository.First<Lote>(l => l.CodigoLote == r.CodigoLote);
                 if (lote == null)
                 {
-                    throw new NotFoundException(nameof(Lote), r.LoteId.Value);
+                    throw new NotFoundException(nameof(Lote), r.CodigoLote);
                 }
 
                 // Validar que el lote no esté vencido
@@ -168,7 +175,7 @@ namespace CigralBackend.Application.Services
             var existencia = await _repository.First<Existencia>(
                 e => e.ProductoId == r.ProductoId &&
                      e.DepositoId == r.DepositoId &&
-                     e.LoteId == r.LoteId &&
+                     e.LoteId == lote.Id &&
                      (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie)
             );
 
@@ -189,7 +196,7 @@ namespace CigralBackend.Application.Services
                 {
                     ProductoId = r.ProductoId,
                     DepositoId = r.DepositoId,
-                    LoteId = r.LoteId,
+                    LoteId = lote.Id,
                     NumSerie = r.NumSerie,
                     FechaVencimiento = r.FechaVencimiento,
                     Cantidad = r.Cantidad
@@ -203,7 +210,7 @@ namespace CigralBackend.Application.Services
                 tipo: remitoIngresoId.HasValue ? TipoMovimiento.Ingreso : TipoMovimiento.AjustePositivo,
                 productoId: r.ProductoId,
                 depositoId: r.DepositoId,
-                loteId: r.LoteId,
+                loteId: lote.Id,
                 numeroSerie: r.NumSerie,
                 cantidad: r.Cantidad,
                 stockAnterior: stockAnterior,
@@ -264,12 +271,12 @@ namespace CigralBackend.Application.Services
 
             // Validar que el lote exista si se especifica
             Lote? lote = null;
-            if (r.LoteId.HasValue)
+            if (!string.IsNullOrEmpty(r.CodigoLote))
             {
-                lote = await _repository.GetById<Lote>(r.LoteId.Value);
+                lote = await _repository.First<Lote>(l => l.CodigoLote == r.CodigoLote);
                 if (lote == null)
                 {
-                    throw new NotFoundException(nameof(Lote), r.LoteId.Value);
+                    throw new NotFoundException(nameof(Lote), r.CodigoLote);
                 }
             }
 
@@ -277,7 +284,7 @@ namespace CigralBackend.Application.Services
             var existencia = await _repository.First<Existencia>(
                 e => e.ProductoId == r.ProductoId &&
                      e.DepositoId == r.DepositoId &&
-                     e.LoteId == r.LoteId &&
+                     e.LoteId == lote.Id &&
                      (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie)
             );
 
@@ -310,7 +317,7 @@ namespace CigralBackend.Application.Services
                 tipo: remitoEgresoId.HasValue ? TipoMovimiento.Egreso : TipoMovimiento.AjusteNegativo,
                 productoId: r.ProductoId,
                 depositoId: r.DepositoId,
-                loteId: r.LoteId,
+                loteId: lote.Id,
                 numeroSerie: r.NumSerie,
                 cantidad: -r.Cantidad, // Negativo para egreso
                 stockAnterior: stockAnterior,

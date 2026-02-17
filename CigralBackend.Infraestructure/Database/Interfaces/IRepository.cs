@@ -1,6 +1,7 @@
 using CigralBackend.Domain.Bases;
 using CigralBackend.Domain.Wrappers;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CigralBackend.Infraestructure.Database.Interfaces
 {
@@ -71,6 +72,13 @@ namespace CigralBackend.Infraestructure.Database.Interfaces
         /// <param name="include">Propiedades de navegación a incluir (eager loading)</param>
         /// <returns>Resultado paginado con los elementos filtrados y metadata de paginación</returns>
         Task<PagedResult<T>> GetFiltered<T>(Expression<Func<T, bool>> predicate, int pageNumber = 1, int pageSize = 10, params string[] include) where T : EntityBase;
+
+        /// <summary>
+        /// Inicia una transacción en la base de datos (Entity Framework IDbContextTransaction).
+        /// El caller debe hacer CommitAsync o RollbackAsync según corresponda.
+        /// </summary>
+        /// <returns>IDbContextTransaction para controlar la transacción</returns>
+        Task<IDbContextTransaction> BeginTransaction();
     }
 
 }

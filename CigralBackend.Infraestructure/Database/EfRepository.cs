@@ -3,6 +3,7 @@ using CigralBackend.Infraestructure.Database.Interfaces;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using CigralBackend.Domain.Wrappers;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CigralBackend.Infraestructure.Database
 {
@@ -101,6 +102,14 @@ namespace CigralBackend.Infraestructure.Database
             _context.Update(entity);
             await _context.SaveChangesAsync();
             return entity;
+        }
+
+        /// <summary>
+        /// Inicia una transacción en la base de datos y devuelve el objeto de transacción.
+        /// </summary>
+        public async Task<IDbContextTransaction> BeginTransaction()
+        {
+            return await _context.Database.BeginTransactionAsync();
         }
 
         /// <summary>
