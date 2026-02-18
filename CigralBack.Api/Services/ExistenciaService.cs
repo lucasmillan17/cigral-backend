@@ -143,7 +143,15 @@ namespace CigralBackend.Application.Services
                 lote = await _repository.First<Lote>(l => l.CodigoLote == r.CodigoLote);
                 if (lote == null)
                 {
-                    throw new NotFoundException(nameof(Lote), r.CodigoLote);
+                    //throw new NotFoundException(nameof(Lote), r.CodigoLote);
+                    // Creamos un lote nuevo si no existe, ya que se está ingresando stock con ese código de lote
+                    lote = new Lote
+                    {
+                        CodigoLote = r.CodigoLote,
+                        FechaVencimiento = r.FechaVencimiento ?? DateTime.Now.AddYears(1), // Si no se especifica fecha de vencimiento, asignamos una por defecto
+                        CantidadDisponible = r.Cantidad,
+                        ProductoId = r.ProductoId
+                    };
                 }
 
                 // Validar que el lote no esté vencido
