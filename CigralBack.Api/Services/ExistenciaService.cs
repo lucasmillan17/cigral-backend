@@ -152,6 +152,8 @@ namespace CigralBackend.Application.Services
                         CantidadDisponible = r.Cantidad,
                         ProductoId = r.ProductoId
                     };
+
+                    _repository.Add(lote).Wait(); // Esperamos a que se cree el lote para obtener su ID
                 }
 
                 // Validar que el lote no esté vencido
