@@ -6,6 +6,7 @@ using CigralBackend.Domain.Exceptions;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -95,7 +96,22 @@ namespace CigralBackend.Application.Services
                 // Procesar cada detalle
                 foreach (var detalle in request.Detalles)
                 {
-                    var lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote);
+                    Lote lote = null;
+                    if (!string.IsNullOrEmpty(detalle.CodigoLote))
+                    {
+                            lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote);
+                        if (lote == null)
+                        {
+                            // Si el lote no existe, lo creamos
+                            lote = new Lote
+                            {
+                                CodigoLote = detalle.CodigoLote,
+                                ProductoId = detalle.ProductoId,
+                                FechaVencimiento = detalle.FechaVencimiento // Podríamos agregar esta info al detalle si es necesario
+                            };
+                            lote = await _repository.Add(lote);
+                        }
+                    }
 
                     // Crear el detalle del remito
                     var detalleRemito = new DetalleRemito

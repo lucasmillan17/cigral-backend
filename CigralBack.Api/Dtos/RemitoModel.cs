@@ -47,6 +47,8 @@ namespace CigralBackend.Application.Dtos
         [MaxLength(100, ErrorMessage = "El número de serie no puede superar los 100 caracteres")]
         string? NumeroSerie,
 
+        DateTime FechaVencimiento,
+
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
         int Cantidad
     );
