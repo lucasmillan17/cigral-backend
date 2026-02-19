@@ -403,7 +403,10 @@ namespace CigralBackend.Application.Services
                     
                     (!filters.SoloConVencimiento.HasValue ||
                         (filters.SoloConVencimiento.Value && (e.FechaVencimiento.HasValue || e.Lote != null)) ||
-                        (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && e.Lote == null)),
+                        (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && e.Lote == null)) &&
+
+                    (string.IsNullOrEmpty(filters.NombreProducto) || 
+                        (e.Producto != null && e.Producto.Nombre.Contains(filters.NombreProducto))),
 
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
