@@ -337,5 +337,36 @@ namespace CigralBackend.Tests.Services
             // Assert
             Assert.Equal("LOTE 001 A", result.Lote);
         }
+
+        // New tests for ambiguous no-parentheses scenarios
+        [Fact]
+        public void Parse_UserProvidedCodeWithoutParentheses_ShouldParseCorrectly()
+        {
+            var code = "0100610075001262173007013010105G283";
+
+            var result = _parser.Parse(code);
+
+            Assert.True(result.EsValido);
+            Assert.Equal("00610075001262", result.Gtin);
+            Assert.Equal(new DateTime(2030, 7, 1), result.FechaVencimiento);
+            Assert.Equal(10, result.Cantidad);
+            Assert.Equal("5G283", result.Lote);
+            Assert.Null(result.NumeroSerie);
+        }
+
+        [Theory]
+        [InlineData("010061007500126217300701301012345", 10, "12345")]
+        [InlineData("010061007500126217300701301015G283", 10, "15G283")]
+        [InlineData("010061007500126217300701301010123", 10, "123")]
+        public void Parse_AmbiguousNoParentheses_ShouldSeparateQuantityAndLot(string code, int expectedQty, string expectedLote)
+        {
+            var result = _parser.Parse(code);
+
+            Assert.True(result.EsValido);
+            Assert.Equal("00610075001262", result.Gtin);
+            Assert.Equal(new DateTime(2030, 7, 1), result.FechaVencimiento);
+            Assert.Equal(expectedQty, result.Cantidad);
+            Assert.Equal(expectedLote, result.Lote);
+        }
     }
 }

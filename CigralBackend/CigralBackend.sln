@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CigralBackend.Domain", "..\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CigralBackend.Infraestructure", "..\CigralBackend.Infraestructure\CigralBackend.Infraestructure.csproj", "{CE6F29C7-8B59-449C-A5F1-1D934F1983F7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CigralBackend.Tests", "..\CigralBackend.Tests\CigralBackend.Tests.csproj", "{82581241-405C-3F62-329C-B4DF9802E361}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{CE6F29C7-8B59-449C-A5F1-1D934F1983F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE6F29C7-8B59-449C-A5F1-1D934F1983F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE6F29C7-8B59-449C-A5F1-1D934F1983F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82581241-405C-3F62-329C-B4DF9802E361}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82581241-405C-3F62-329C-B4DF9802E361}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82581241-405C-3F62-329C-B4DF9802E361}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82581241-405C-3F62-329C-B4DF9802E361}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
