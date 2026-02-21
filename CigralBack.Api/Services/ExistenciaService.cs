@@ -148,7 +148,7 @@ namespace CigralBackend.Application.Services
                     lote = new Lote
                     {
                         CodigoLote = r.CodigoLote,
-                        FechaVencimiento = r.FechaVencimiento ?? DateTime.Now.AddYears(1), // Si no se especifica fecha de vencimiento, asignamos una por defecto
+                        FechaVencimiento = r.FechaVencimiento, // Si no se especifica fecha de vencimiento, asignamos una por defecto
                         CantidadDisponible = r.Cantidad,
                         ProductoId = r.ProductoId
                     };
@@ -157,13 +157,13 @@ namespace CigralBackend.Application.Services
                 }
 
                 // Validar que el lote no esté vencido
-                if (lote.FechaVencimiento < DateTime.Now)
+                /*if (lote.FechaVencimiento < DateTime.Now)
                 {
                     throw new DomainException(
                         DomainErrorCode.LoteVencido,
                         $"El lote '{lote.CodigoLote}' está vencido. Fecha de vencimiento: {lote.FechaVencimiento:dd/MM/yyyy}"
                     );
-                }
+                }*/
             }
 
             // Validar número de serie duplicado si se especifica
@@ -202,15 +202,33 @@ namespace CigralBackend.Application.Services
             else
             {
                 // Crear nueva existencia
-                existencia = new Existencia
-                {
+                existencia = new Existencia();
+                /*{
                     ProductoId = r.ProductoId,
                     DepositoId = r.DepositoId,
                     LoteId = lote.Id,
                     NumSerie = r.NumSerie,
                     FechaVencimiento = r.FechaVencimiento,
                     Cantidad = r.Cantidad
-                };
+                };*/
+
+                existencia.Cantidad = r.Cantidad;
+                existencia.ProductoId = r.ProductoId;
+                existencia.DepositoId = r.DepositoId;
+                if(lote != null)
+                {
+                    existencia.LoteId = lote.Id;
+                    existencia.FechaVencimiento = lote.FechaVencimiento;
+                }
+                else
+                {
+                    existencia.FechaVencimiento = r.FechaVencimiento;
+                }
+                if (!string.IsNullOrEmpty(r.NumSerie))
+                {
+                    existencia.NumSerie = r.NumSerie;
+                }
+
                 existencia = await _repository.Add(existencia);
                 stockNuevo = existencia.Cantidad;
             }

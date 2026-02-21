@@ -13,7 +13,7 @@ namespace CigralBackend.Application.Dtos
         [MaxLength(100, ErrorMessage = "El número de serie no puede superar los 100 caracteres")]
         string? NumSerie,
         string? CodigoLote,
-        DateTime? FechaVencimiento,
+        DateTime FechaVencimiento,
         [Required(ErrorMessage = "La cantidad es obligatoria")]
         [Range(0, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor o igual a 0")]
         int Cantidad

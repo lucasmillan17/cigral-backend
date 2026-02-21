@@ -131,7 +131,7 @@ namespace CigralBackend.Application.Services
                         ProductoId: detalle.ProductoId,
                         NumSerie: detalle.NumeroSerie,
                         CodigoLote: detalle.CodigoLote,
-                        FechaVencimiento: null,
+                        FechaVencimiento: detalle.FechaVencimiento,
                         Cantidad: detalle.Cantidad
                     );
 
@@ -254,7 +254,7 @@ namespace CigralBackend.Application.Services
                         ProductoId: detalle.ProductoId,
                         NumSerie: detalle.NumeroSerie,
                         CodigoLote: lote?.CodigoLote,
-                        FechaVencimiento: null,
+                        FechaVencimiento: detalle.FechaVencimiento,
                         Cantidad: detalle.Cantidad
                     );
 
