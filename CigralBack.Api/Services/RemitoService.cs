@@ -3,6 +3,7 @@ using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
+using CigralBackend.Domain.Wrappers;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -374,6 +375,95 @@ namespace CigralBackend.Application.Services
                     CantidadTotal: 0
                 );
             }
+        }
+
+        public async Task<PagedResult<RemitoResponseGet>> GetRemitosIngreso(RemitoFilters filters)
+        {
+            var resultadoEntidad = await _repository.GetFiltered<RemitoIngreso>(
+                predicate: e =>
+                    (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
+                    (!filters.EntidadId.HasValue || e.ProveedorId == filters.EntidadId.Value) &&
+
+                    // Filtros de vencimiento
+                    (!filters.FechaDesde.HasValue || e.Fecha >= filters.FechaDesde.Value) &&
+
+                    (!filters.FechaHasta.HasValue || e.Fecha <= filters.FechaHasta.Value) &&
+
+                    (string.IsNullOrEmpty(filters.NumeroRemito) ||
+                        (e.NumeroRemito != null && e.NumeroRemito == filters.NumeroRemito)),
+
+                pageNumber: filters.PageNumber,
+                pageSize: filters.PageSize,
+                include: new[] { "DetalleRemito", "Deposito" }
+            );
+
+            var remitos = resultadoEntidad.Items.Select(e => new RemitoResponseGet(
+                Id: e.Id,
+                NumeroRemito: e.NumeroRemito,
+                Fecha: e.Fecha,
+                DepositoId: e.DepositoId,
+                EntidadId: e.ProveedorId,
+                Observaciones: e.Observaciones,
+                Detalles: e.Detalles.Select(d => new RemitoDetalleResponse(
+                    ProductoId: d.ProductoId,
+                    CodigoLote: d.Lote != null ? d.Lote.CodigoLote : null,
+                    FechaVencimiento: d.Lote != null ? d.Lote.FechaVencimiento : (DateTime?)null,
+                    NumeroSerie: d.NumeroSerie,
+                    Cantidad: d.Cantidad
+                )).ToList()
+            )).ToList();
+
+            return new PagedResult<RemitoResponseGet> { 
+                Items = remitos,
+                TotalCount = resultadoEntidad.TotalCount,
+                PageNumber = filters.PageNumber,
+                PageSize = filters.PageSize
+            };
+        }
+
+        public async Task<PagedResult<RemitoResponseGet>> GetRemitosEgreso(RemitoFilters filters)
+        {
+            var resultadoEntidad = await _repository.GetFiltered<RemitoEgreso>(
+                predicate: e =>
+                    (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
+                    (!filters.EntidadId.HasValue || e.ClienteId == filters.EntidadId.Value) &&
+
+                    // Filtros de vencimiento
+                    (!filters.FechaDesde.HasValue || e.Fecha >= filters.FechaDesde.Value) &&
+
+                    (!filters.FechaHasta.HasValue || e.Fecha <= filters.FechaHasta.Value) &&
+
+                    (string.IsNullOrEmpty(filters.NumeroRemito) ||
+                        (e.NumeroRemito != null && e.NumeroRemito == filters.NumeroRemito)),
+
+                pageNumber: filters.PageNumber,
+                pageSize: filters.PageSize,
+                include: new[] { "DetalleRemito", "Deposito" }
+            );
+
+            var remitos = resultadoEntidad.Items.Select(e => new RemitoResponseGet(
+                Id: e.Id,
+                NumeroRemito: e.NumeroRemito,
+                Fecha: e.Fecha,
+                DepositoId: e.DepositoId,
+                EntidadId: e.ClienteId,
+                Observaciones: e.Observaciones,
+                Detalles: e.Detalles.Select(d => new RemitoDetalleResponse(
+                    ProductoId: d.ProductoId,
+                    CodigoLote: d.Lote != null ? d.Lote.CodigoLote : null,
+                    FechaVencimiento: d.Lote != null ? d.Lote.FechaVencimiento : (DateTime?)null,
+                    NumeroSerie: d.NumeroSerie,
+                    Cantidad: d.Cantidad
+                )).ToList()
+            )).ToList();
+
+            return new PagedResult<RemitoResponseGet>
+            {
+                Items = remitos,
+                TotalCount = resultadoEntidad.TotalCount,
+                PageNumber = filters.PageNumber,
+                PageSize = filters.PageSize
+            };
         }
     }
 }

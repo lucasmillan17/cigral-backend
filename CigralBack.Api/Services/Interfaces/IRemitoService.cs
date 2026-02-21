@@ -1,4 +1,5 @@
 using CigralBackend.Application.Dtos;
+using CigralBackend.Domain.Wrappers;
 using System.Threading.Tasks;
 
 namespace CigralBackend.Application.Services.Interfaces
@@ -30,5 +31,7 @@ namespace CigralBackend.Application.Services.Interfaces
         /// <param name="esIngreso">True si es remito de ingreso, False si es de egreso</param>
         /// <returns>Información del remito actualizado</returns>
         Task<RemitoResponse> UpdateRemito(int id, UpdateRemitoRequest request, bool esIngreso);
+        Task<PagedResult<RemitoResponseGet>> GetRemitosEgreso(RemitoFilters filters);
+        Task<PagedResult<RemitoResponseGet>> GetRemitosIngreso(RemitoFilters filters);
     }
 }

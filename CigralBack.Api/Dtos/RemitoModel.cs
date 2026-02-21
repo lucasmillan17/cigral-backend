@@ -53,6 +53,15 @@ namespace CigralBackend.Application.Dtos
         int Cantidad
     );
 
+    public record RemitoDetalleResponse
+    (
+        int ProductoId,
+        string? CodigoLote,
+        string? NumeroSerie,
+        DateTime? FechaVencimiento,
+        int Cantidad
+    );
+
     /// <summary>
     /// Respuesta con información del remito creado.
     /// </summary>
@@ -66,5 +75,27 @@ namespace CigralBackend.Application.Dtos
         string? Observaciones,
         int CantidadDetalles,
         int CantidadTotal
+    );
+
+    public record RemitoResponseGet
+    (
+        int Id,
+        string? NumeroRemito,
+        DateTime Fecha,
+        int DepositoId,
+        int EntidadId,
+        string? Observaciones,
+        List<RemitoDetalleResponse> Detalles
+    );
+
+    public record RemitoFilters(
+        int? DepositoId,
+        int? EntidadId,
+        DateTime? FechaDesde,
+        DateTime? FechaHasta,
+        string? NumeroRemito,
+
+        int PageNumber = 1,
+        int PageSize = 20
     );
 }
