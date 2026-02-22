@@ -21,5 +21,6 @@ namespace CigralBackend.Domain.Services
         /// <param name="remitoId">ID del remito de egreso</param>
         /// <returns>Bytes del PDF generado</returns>
         Task<byte[]> GenerarPdfRemitoEgreso(int remitoId);
+        Task GenerarPdfRemitoDisenio();
     }
 }

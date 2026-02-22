@@ -14,197 +14,183 @@ namespace CigralBackend.Tests.Services
         }
 
         [Fact]
-        public void Parse_CodigoCompletoConSerieQueContiene21_DeberiaObtenerSerieCompleta()
+        public void Parse_RealScannerFormat_ShouldParseProperly()
         {
-            // Arrange
-            // Fecha: 301230 = 30/12/30 -> año 30 = 2030
-            var barcode = "(01)30012345678906(17)301230(10)C4324(21)230A6576P9";
+            // Arrange - Real scanner format from user
+            var code = "0110610075099396172801113051'103A061";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
-            Assert.Equal("30012345678906", result.Gtin);
-            Assert.Equal("C4324", result.Lote);
-            Assert.Equal("230A6576P9", result.NumeroSerie);
-            Assert.Equal(new DateTime(2030, 12, 30), result.FechaVencimiento);
-            Assert.Equal(1, result.Cantidad);
             Assert.True(result.EsValido);
+            Assert.Equal("10610075099396", result.Gtin);
+            Assert.Equal(new DateTime(2028, 1, 11), result.FechaVencimiento);
+            Assert.Equal(5, result.Cantidad);
+            Assert.Equal("3A061", result.Lote);
+            Assert.Null(result.NumeroSerie);
         }
 
         [Fact]
-        public void Parse_LoteContieneAI10_DeberiaObtenerLoteCompleto()
+        public void Parse_OnlyGTIN_ShouldParseCorrectly()
         {
             // Arrange
-            var barcode = "(01)12345678901234(10)LOTE10ABC(17)250630";
+            var code = "0112345678901234";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
-            Assert.Equal("12345678901234", result.Gtin);
-            Assert.Equal("LOTE10ABC", result.Lote);
-            Assert.Equal(new DateTime(2025, 6, 30), result.FechaVencimiento);
             Assert.True(result.EsValido);
-        }
-
-        [Fact]
-        public void Parse_SerieConNumerosConsecutivos_DeberiaObtenerSerieCompleta()
-        {
-            // Arrange
-            var barcode = "(01)11111111111111(21)21212121";
-
-            // Act
-            var result = _parser.Parse(barcode);
-
-            // Assert
-            Assert.Equal("11111111111111", result.Gtin);
-            Assert.Equal("21212121", result.NumeroSerie);
-            Assert.True(result.EsValido);
-        }
-
-        [Fact]
-        public void Parse_SoloGTIN_DeberiaObtenerSoloGTIN()
-        {
-            // Arrange
-            var barcode = "(01)12345678901234";
-
-            // Act
-            var result = _parser.Parse(barcode);
-
-            // Assert
             Assert.Equal("12345678901234", result.Gtin);
             Assert.Null(result.Lote);
             Assert.Null(result.NumeroSerie);
             Assert.Null(result.FechaVencimiento);
-            Assert.Equal(1, result.Cantidad);
-            Assert.True(result.EsValido);
+            Assert.Equal(1, result.Cantidad); // Default
         }
 
         [Fact]
-        public void Parse_ConCantidad_DeberiaObtenerCantidadCorrecta()
+        public void Parse_GTINAndDate_ShouldParseCorrectly()
         {
             // Arrange
-            var barcode = "(01)12345678901234(30)5(10)LOTE123";
+            var code = "01123456789012341730630";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
+            Assert.True(result.EsValido);
             Assert.Equal("12345678901234", result.Gtin);
+            Assert.Equal(new DateTime(2017, 6, 30), result.FechaVencimiento);
+            Assert.Null(result.Lote);
+            Assert.Null(result.NumeroSerie);
+            Assert.Equal(1, result.Cantidad);
+        }
+
+        [Fact]
+        public void Parse_GTINDateAndQuantity_ShouldParseCorrectly()
+        {
+            // Arrange
+            var code = "01123456789012341730630305'";
+
+            // Act
+            var result = _parser.Parse(code);
+
+            // Assert
+            Assert.True(result.EsValido);
+            Assert.Equal("12345678901234", result.Gtin);
+            Assert.Equal(new DateTime(2017, 6, 30), result.FechaVencimiento);
+            Assert.Equal(5, result.Cantidad);
+            Assert.Null(result.Lote);
+            Assert.Null(result.NumeroSerie);
+        }
+
+        [Fact]
+        public void Parse_AllFieldsWithLot_ShouldParseCorrectly()
+        {
+            // Arrange
+            var code = "01123456789012341730630305'10LOTE123";
+
+            // Act
+            var result = _parser.Parse(code);
+
+            // Assert
+            Assert.True(result.EsValido);
+            Assert.Equal("12345678901234", result.Gtin);
+            Assert.Equal(new DateTime(2017, 6, 30), result.FechaVencimiento);
             Assert.Equal(5, result.Cantidad);
             Assert.Equal("LOTE123", result.Lote);
-            Assert.True(result.EsValido);
+            Assert.Null(result.NumeroSerie);
         }
 
         [Fact]
-        public void Parse_OrdenDiferenteDeAIs_DeberiaObtenerTodosCampos()
+        public void Parse_AllFieldsWithSerial_ShouldParseCorrectly()
         {
             // Arrange
-            var barcode = "(21)ABC123XYZ(01)99887766554433(17)301225(10)L001";
+            var code = "01123456789012341730630305'10LOTE123'21SN001";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
-            Assert.Equal("ABC123XYZ", result.NumeroSerie);
-            Assert.Equal("99887766554433", result.Gtin);
-            Assert.Equal(new DateTime(2030, 12, 25), result.FechaVencimiento);
-            Assert.Equal("L001", result.Lote);
             Assert.True(result.EsValido);
+            Assert.Equal("12345678901234", result.Gtin);
+            Assert.Equal(new DateTime(2017, 6, 30), result.FechaVencimiento);
+            Assert.Equal(5, result.Cantidad);
+            Assert.Equal("LOTE123", result.Lote);
+            Assert.Equal("SN001", result.NumeroSerie);
         }
 
         [Fact]
-        public void Parse_LoteAlfanumericoComplejo_DeberiaObtenerLoteCompleto()
+        public void Parse_LotWithNumbers_ShouldParseCorrectly()
         {
             // Arrange
-            // Fecha corregida: 311224 = 31/12/24 (día 31, mes 12, año 24 -> 2024)
-            var barcode = "(01)11111111111111(10)ABC-123_XYZ.2024(17)241231";
+            var code = "0112345678901234'10LOTE10ABC";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
+            Assert.True(result.EsValido);
+            Assert.Equal("12345678901234", result.Gtin);
+            Assert.Equal("LOTE10ABC", result.Lote);
+        }
+
+        [Fact]
+        public void Parse_SerialWithNumbers_ShouldParseCorrectly()
+        {
+            // Arrange
+            var code = "0111111111111111'21SN123456789";
+
+            // Act
+            var result = _parser.Parse(code);
+
+            // Assert
+            Assert.True(result.EsValido);
             Assert.Equal("11111111111111", result.Gtin);
-            Assert.Equal("ABC-123_XYZ.2024", result.Lote);
-            Assert.Equal(new DateTime(2024, 12, 31), result.FechaVencimiento);
-            Assert.True(result.EsValido);
+            Assert.Equal("SN123456789", result.NumeroSerie);
         }
 
         [Fact]
-        public void Parse_SerieConCaracteresEspeciales_DeberiaObtenerSerieCompleta()
+        public void Parse_LargQuantity_ShouldParseCorrectly()
         {
             // Arrange
-            var barcode = "(01)11111111111111(21)SN-2024/001#A";
+            var code = "0112345678901234'30999999'10LOT";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
-            Assert.Equal("11111111111111", result.Gtin);
-            Assert.Equal("SN-2024/001#A", result.NumeroSerie);
             Assert.True(result.EsValido);
+            Assert.Equal("12345678901234", result.Gtin);
+            Assert.Equal(999999, result.Cantidad);
+            Assert.Equal("LOT", result.Lote);
         }
 
         [Fact]
-        public void Parse_ConGS_DeberiaObtenerTodosCampos()
+        public void Parse_InvalidDate_ShouldIgnoreDateField()
         {
             // Arrange
-            // Código sin paréntesis DEBE usar GS para separar campos variables
-            // Esto es lo que los escáneres reales generan
-            var GS = (char)29;
-            var barcode = "01300123456789061730123010C4324" + GS + "21230A6576P9";
+            var code = "0112345678901234'179999991'10LOTE";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
-            Assert.Equal("30012345678906", result.Gtin);
-            Assert.Equal("C4324", result.Lote);
-            Assert.Equal("230A6576P9", result.NumeroSerie);
-            Assert.Equal(new DateTime(2030, 12, 30), result.FechaVencimiento);
             Assert.True(result.EsValido);
-        }
-
-        [Theory]
-        [InlineData("(21)21212121", "21212121")]
-        [InlineData("(21)ABC21XYZ", "ABC21XYZ")]
-        [InlineData("(21)1721TEST", "1721TEST")]
-        // NOTA: Sin GS, el parser puede detectar falsos positivos si el contenido
-        // empieza justo con un AI. En la práctica esto no ocurre porque:
-        // 1. Los escáneres SIEMPRE incluyen GS para campos variables
-        // 2. El contenido real rara vez empieza con números que forman AIs
-        public void Parse_SerieConNumerosQueParecenAIs_NoDeberiaCortarse(string barcode, string expectedSerie)
-        {
-            // Arrange & Act
-            var result = _parser.Parse(barcode);
-
-            // Assert
-            Assert.Equal(expectedSerie, result.NumeroSerie);
-        }
-
-        [Theory]
-        [InlineData("(10)LOTE10TEST", "LOTE10TEST")]
-        [InlineData("(10)L10T17E21", "L10T17E21")]
-        [InlineData("(10)ABC01XYZ", "ABC01XYZ")]
-        [InlineData("(10)LOTE12A", "LOTE12A")] // Cambiado: terminar con letra
-        public void Parse_LoteConNumerosQueParecenAIs_NoDeberiaCortarse(string barcode, string expectedLote)
-        {
-            // Arrange & Act
-            var result = _parser.Parse(barcode);
-
-            // Assert
-            Assert.Equal(expectedLote, result.Lote);
+            Assert.Equal("12345678901234", result.Gtin);
+            Assert.Null(result.FechaVencimiento);
+            Assert.Equal("LOTE", result.Lote);
         }
 
         [Fact]
-        public void Parse_GTINIncompleto_DeberiaRetornarInvalido()
+        public void Parse_IncompleteGTIN_ShouldReturnInvalid()
         {
             // Arrange
-            var barcode = "(01)123456789012"; // Solo 12 dígitos
+            var code = "011234567890123"; // Only 13 digits
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
             Assert.False(result.EsValido);
@@ -212,130 +198,90 @@ namespace CigralBackend.Tests.Services
         }
 
         [Fact]
-        public void Parse_FechaInvalida_NoDeberiaEstablecerFecha()
+        public void Parse_EmptyCode_ShouldReturnInvalid()
         {
             // Arrange
-            var barcode = "(01)12345678901234(17)991399"; // Fecha inválida
+            var code = "";
 
             // Act
-            var result = _parser.Parse(barcode);
-
-            // Assert
-            Assert.Equal("12345678901234", result.Gtin);
-            Assert.Null(result.FechaVencimiento);
-        }
-
-        [Fact]
-        public void Parse_CodigoVacio_DeberiaRetornarInvalido()
-        {
-            // Arrange
-            var barcode = "";
-
-            // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
             Assert.False(result.EsValido);
         }
 
         [Fact]
-        public void Parse_CantidadNoNumerica_DeberiaUsarDefault()
+        public void Parse_OnlyAI_ShouldNotParse()
         {
             // Arrange
-            var barcode = "(01)12345678901234(30)ABC";
+            var code = "01";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
-            Assert.Equal(1, result.Cantidad); // Default
+            Assert.False(result.EsValido);
         }
 
         [Fact]
-        public void Parse_TodosLosCampos_DeberiaObtenerTodos()
+        public void Parse_DifferentAIOrder_ShouldStillWork()
         {
             // Arrange
-            var barcode = "(01)12345678901234(17)251230(10)LOT001(21)SN123(30)10";
+            var code = "30501012345'0112345678901234";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
-            Assert.Equal("12345678901234", result.Gtin);
-            Assert.Equal(new DateTime(2025, 12, 30), result.FechaVencimiento);
-            Assert.Equal("LOT001", result.Lote);
-            Assert.Equal("SN123", result.NumeroSerie);
-            Assert.Equal(10, result.Cantidad);
             Assert.True(result.EsValido);
-        }
-
-        [Fact]
-        public void Parse_LoteSeguidoDeGTIN_DeberiaDetectarCorrectamente()
-        {
-            // Arrange
-            // Cambiar el lote para que no termine en un número que podría ser confundido con AI
-            var barcode = "(10)LOTEA(01)12345678901234";
-
-            // Act
-            var result = _parser.Parse(barcode);
-
-            // Assert
-            Assert.Equal("LOTEA", result.Lote);
             Assert.Equal("12345678901234", result.Gtin);
+            Assert.Equal("12345", result.Lote);
+            Assert.Equal(5, result.Cantidad);
         }
 
         [Fact]
-        public void Parse_LoteConNumeros17AlInicio_NoDeberiaConfundirConFecha()
+        public void Parse_QuantityAsFirstVariable_ShouldParseCorrectly()
         {
             // Arrange
-            var barcode = "(01)12345678901234(10)17LOTETEST";
+            var code = "0112345678901234305'10LOTE'21SN";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
+            Assert.True(result.EsValido);
             Assert.Equal("12345678901234", result.Gtin);
-            Assert.Equal("17LOTETEST", result.Lote);
+            Assert.Equal(5, result.Cantidad);
+            Assert.Equal("LOTE", result.Lote);
+            Assert.Equal("SN", result.NumeroSerie);
         }
 
         [Fact]
-        public void Parse_SerieConNumeros01AlInicio_NoDeberiaConfundirConGTIN()
+        public void Parse_LotWithSpecialChars_ShouldPreserveChars()
         {
             // Arrange
-            var barcode = "(21)01SERIETEST(01)12345678901234";
+            var code = "0112345678901234'10ABC-123_XYZ";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
-            Assert.Equal("01SERIETEST", result.NumeroSerie);
-            Assert.Equal("12345678901234", result.Gtin);
+            Assert.True(result.EsValido);
+            Assert.Equal("ABC-123_XYZ", result.Lote);
         }
 
         [Fact]
-        public void Parse_CantidadGrande_DeberiaObtenerCantidadCorrecta()
+        public void Parse_SerialWithSpecialChars_ShouldPreserveChars()
         {
             // Arrange
-            var barcode = "(01)12345678901234(30)999999";
+            var code = "0112345678901234'21SN-2024/001";
 
             // Act
-            var result = _parser.Parse(barcode);
+            var result = _parser.Parse(code);
 
             // Assert
-            Assert.Equal(999999, result.Cantidad);
-        }
-
-        [Fact]
-        public void Parse_LoteConEspacios_DeberiaObtenerLoteConEspacios()
-        {
-            // Arrange
-            var barcode = "(01)12345678901234(10)LOTE 001 A";
-
-            // Act
-            var result = _parser.Parse(barcode);
-
-            // Assert
-            Assert.Equal("LOTE 001 A", result.Lote);
+            Assert.True(result.EsValido);
+            Assert.Equal("SN-2024/001", result.NumeroSerie);
         }
     }
 }

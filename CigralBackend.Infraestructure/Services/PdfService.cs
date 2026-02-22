@@ -3,12 +3,12 @@ using CigralBackend.Domain.Dtos;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Services;
 using CigralBackend.Infraestructure.Database.Interfaces;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using QuestPDF.Companion;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CigralBackend.Infraestructure.Services
 {
@@ -134,9 +134,9 @@ namespace CigralBackend.Infraestructure.Services
         /// <summary>
         /// Genera el PDF usando QuestPDF.
         /// </summary>
-        private byte[] GenerarPdf(RemitoPdfDto remito)
+        private Document CrearDocumento(RemitoPdfDto remito)
         {
-            var documento = Document.Create(container =>
+            return Document.Create(container =>
             {
                 container.Page(page =>
                 {
@@ -149,7 +149,11 @@ namespace CigralBackend.Infraestructure.Services
                     page.Footer().Element(ComposeFooter);
                 });
             });
+        }
 
+        private byte[] GenerarPdf(RemitoPdfDto remito)
+        {
+            var documento = CrearDocumento(remito);
             return documento.GeneratePdf();
         }
 
@@ -158,16 +162,17 @@ namespace CigralBackend.Infraestructure.Services
         /// </summary>
         private void ComposeHeader(IContainer container)
         {
+            string logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images/LogoCigral.png");
+
             container.Row(row =>
             {
-                row.RelativeItem().Column(column =>
-                {
-                    column.Item().Text("CIGRAL").Bold().FontSize(20).FontColor(Colors.Blue.Medium);
-                    column.Item().Text("Sistema de Gestión de Inventario").FontSize(10);
-                    column.Item().Text("www.cigral.com | info@cigral.com").FontSize(8).FontColor(Colors.Grey.Darken2);
-                });
+                row.ConstantItem(150)
+                  .AlignLeft()
+                  .PaddingTop(-15)
+                  .Width(150)
+                  .Background(Colors.Grey.Medium) // 1. Pintamos el fondo de azul claro
+                  .Image(logoPath); // 2. Colocamos la imagen encima
 
-                row.ConstantItem(100).Height(50).Placeholder();
             });
         }
 
@@ -178,33 +183,27 @@ namespace CigralBackend.Infraestructure.Services
         {
             container.PaddingVertical(10).Column(column =>
             {
+                
                 column.Spacing(10);
-
-                // Título del remito
-                column.Item().Row(row =>
-                {
-                    row.RelativeItem().Column(col =>
-                    {
-                        col.Item().Background(Colors.Blue.Medium).Padding(10).Text($"REMITO DE {remito.TipoRemito}")
-                            .Bold().FontSize(16).FontColor(Colors.White);
-                    });
-                });
 
                 // Información del remito
                 column.Item().Row(row =>
                 {
                     row.RelativeItem().Column(col =>
                     {
-                        col.Item().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingBottom(5)
+                        col.Item().Background(Colors.Blue.Medium).PaddingHorizontal(15).PaddingVertical(10).AlignMiddle().AlignCenter().Text($"ANEXO DE REMITO {remito.TipoRemito}")
+                        .Bold().FontSize(16).FontColor(Colors.White);
+                        col.Item().PaddingTop(10).Text($"Afecta a Remito N°: -----").FontSize(10);
+                        col.Item().PaddingTop(10).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingBottom(5)
                             .Text($"Número: {remito.NumeroRemito}").Bold();
-                        col.Item().PaddingTop(5).Text($"Fecha: {remito.Fecha:dd/MM/yyyy HH:mm}");
+                        col.Item().PaddingTop(8).Text($"Fecha: {remito.Fecha:dd/MM/yyyy HH:mm}");
                     });
                 });
 
-                column.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                column.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
 
                 // Información del cliente/proveedor
-                column.Item().PaddingVertical(10).Column(col =>
+                column.Item().Column(col =>
                 {
                     var titulo = remito.TipoRemito == "INGRESO" ? "PROVEEDOR" : "CLIENTE";
                     col.Item().Text(titulo).Bold().FontSize(12).FontColor(Colors.Blue.Medium);
@@ -225,10 +224,8 @@ namespace CigralBackend.Infraestructure.Services
                         col.Item().Text($"Email: {remito.Email}");
                 });
 
-                column.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
-
                 // Tabla de detalles
-                column.Item().PaddingTop(10).Table(table =>
+                column.Item().PaddingTop(8).Table(table =>
                 {
                     // Definir columnas
                     table.ColumnsDefinition(columns =>
@@ -236,7 +233,7 @@ namespace CigralBackend.Infraestructure.Services
                         columns.RelativeColumn(3); // Producto
                         columns.RelativeColumn(2); // GTIN
                         columns.RelativeColumn(1.5f); // Lote
-                        columns.RelativeColumn(1.5f); // Vencimiento
+                        columns.ConstantColumn(70); // Vencimiento
                         columns.RelativeColumn(2); // Serie
                         columns.RelativeColumn(1); // Cantidad
                         columns.RelativeColumn(2); // Depósito
@@ -346,6 +343,67 @@ namespace CigralBackend.Infraestructure.Services
                 text.TotalPages();
                 text.Span(" - Documento generado el " + DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
             });
+        }
+
+        public async Task GenerarPdfRemitoDisenio()
+        {
+            // Obtener remito con todos los datos necesarios
+
+
+            // 1. Generamos una lista masiva y variada de detalles falsos
+            var detallesFalsos = new List<DetalleRemitoPdfDto>();
+
+            for (int i = 1; i <= 45; i++) // 45 ítems aseguran que el PDF salte a una segunda hoja
+            {
+                // Trampa 1: Textos extremadamente largos en algunos ítems para probar márgenes
+                string nombreProducto = (i == 7 || i == 23)
+                    ? $"PRODUCTO {i} CON UN NOMBRE EXTREMADAMENTE LARGO PARA FORZAR EL SALTO DE LÍNEA EN LA TABLA DEL PDF Y VER SI ROMPE EL DISEÑO"
+                    : $"Producto Estándar de Prueba {i}";
+
+                // Trampa 2: Alternamos datos nulos. (Ej: Algunos productos no tienen lote ni vencimiento)
+                string? codigoLote = (i % 4 == 0) ? null : $"LT-{DateTime.Now.Year}-{i * 10}";
+                DateTime? fechaVencimiento = (i % 4 == 0) ? null : DateTime.Now.AddDays(i * 15);
+
+                // Trampa 3: Solo algunos productos tienen número de serie
+                string? numeroSerie = (i % 5 == 0) ? $"SN-{Guid.NewGuid().ToString().Substring(0, 6).ToUpper()}" : null;
+
+                detallesFalsos.Add(new DetalleRemitoPdfDto
+                {
+                    ProductoNombre = nombreProducto,
+                    ProductoGtin = $"77912345678{i:D2}", // Genera 7791234567801, 7791234567802...
+                    CodigoLote = codigoLote,
+                    FechaVencimiento = fechaVencimiento,
+                    NumeroSerie = numeroSerie,
+                    Cantidad = i * 2, // Cantidades variables: 2, 4, 6...
+                    DepositoNombre = "Depósito Central Prueba"
+                });
+            }
+
+            // Mapear a DTO
+            var remitoDto = new RemitoPdfDto
+            {
+                NumeroRemito = "AAA-001",
+                Fecha = DateTime.Now,
+                Observaciones = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                TipoRemito = "INGRESO",
+                RazonSocial = "Razon Social PRUEBA",
+                CUIT = "00-00000000-0",
+                Direccion = "Dirección PRUEBAAA",
+                Telefono = "0000-0000",
+                Email = "prueba@example.com",
+                Detalles = detallesFalsos,
+                CantidadTotal = detallesFalsos.Sum(d => d.Cantidad),
+                CantidadItems = detallesFalsos.Count
+            };
+
+            var documento = CrearDocumento(remitoDto);
+
+            #if DEBUG
+            _ = documento.ShowInCompanionAsync();
+#endif
+
+            await Task.CompletedTask;
+
         }
     }
 }

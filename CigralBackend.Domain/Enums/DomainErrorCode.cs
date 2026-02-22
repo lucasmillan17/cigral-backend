@@ -88,6 +88,11 @@ namespace CigralBackend.Domain.Enums
         /// </summary>
         CodigoDepositoDuplicado = 3007,
 
+        /// <summary>
+        /// No se especifico numero de serie ni codigo de lote.
+        /// </summary>
+        SerieYCodigoLoteNoEspecificados = 3008,
+
         // 4000 - Errores de Clientes
         /// <summary>
         /// El cliente especificado no existe.

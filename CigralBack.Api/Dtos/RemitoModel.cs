@@ -42,13 +42,23 @@ namespace CigralBackend.Application.Dtos
         [Required(ErrorMessage = "El producto es obligatorio")]
         int ProductoId,
 
-        int? LoteId,
+        string? CodigoLote,
 
         [MaxLength(100, ErrorMessage = "El número de serie no puede superar los 100 caracteres")]
         string? NumeroSerie,
 
-        [Required(ErrorMessage = "La cantidad es obligatoria")]
+        DateTime FechaVencimiento,
+
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
+        int Cantidad
+    );
+
+    public record RemitoDetalleResponse
+    (
+        int ProductoId,
+        string? CodigoLote,
+        string? NumeroSerie,
+        DateTime? FechaVencimiento,
         int Cantidad
     );
 
@@ -65,5 +75,45 @@ namespace CigralBackend.Application.Dtos
         string? Observaciones,
         int CantidadDetalles,
         int CantidadTotal
+    );
+
+    public record RemitoResponseGet
+    (
+        int Id,
+        string? NumeroRemito,
+        DateTime Fecha,
+        int DepositoId,
+        int EntidadId,
+        string? Observaciones,
+        List<RemitoDetalleResponse> Detalles
+    );
+
+    public enum OrdenRemito
+    {
+        Id,
+        Fecha
+    }
+
+    public record RemitoFilters(
+        int? DepositoId,
+        int? EntidadId,
+        DateTime? FechaDesde,
+        DateTime? FechaHasta,
+        string? NumeroRemito,
+
+        OrdenRemito? OrdenarPor = OrdenRemito.Id,
+        bool EsDescendente = false,
+
+        int PageNumber = 1,
+        int PageSize = 20
+    );
+
+    public record SiguienteRemitoResponse(
+        string? SiguienteNumeroRemito
+    );
+
+    public record UltimoRemitoRequest(
+        int DepositoId,
+        bool EsIngreso
     );
 }

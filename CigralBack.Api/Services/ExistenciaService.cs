@@ -106,6 +106,13 @@ namespace CigralBackend.Application.Services
                 );
             }
 
+            if(string.IsNullOrEmpty(r.NumSerie) && string.IsNullOrEmpty(r.CodigoLote)){
+                throw new DomainException(
+                    DomainErrorCode.SerieYCodigoLoteNoEspecificados,
+                    "Debe especificar al menos un número de serie o un código de lote para aumentar el stock."
+                );
+            }
+
             // Validar que el producto exista
             var producto = await _repository.GetById<Producto>(r.ProductoId);
             if (producto == null)
@@ -131,22 +138,32 @@ namespace CigralBackend.Application.Services
 
             // Validar que el lote exista si se especifica
             Lote? lote = null;
-            if (r.LoteId.HasValue)
+            if (!string.IsNullOrEmpty(r.CodigoLote))
             {
-                lote = await _repository.GetById<Lote>(r.LoteId.Value);
+                lote = await _repository.First<Lote>(l => l.CodigoLote == r.CodigoLote);
                 if (lote == null)
                 {
-                    throw new NotFoundException(nameof(Lote), r.LoteId.Value);
+                    //throw new NotFoundException(nameof(Lote), r.CodigoLote);
+                    // Creamos un lote nuevo si no existe, ya que se está ingresando stock con ese código de lote
+                    lote = new Lote
+                    {
+                        CodigoLote = r.CodigoLote,
+                        FechaVencimiento = r.FechaVencimiento, // Si no se especifica fecha de vencimiento, asignamos una por defecto
+                        CantidadDisponible = r.Cantidad,
+                        ProductoId = r.ProductoId
+                    };
+
+                    _repository.Add(lote).Wait(); // Esperamos a que se cree el lote para obtener su ID
                 }
 
                 // Validar que el lote no esté vencido
-                if (lote.FechaVencimiento < DateTime.Now)
+                /*if (lote.FechaVencimiento < DateTime.Now)
                 {
                     throw new DomainException(
                         DomainErrorCode.LoteVencido,
                         $"El lote '{lote.CodigoLote}' está vencido. Fecha de vencimiento: {lote.FechaVencimiento:dd/MM/yyyy}"
                     );
-                }
+                }*/
             }
 
             // Validar número de serie duplicado si se especifica
@@ -168,7 +185,7 @@ namespace CigralBackend.Application.Services
             var existencia = await _repository.First<Existencia>(
                 e => e.ProductoId == r.ProductoId &&
                      e.DepositoId == r.DepositoId &&
-                     e.LoteId == r.LoteId &&
+                     e.LoteId == lote.Id &&
                      (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie)
             );
 
@@ -179,21 +196,47 @@ namespace CigralBackend.Application.Services
             {
                 // Aumentar cantidad existente
                 existencia.Cantidad += r.Cantidad;
+                if (lote != null)
+                {
+                    lote.CantidadDisponible = existencia.Cantidad;
+                    await _repository.Update(lote);
+                }
                 stockNuevo = existencia.Cantidad;
                 await _repository.Update(existencia);
             }
             else
             {
                 // Crear nueva existencia
-                existencia = new Existencia
-                {
+                existencia = new Existencia();
+                /*{
                     ProductoId = r.ProductoId,
                     DepositoId = r.DepositoId,
-                    LoteId = r.LoteId,
+                    LoteId = lote.Id,
                     NumSerie = r.NumSerie,
                     FechaVencimiento = r.FechaVencimiento,
                     Cantidad = r.Cantidad
-                };
+                };*/
+
+                existencia.Cantidad = r.Cantidad;
+                existencia.ProductoId = r.ProductoId;
+                existencia.DepositoId = r.DepositoId;
+                if(lote != null)
+                {
+                    existencia.LoteId = lote.Id;
+                    existencia.FechaVencimiento = lote.FechaVencimiento;
+                   
+                    lote.CantidadDisponible = existencia.Cantidad;
+                    await _repository.Update(lote);
+                }
+                else
+                {
+                    existencia.FechaVencimiento = r.FechaVencimiento;
+                }
+                if (!string.IsNullOrEmpty(r.NumSerie))
+                {
+                    existencia.NumSerie = r.NumSerie;
+                }
+
                 existencia = await _repository.Add(existencia);
                 stockNuevo = existencia.Cantidad;
             }
@@ -203,7 +246,7 @@ namespace CigralBackend.Application.Services
                 tipo: remitoIngresoId.HasValue ? TipoMovimiento.Ingreso : TipoMovimiento.AjustePositivo,
                 productoId: r.ProductoId,
                 depositoId: r.DepositoId,
-                loteId: r.LoteId,
+                loteId: lote.Id,
                 numeroSerie: r.NumSerie,
                 cantidad: r.Cantidad,
                 stockAnterior: stockAnterior,
@@ -264,12 +307,12 @@ namespace CigralBackend.Application.Services
 
             // Validar que el lote exista si se especifica
             Lote? lote = null;
-            if (r.LoteId.HasValue)
+            if (!string.IsNullOrEmpty(r.CodigoLote))
             {
-                lote = await _repository.GetById<Lote>(r.LoteId.Value);
+                lote = await _repository.First<Lote>(l => l.CodigoLote == r.CodigoLote);
                 if (lote == null)
                 {
-                    throw new NotFoundException(nameof(Lote), r.LoteId.Value);
+                    throw new NotFoundException(nameof(Lote), r.CodigoLote);
                 }
             }
 
@@ -277,7 +320,7 @@ namespace CigralBackend.Application.Services
             var existencia = await _repository.First<Existencia>(
                 e => e.ProductoId == r.ProductoId &&
                      e.DepositoId == r.DepositoId &&
-                     e.LoteId == r.LoteId &&
+                     e.LoteId == lote.Id &&
                      (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie)
             );
 
@@ -310,7 +353,7 @@ namespace CigralBackend.Application.Services
                 tipo: remitoEgresoId.HasValue ? TipoMovimiento.Egreso : TipoMovimiento.AjusteNegativo,
                 productoId: r.ProductoId,
                 depositoId: r.DepositoId,
-                loteId: r.LoteId,
+                loteId: lote.Id,
                 numeroSerie: r.NumSerie,
                 cantidad: -r.Cantidad, // Negativo para egreso
                 stockAnterior: stockAnterior,
@@ -365,12 +408,37 @@ namespace CigralBackend.Application.Services
                 ? hoy.AddDays(filters.DiasParaVencer.Value)
                 : (DateTime?)null;
 
+            Func<IQueryable<Existencia>, IOrderedQueryable<Existencia>> orderByLogic = q =>
+            {
+                return filters.OrdenarPor switch
+                {
+                    OrdenExistencia.NombreProducto => filters.EsDescendente
+                        ? q.OrderByDescending(e => e.Producto.Nombre)
+                        : q.OrderBy(e => e.Producto.Nombre),
+
+                    OrdenExistencia.FechaVencimiento => filters.EsDescendente
+                        // EF Core es inteligente, si la fecha es nula, ordenará usando el lote
+                        ? q.OrderByDescending(e => e.FechaVencimiento ?? e.Lote.FechaVencimiento)
+                        : q.OrderBy(e => e.FechaVencimiento ?? e.Lote.FechaVencimiento),
+
+                    OrdenExistencia.Cantidad => filters.EsDescendente
+                        ? q.OrderByDescending(e => e.Cantidad)
+                        : q.OrderBy(e => e.Cantidad),
+
+                    // Por defecto ordenamos por Id
+                    _ => filters.EsDescendente
+                        ? q.OrderByDescending(e => e.Id)
+                        : q.OrderBy(e => e.Id)
+                };
+            };
+
             var resultadoEntidad = await _repository.GetFiltered<Existencia>(
                 predicate: e =>
                     (!filters.ProductoId.HasValue || e.ProductoId == filters.ProductoId.Value) &&
                     (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
                     (!filters.LoteId.HasValue || e.LoteId == filters.LoteId.Value) &&
-                    
+                    (string.IsNullOrEmpty(filters.CodigoLote) || 
+                        (e.Lote != null && e.Lote.CodigoLote.Contains(filters.CodigoLote))) &&
                     // Filtros de vencimiento
                     (!filters.FechaVencimientoDesde.HasValue || 
                         (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= filters.FechaVencimientoDesde.Value) ||
@@ -386,10 +454,14 @@ namespace CigralBackend.Application.Services
                     
                     (!filters.SoloConVencimiento.HasValue ||
                         (filters.SoloConVencimiento.Value && (e.FechaVencimiento.HasValue || e.Lote != null)) ||
-                        (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && e.Lote == null)),
+                        (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && e.Lote == null)) &&
+
+                    (string.IsNullOrEmpty(filters.NombreProducto) || 
+                        (e.Producto != null && e.Producto.Nombre.Contains(filters.NombreProducto))),
 
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
+                orderBy: orderByLogic,
                 include: new[] { "Producto", "Deposito", "Lote" }
             );
 

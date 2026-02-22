@@ -189,6 +189,27 @@ POST /api/products
 }
 ```
 
+### Parser
+
+```http
+GET    /api/parser/analyze         # Parsear codigo (paginado)
+```
+Se envia el codigo de barras y el sistema devuelve el siguiente response:
+
+**Response**
+```json
+{
+  "gtin": "string",
+  "lote": "string",
+  "numeroSerie": "string",
+  "fechaVencimiento": "2026-02-11T18:20:16.833Z",
+  "cantidad": 0,
+  "existeProducto": true,
+  "productoId": 0,
+  "nombreProducto": "string"
+}
+```
+
 ### Existencias
 
 ```http
