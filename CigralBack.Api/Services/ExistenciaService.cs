@@ -196,6 +196,11 @@ namespace CigralBackend.Application.Services
             {
                 // Aumentar cantidad existente
                 existencia.Cantidad += r.Cantidad;
+                if (lote != null)
+                {
+                    lote.CantidadDisponible = existencia.Cantidad;
+                    await _repository.Update(lote);
+                }
                 stockNuevo = existencia.Cantidad;
                 await _repository.Update(existencia);
             }
@@ -219,6 +224,9 @@ namespace CigralBackend.Application.Services
                 {
                     existencia.LoteId = lote.Id;
                     existencia.FechaVencimiento = lote.FechaVencimiento;
+                   
+                    lote.CantidadDisponible = existencia.Cantidad;
+                    await _repository.Update(lote);
                 }
                 else
                 {
@@ -400,12 +408,37 @@ namespace CigralBackend.Application.Services
                 ? hoy.AddDays(filters.DiasParaVencer.Value)
                 : (DateTime?)null;
 
+            Func<IQueryable<Existencia>, IOrderedQueryable<Existencia>> orderByLogic = q =>
+            {
+                return filters.OrdenarPor switch
+                {
+                    OrdenExistencia.NombreProducto => filters.EsDescendente
+                        ? q.OrderByDescending(e => e.Producto.Nombre)
+                        : q.OrderBy(e => e.Producto.Nombre),
+
+                    OrdenExistencia.FechaVencimiento => filters.EsDescendente
+                        // EF Core es inteligente, si la fecha es nula, ordenará usando el lote
+                        ? q.OrderByDescending(e => e.FechaVencimiento ?? e.Lote.FechaVencimiento)
+                        : q.OrderBy(e => e.FechaVencimiento ?? e.Lote.FechaVencimiento),
+
+                    OrdenExistencia.Cantidad => filters.EsDescendente
+                        ? q.OrderByDescending(e => e.Cantidad)
+                        : q.OrderBy(e => e.Cantidad),
+
+                    // Por defecto ordenamos por Id
+                    _ => filters.EsDescendente
+                        ? q.OrderByDescending(e => e.Id)
+                        : q.OrderBy(e => e.Id)
+                };
+            };
+
             var resultadoEntidad = await _repository.GetFiltered<Existencia>(
                 predicate: e =>
                     (!filters.ProductoId.HasValue || e.ProductoId == filters.ProductoId.Value) &&
                     (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
                     (!filters.LoteId.HasValue || e.LoteId == filters.LoteId.Value) &&
-                    
+                    (string.IsNullOrEmpty(filters.CodigoLote) || 
+                        (e.Lote != null && e.Lote.CodigoLote.Contains(filters.CodigoLote))) &&
                     // Filtros de vencimiento
                     (!filters.FechaVencimientoDesde.HasValue || 
                         (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= filters.FechaVencimientoDesde.Value) ||
@@ -428,6 +461,7 @@ namespace CigralBackend.Application.Services
 
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
+                orderBy: orderByLogic,
                 include: new[] { "Producto", "Deposito", "Lote" }
             );
 

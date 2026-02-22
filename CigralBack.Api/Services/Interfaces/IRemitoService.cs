@@ -33,5 +33,6 @@ namespace CigralBackend.Application.Services.Interfaces
         Task<RemitoResponse> UpdateRemito(int id, UpdateRemitoRequest request, bool esIngreso);
         Task<PagedResult<RemitoResponseGet>> GetRemitosEgreso(RemitoFilters filters);
         Task<PagedResult<RemitoResponseGet>> GetRemitosIngreso(RemitoFilters filters);
+        Task<SiguienteRemitoResponse> GetSiguienteNumeroRemito(UltimoRemitoRequest request);
     }
 }

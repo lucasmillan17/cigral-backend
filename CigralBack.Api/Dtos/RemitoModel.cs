@@ -88,6 +88,12 @@ namespace CigralBackend.Application.Dtos
         List<RemitoDetalleResponse> Detalles
     );
 
+    public enum OrdenRemito
+    {
+        Id,
+        Fecha
+    }
+
     public record RemitoFilters(
         int? DepositoId,
         int? EntidadId,
@@ -95,7 +101,19 @@ namespace CigralBackend.Application.Dtos
         DateTime? FechaHasta,
         string? NumeroRemito,
 
+        OrdenRemito? OrdenarPor = OrdenRemito.Id,
+        bool EsDescendente = false,
+
         int PageNumber = 1,
         int PageSize = 20
+    );
+
+    public record SiguienteRemitoResponse(
+        string? SiguienteNumeroRemito
+    );
+
+    public record UltimoRemitoRequest(
+        int DepositoId,
+        bool EsIngreso
     );
 }

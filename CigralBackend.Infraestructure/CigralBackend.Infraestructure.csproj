@@ -14,11 +14,17 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="QuestPDF" Version="2024.12.3" />
+    <PackageReference Include="QuestPDF" Version="2026.2.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CigralBackend.Domain\CigralBackend.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Images\LogoCigral.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
+using CigralBackend.Domain.Bases;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
@@ -377,6 +378,21 @@ namespace CigralBackend.Application.Services
             }
         }
 
+        private Func<IQueryable<T>, IOrderedQueryable<T>> orderByLogic<T>(RemitoFilters filters) where T : RemitoBase => q =>
+        {
+            return filters.OrdenarPor switch
+            {
+                OrdenRemito.Fecha => filters.EsDescendente
+                    ? q.OrderByDescending(e => e.Fecha)
+                    : q.OrderBy(e => e.Fecha),
+
+                // Por defecto ordenamos por Id
+                _ => filters.EsDescendente
+                    ? q.OrderByDescending(e => e.Id)
+                    : q.OrderBy(e => e.Id)
+            };
+        };
+
         public async Task<PagedResult<RemitoResponseGet>> GetRemitosIngreso(RemitoFilters filters)
         {
             var resultadoEntidad = await _repository.GetFiltered<RemitoIngreso>(
@@ -385,16 +401,17 @@ namespace CigralBackend.Application.Services
                     (!filters.EntidadId.HasValue || e.ProveedorId == filters.EntidadId.Value) &&
 
                     // Filtros de vencimiento
-                    (!filters.FechaDesde.HasValue || e.Fecha >= filters.FechaDesde.Value) &&
+                    (!filters.FechaDesde.HasValue || e.Fecha.Date >= filters.FechaDesde.Value) &&
 
-                    (!filters.FechaHasta.HasValue || e.Fecha <= filters.FechaHasta.Value) &&
+                    (!filters.FechaHasta.HasValue || e.Fecha.Date <= filters.FechaHasta.Value) &&
 
                     (string.IsNullOrEmpty(filters.NumeroRemito) ||
-                        (e.NumeroRemito != null && e.NumeroRemito == filters.NumeroRemito)),
+                        (e.NumeroRemito != null && e.NumeroRemito.Contains(filters.NumeroRemito))),
 
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
-                include: new[] { "DetalleRemito", "Deposito" }
+                orderBy: orderByLogic<RemitoIngreso>(filters),
+                include: new[] { "Detalles", "Detalles.Lote", "Deposito" }
             );
 
             var remitos = resultadoEntidad.Items.Select(e => new RemitoResponseGet(
@@ -429,16 +446,17 @@ namespace CigralBackend.Application.Services
                     (!filters.EntidadId.HasValue || e.ClienteId == filters.EntidadId.Value) &&
 
                     // Filtros de vencimiento
-                    (!filters.FechaDesde.HasValue || e.Fecha >= filters.FechaDesde.Value) &&
+                    (!filters.FechaDesde.HasValue || e.Fecha.Date >= filters.FechaDesde.Value) &&
 
-                    (!filters.FechaHasta.HasValue || e.Fecha <= filters.FechaHasta.Value) &&
+                    (!filters.FechaHasta.HasValue || e.Fecha.Date <= filters.FechaHasta.Value) &&
 
                     (string.IsNullOrEmpty(filters.NumeroRemito) ||
-                        (e.NumeroRemito != null && e.NumeroRemito == filters.NumeroRemito)),
+                        (e.NumeroRemito != null && e.NumeroRemito.Contains(filters.NumeroRemito))),
 
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
-                include: new[] { "DetalleRemito", "Deposito" }
+                orderBy: orderByLogic<RemitoEgreso>(filters),
+                include: new[] { "Detalles", "Detalles.Lote", "Deposito" }
             );
 
             var remitos = resultadoEntidad.Items.Select(e => new RemitoResponseGet(
@@ -464,6 +482,43 @@ namespace CigralBackend.Application.Services
                 PageNumber = filters.PageNumber,
                 PageSize = filters.PageSize
             };
+        }
+
+        public async Task<SiguienteRemitoResponse> GetSiguienteNumeroRemito(UltimoRemitoRequest request)
+        {
+            RemitoBase ultimoRemito = null;
+            var digitoRemito = request.EsIngreso ? "ING" : "EGR";
+
+            // 1. Buscar en la base de datos
+            if (request.EsIngreso)
+            {
+                ultimoRemito = await _repository.Last<RemitoIngreso>(r => r.DepositoId == request.DepositoId);
+            }
+            else
+            {
+                ultimoRemito = await _repository.Last<RemitoEgreso>(r => r.DepositoId == request.DepositoId);
+            }
+
+            // 2. Variables iniciales
+            var depositoFormateado = request.DepositoId.ToString("D3");
+            int ultimoNumero = 0; // Por defecto empezamos en 0
+
+            // 3. Validar PRIMERO si existe un remito anterior
+            if (ultimoRemito != null && !string.IsNullOrEmpty(ultimoRemito.NumeroRemito))
+            {
+                // Forma segura: cortamos por el guion y tomamos la última parte (ej: de "001-ING-045" toma "045")
+                var partes = ultimoRemito.NumeroRemito.Split('-');
+                if (partes.Length >= 3)
+                {
+                    int.TryParse(partes.Last(), out ultimoNumero);
+                }
+            }
+
+            // 4. LA MAGIA: Interpolación de strings (escribe las variables dentro de las llaves)
+            // El :D7 adentro de la llave formatea el número a 7 ceros automáticamente
+            string numeroSiguienteStr = $"{depositoFormateado}-{digitoRemito}-{(ultimoNumero + 1):D7}";
+
+            return new SiguienteRemitoResponse(SiguienteNumeroRemito: numeroSiguienteStr);
         }
     }
 }

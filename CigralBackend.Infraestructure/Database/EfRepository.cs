@@ -46,6 +46,18 @@ namespace CigralBackend.Infraestructure.Database
             return await Include(_context.Set<T>(), include).FirstOrDefaultAsync(predicate);
         }
 
+        /// <summary>
+        /// Devuelve el ÚLTIMO registro que cumpla la condición, ordenando por Id de forma descendente.
+        /// Ideal para buscar los registros más recientes (ej: el último número de remito).
+        /// </summary>
+        public async Task<T?> Last<T>(Expression<Func<T, bool>> predicate, params string[] include) where T : EntityBase
+        {
+            return await Include(_context.Set<T>(), include)
+                .Where(predicate)
+                .OrderByDescending(e => e.Id) // <-- LA MAGIA: Ordena del más nuevo al más viejo
+                .FirstOrDefaultAsync();
+        }
+
         /// <inheritdoc/>
         public async Task<PagedResult<T>> GetAll<T>(int pageNumber = 1, int pageSize = 10, params string[] include) where T : EntityBase
         {
@@ -76,25 +88,36 @@ namespace CigralBackend.Infraestructure.Database
         }
 
         /// <inheritdoc/>
-        public async Task<PagedResult<T>> GetFiltered<T>(Expression<Func<T, bool>> predicate, int pageNumber = 1, int pageSize = 10, params string[] include) where T : EntityBase
-        {
-            var query = Include(_context.Set<T>(), include).Where(predicate);
-            
-            var totalCount = await query.CountAsync();
-            
-            var items = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return new PagedResult<T>
+        public async Task<PagedResult<T>> GetFiltered<T>(
+            Expression<Func<T, bool>> predicate,
+            int pageNumber = 1,
+            int pageSize = 10,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, // <-- NUEVO PARÁMETRO
+            params string[] include) where T : EntityBase
             {
-                Items = items,
-                TotalCount = totalCount,
-                PageNumber = pageNumber,
-                PageSize = pageSize
-            };
-        }
+                var query = Include(_context.Set<T>(), include).Where(predicate);
+
+                // Si nos enviaron instrucciones de ordenación, las aplicamos a la query
+                if (orderBy != null)
+                {
+                    query = orderBy(query);
+                }
+
+                var totalCount = await query.CountAsync();
+
+                var items = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                return new PagedResult<T>
+                {
+                    Items = items,
+                    TotalCount = totalCount,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+            }
 
         /// <inheritdoc/>
         public async Task<T> Update<T>(T entity) where T : EntityBase
