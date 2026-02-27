@@ -19,5 +19,6 @@ namespace CigralBackend.Domain
         public int? LoteId { get; set; }
         public DateTime? FechaVencimiento { get; set; }
         public int Cantidad { get; set; }
+        public string? InformacionAdicional { get; set; }
     }
 }

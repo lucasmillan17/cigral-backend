@@ -50,7 +50,8 @@ namespace CigralBackend.Application.Dtos
         DateTime FechaVencimiento,
 
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
-        int Cantidad
+        int Cantidad,
+        string? InformacionAdicional // Para guardar cualquier otro dato que queramos en formato JSON (ej: campos personalizados del parser, etc.)
     );
 
     public record RemitoDetalleResponse

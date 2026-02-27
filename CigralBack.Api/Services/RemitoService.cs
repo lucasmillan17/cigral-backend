@@ -134,7 +134,8 @@ namespace CigralBackend.Application.Services
                         NumSerie: detalle.NumeroSerie,
                         CodigoLote: detalle.CodigoLote,
                         FechaVencimiento: detalle.FechaVencimiento,
-                        Cantidad: detalle.Cantidad
+                        Cantidad: detalle.Cantidad,
+                        InformacionAdicional: detalle.InformacionAdicional
                     );
 
                     // Llamamos al servicio de existencias que internamente hará validaciones y guardados.
@@ -257,7 +258,8 @@ namespace CigralBackend.Application.Services
                         NumSerie: detalle.NumeroSerie,
                         CodigoLote: lote?.CodigoLote,
                         FechaVencimiento: detalle.FechaVencimiento,
-                        Cantidad: detalle.Cantidad
+                        Cantidad: detalle.Cantidad,
+                        InformacionAdicional: detalle.InformacionAdicional
                     );
 
                     await _existenciaService.DisminuirStock(

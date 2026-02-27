@@ -26,5 +26,6 @@ namespace CigralBackend.Domain
         public string? NumeroSerie { get; set; }
         
         public int Cantidad { get; set; }
+        public string? InformacionAdicional { get; set; }
     }
 }
