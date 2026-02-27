@@ -16,7 +16,8 @@ namespace CigralBackend.Application.Dtos
         DateTime FechaVencimiento,
         [Required(ErrorMessage = "La cantidad es obligatoria")]
         [Range(0, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor o igual a 0")]
-        int Cantidad
+        int Cantidad,
+        string ? InformacionAdicional // Para guardar cualquier otro dato que queramos en formato JSON (ej: campos personalizados del parser, etc.)
     );
 
     public record ExistenciaModelResponse(
@@ -38,7 +39,8 @@ namespace CigralBackend.Application.Dtos
         // --- Datos de Existencia ---
         string? NumSerie,
         DateTime? FechaVencimiento,
-        int Cantidad
+        int Cantidad,
+        string? InformacionAdicional // Para mostrar cualquier otro dato que hayamos guardado en formato JSON (ej: campos personalizados del parser, etc.)
     );
 
     public enum OrdenExistencia

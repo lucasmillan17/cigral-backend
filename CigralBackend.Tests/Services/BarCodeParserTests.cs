@@ -17,7 +17,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_RealScannerFormat_ShouldParseProperly()
         {
             // Arrange - Real scanner format from user
-            var code = "0110610075099396172801113051'103A061";
+            var code = "0110610075099396172801113051$103A061";
 
             // Act
             var result = _parser.Parse(code);
@@ -71,7 +71,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_GTINDateAndQuantity_ShouldParseCorrectly()
         {
             // Arrange
-            var code = "01123456789012341730630305'";
+            var code = "01123456789012341730630305$";
 
             // Act
             var result = _parser.Parse(code);
@@ -89,7 +89,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_AllFieldsWithLot_ShouldParseCorrectly()
         {
             // Arrange
-            var code = "01123456789012341730630305'10LOTE123";
+            var code = "01123456789012341730630305$10LOTE123";
 
             // Act
             var result = _parser.Parse(code);
@@ -107,7 +107,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_AllFieldsWithSerial_ShouldParseCorrectly()
         {
             // Arrange
-            var code = "01123456789012341730630305'10LOTE123'21SN001";
+            var code = "01123456789012341730630305$10LOTE123$21SN001";
 
             // Act
             var result = _parser.Parse(code);
@@ -125,7 +125,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_LotWithNumbers_ShouldParseCorrectly()
         {
             // Arrange
-            var code = "0112345678901234'10LOTE10ABC";
+            var code = "0112345678901234$10LOTE10ABC";
 
             // Act
             var result = _parser.Parse(code);
@@ -140,7 +140,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_SerialWithNumbers_ShouldParseCorrectly()
         {
             // Arrange
-            var code = "0111111111111111'21SN123456789";
+            var code = "0111111111111111$21SN123456789";
 
             // Act
             var result = _parser.Parse(code);
@@ -155,7 +155,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_LargQuantity_ShouldParseCorrectly()
         {
             // Arrange
-            var code = "0112345678901234'30999999'10LOT";
+            var code = "0112345678901234$30999999$10LOT";
 
             // Act
             var result = _parser.Parse(code);
@@ -171,7 +171,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_InvalidDate_ShouldIgnoreDateField()
         {
             // Arrange
-            var code = "0112345678901234'179999991'10LOTE";
+            var code = "0112345678901234$179999991$10LOTE";
 
             // Act
             var result = _parser.Parse(code);
@@ -227,7 +227,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_DifferentAIOrder_ShouldStillWork()
         {
             // Arrange
-            var code = "30501012345'0112345678901234";
+            var code = "30501012345$0112345678901234";
 
             // Act
             var result = _parser.Parse(code);
@@ -243,7 +243,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_QuantityAsFirstVariable_ShouldParseCorrectly()
         {
             // Arrange
-            var code = "0112345678901234305'10LOTE'21SN";
+            var code = "0112345678901234305$10LOTE$21SN";
 
             // Act
             var result = _parser.Parse(code);
@@ -260,7 +260,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_LotWithSpecialChars_ShouldPreserveChars()
         {
             // Arrange
-            var code = "0112345678901234'10ABC-123_XYZ";
+            var code = "0112345678901234$10ABC-123_XYZ";
 
             // Act
             var result = _parser.Parse(code);
@@ -274,7 +274,7 @@ namespace CigralBackend.Tests.Services
         public void Parse_SerialWithSpecialChars_ShouldPreserveChars()
         {
             // Arrange
-            var code = "0112345678901234'21SN-2024/001";
+            var code = "0112345678901234$21SN-2024/001";
 
             // Act
             var result = _parser.Parse(code);

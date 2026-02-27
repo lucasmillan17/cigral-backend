@@ -41,7 +41,8 @@ namespace CigralBackend.Application.Services
                 lote?.CodigoLote ?? "Sin Código de Lote",
                 e.NumSerie ?? "Sin Número de Serie",
                 lote?.FechaVencimiento ?? e.FechaVencimiento,
-                e.Cantidad
+                e.Cantidad,
+                e.InformacionAdicional
             );
         }
 
@@ -236,6 +237,10 @@ namespace CigralBackend.Application.Services
                 {
                     existencia.NumSerie = r.NumSerie;
                 }
+                if (!string.IsNullOrEmpty(r.InformacionAdicional))
+                {
+                    existencia.InformacionAdicional = r.InformacionAdicional;
+                }
 
                 existencia = await _repository.Add(existencia);
                 stockNuevo = existencia.Cantidad;
@@ -391,7 +396,8 @@ namespace CigralBackend.Application.Services
                 existencia.Lote?.CodigoLote ?? "Sin Código de Lote",
                 existencia.NumSerie ?? "Sin Número de Serie",
                 existencia.Lote?.FechaVencimiento ?? existencia.FechaVencimiento,
-                existencia.Cantidad
+                existencia.Cantidad,
+                existencia.InformacionAdicional
             );
         }
 
@@ -476,7 +482,8 @@ namespace CigralBackend.Application.Services
                 e.Lote?.CodigoLote ?? "Sin Código de Lote",
                 e.NumSerie ?? "Sin Número de Serie",
                 e.Lote?.FechaVencimiento ?? e.FechaVencimiento,
-                e.Cantidad
+                e.Cantidad,
+                e.InformacionAdicional
             )).ToList();
 
             return new PagedResult<ExistenciaModelResponse>

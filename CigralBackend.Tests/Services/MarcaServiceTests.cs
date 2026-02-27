@@ -321,6 +321,7 @@ namespace CigralBackend.Tests.Services
                 It.IsAny<Expression<Func<Marca, bool>>>(),
                 1,
                 50,
+                null,
                 It.IsAny<string[]>()))
                           .ReturnsAsync(marcas);
 
@@ -347,6 +348,7 @@ namespace CigralBackend.Tests.Services
                 It.IsAny<Expression<Func<Marca, bool>>>(),
                 1,
                 50,
+                null,
                 It.IsAny<string[]>()))
                           .ReturnsAsync(marcas);
 

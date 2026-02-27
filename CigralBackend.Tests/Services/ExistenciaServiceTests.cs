@@ -31,7 +31,7 @@ namespace CigralBackend.Tests.Services
         public async Task AumentarStock_NuevaExistencia_DeberiaCrearExistencia()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 10);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 10, "");
 
             var producto = new Producto { Id = 1, Nombre = "Producto Test", GTIN = "1234567890123", EsUnitario = false };
             var deposito = new Deposito { Id = 1, Nombre = "Deposito Test" };
@@ -70,7 +70,7 @@ namespace CigralBackend.Tests.Services
         public async Task AumentarStock_ExistenciaExiste_DeberiaSumarCantidad()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE002", "LOTE001", DateTime.Now.AddDays(30), 10);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE002", "LOTE001", DateTime.Now.AddDays(30), 10, "");
 
             var producto = new Producto { Id = 1, Nombre = "Producto Test", GTIN = "123", EsUnitario = false };
             var deposito = new Deposito { Id = 1, Nombre = "Deposito Test" };
@@ -111,7 +111,7 @@ namespace CigralBackend.Tests.Services
         public async Task AumentarStock_ProductoNoExiste_DeberiaLanzarNotFoundException()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 999, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 10);
+            var request = new ExistenciaModelRequest(1, 999, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 10, "");
 
             _mockRepository.Setup(r => r.GetById<Producto>(999, It.IsAny<string[]>()))
                           .ReturnsAsync((Producto)null);
@@ -129,7 +129,7 @@ namespace CigralBackend.Tests.Services
         public async Task AumentarStock_DepositoNoExiste_DeberiaLanzarNotFoundException()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(999, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 10);
+            var request = new ExistenciaModelRequest(999, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 10, "");
 
             var producto = new Producto { Id = 1, Nombre = "Producto Test", EsUnitario = false };
 
@@ -152,7 +152,7 @@ namespace CigralBackend.Tests.Services
         public async Task AumentarStock_LoteNoExiste_DeberiaCrearLoteYExistencia()
         {
             // Arrange: now request passes CodigoLote (string). Service creates lote if not found.
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE999", DateTime.Now.AddDays(30), 10);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE999", DateTime.Now.AddDays(30), 10, "");
 
             var producto = new Producto { Id = 1, Nombre = "Producto Test", EsUnitario = false };
             var deposito = new Deposito { Id = 1, Nombre = "Deposito Test" };
@@ -180,7 +180,7 @@ namespace CigralBackend.Tests.Services
         public async Task AumentarStock_CantidadCero_DeberiaLanzarDomainException()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 0);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 0, "");
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<DomainException>(
@@ -194,7 +194,7 @@ namespace CigralBackend.Tests.Services
         public async Task AumentarStock_ProductoUnitarioConCantidadMayorA1_DeberiaLanzarDomainException()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 5);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 5, "");
 
             var producto = new Producto { Id = 1, Nombre = "Producto Unitario", EsUnitario = true };
 
@@ -212,7 +212,7 @@ namespace CigralBackend.Tests.Services
         public async Task AumentarStock_LoteVencido_DeberiaLanzarDomainException()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTEEXP", DateTime.Now.AddDays(30), 10);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTEEXP", DateTime.Now.AddDays(30), 10, "");
 
             var producto = new Producto { Id = 1, Nombre = "Producto Test", EsUnitario = false };
             var deposito = new Deposito { Id = 1, Nombre = "Deposito Test" };
@@ -224,7 +224,7 @@ namespace CigralBackend.Tests.Services
             _mockRepository.Setup(r => r.First<Existencia>(It.IsAny<Expression<Func<Existencia, bool>>>())).ReturnsAsync((Existencia)null);
 
             // Act & Assert
-            // Note: Service doesn't validate expired lote, so this test just verifies the request goes through
+            // Note: Service doesn$t validate expired lote, so this test just verifies the request goes through
             var result = await _service.AumentarStock(request);
             Assert.NotNull(result);
         }
@@ -233,7 +233,7 @@ namespace CigralBackend.Tests.Services
         public async Task AumentarStock_NumSerieDuplicado_DeberiaLanzarDomainException()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 1);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 1, "");
 
             var producto = new Producto { Id = 1, Nombre = "Producto Test", EsUnitario = false };
             var deposito = new Deposito { Id = 1, Nombre = "Deposito Test" };
@@ -260,7 +260,7 @@ namespace CigralBackend.Tests.Services
         public async Task DisminuirStock_ConStockSuficiente_DeberiaDisminuirCantidad()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 5);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 5, "");
 
             var producto = new Producto { Id = 1, Nombre = "Producto Test", GTIN = "123", EsUnitario = false };
             var deposito = new Deposito { Id = 1, Nombre = "Deposito Test" };
@@ -295,7 +295,7 @@ namespace CigralBackend.Tests.Services
         public async Task DisminuirStock_ExistenciaNoExiste_DeberiaLanzarNotFoundException()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 5);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 5, "");
 
             var producto = new Producto { Id = 1, Nombre = "Producto Test", EsUnitario = false };
             var deposito = new Deposito { Id = 1, Nombre = "Deposito Test" };
@@ -316,7 +316,7 @@ namespace CigralBackend.Tests.Services
         public async Task DisminuirStock_StockInsuficiente_DeberiaLanzarDomainException()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 15);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 15, "");
 
             var producto = new Producto { Id = 1, Nombre = "Producto Test", EsUnitario = false };
             var deposito = new Deposito { Id = 1, Nombre = "Deposito Test" };
@@ -345,7 +345,7 @@ namespace CigralBackend.Tests.Services
         public async Task DisminuirStock_CantidadCero_DeberiaLanzarDomainException()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 0);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 0, "");
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<DomainException>(() => _service.DisminuirStock(request));
@@ -356,7 +356,7 @@ namespace CigralBackend.Tests.Services
         public async Task DisminuirStock_ProductoUnitarioConCantidadDistintaDe1_DeberiaLanzarDomainException()
         {
             // Arrange
-            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 5);
+            var request = new ExistenciaModelRequest(1, 1, "SERIE001", "LOTE001", DateTime.Now.AddDays(30), 5, "");
             _mockRepository.Setup(r => r.GetById<Producto>(1, It.IsAny<string[]>())).ReturnsAsync(new Producto { Id = 1, EsUnitario = true });
 
             var exception = await Assert.ThrowsAsync<DomainException>(() => _service.DisminuirStock(request));
@@ -500,7 +500,7 @@ namespace CigralBackend.Tests.Services
                 PageSize = 10
             };
 
-            _mockRepository.Setup(r => r.GetFiltered<Existencia>(It.IsAny<Expression<Func<Existencia, bool>>>(), 1, 10, It.IsAny<string[]>())).ReturnsAsync(existencias);
+            _mockRepository.Setup(r => r.GetFiltered<Existencia>(It.IsAny<Expression<Func<Existencia, bool>>>(), 1, 10, null,It.IsAny<string[]>())).ReturnsAsync(existencias);
 
             // Act
             var result = await _service.GetExistencias(filters);
@@ -539,7 +539,7 @@ namespace CigralBackend.Tests.Services
                 PageSize = 10
             };
 
-            _mockRepository.Setup(r => r.GetFiltered<Existencia>(It.IsAny<Expression<Func<Existencia, bool>>>(), 1, 10, It.IsAny<string[]>())).ReturnsAsync(existencias);
+            _mockRepository.Setup(r => r.GetFiltered<Existencia>(It.IsAny<Expression<Func<Existencia, bool>>>(), 1, 10, null, It.IsAny<string[]>())).ReturnsAsync(existencias);
 
             // Act
             var result = await _service.GetExistencias(filters);
