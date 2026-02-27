@@ -53,7 +53,8 @@ namespace CigralBackend.Api.Controllers
                 Cantidad = result.Cantidad,
                 ExisteProducto = existeProducto,
                 ProductoId = producto?.Id,
-                NombreProducto = producto?.Nombre
+                NombreProducto = producto?.Nombre,
+                InformacionAdicional = result?.InformacionAdicional
             });
         }
 

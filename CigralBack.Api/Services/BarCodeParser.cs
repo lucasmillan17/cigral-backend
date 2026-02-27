@@ -98,7 +98,7 @@ namespace CigralBackend.Application.Services
             return false;
         }
 
-        private void AsignarValor(string ai, string valor, BarCodeParsed result, List<string> adicionales)
+        private void AsignarValor(string ai, string valor, BarCodeParsed result, Dictionary<string, string> adicionales)
         {
             switch (ai)
             {
@@ -120,7 +120,7 @@ namespace CigralBackend.Application.Services
                     break;
                 default:
                     // Lo guardamos en el JSON con el formato original "IA + VALOR"
-                    adicionales.Add(ai + valor);
+                    adicionales[ai] = valor;
                     break;
             }
         }
@@ -162,14 +162,16 @@ namespace CigralBackend.Application.Services
                 return new BarCodeParsed();
 
             var result = new BarCodeParsed();
-            var camposAdicionales = new List<string>();
+            var camposAdicionales = new Dictionary<string, string>();
             bool esValido = false;
 
             if (scannedCode.Contains("$")) scannedCode = scannedCode.Replace('$', (char)29 ); // Normalizar separadores
 
             var cadenaRestante = scannedCode;
 
-            while (cadenaRestante.Length>0)
+            while (cadenaRestante.Length > 0)
+            {
+
                 // 0. Limpieza: Si quedó un separador <GS> suelto al principio, lo ignoramos
                 if (cadenaRestante[0] == (char)29)
                 {
@@ -177,34 +179,35 @@ namespace CigralBackend.Application.Services
                     if (cadenaRestante.Length == 0) break;
                 }
 
-            int obtenerLongitudAI = ObtenerLongitudAI(cadenaRestante);
+                int obtenerLongitudAI = ObtenerLongitudAI(cadenaRestante);
 
-            string ai = cadenaRestante.Substring(0, obtenerLongitudAI);
-            cadenaRestante = cadenaRestante.Substring(obtenerLongitudAI);
+                string ai = cadenaRestante.Substring(0, obtenerLongitudAI);
+                cadenaRestante = cadenaRestante.Substring(obtenerLongitudAI);
 
-            string valor = "";
+                string valor = "";
 
-            if(EsLongitudFija(ai, out int longitud))
-            {
-                valor = cadenaRestante.Substring(0, longitud);
-                cadenaRestante = cadenaRestante.Substring(longitud);
-            }
-            else
-            {
-                int indiceSeparador = cadenaRestante.IndexOf(FIELD_SEPARATOR);
-                if (indiceSeparador >= 0)
+                if (EsLongitudFija(ai, out int longitud))
                 {
-                    valor = cadenaRestante.Substring(0, indiceSeparador);
-                    cadenaRestante = cadenaRestante.Substring(indiceSeparador + 1); // +1 para saltar el separador
+                    valor = cadenaRestante.Substring(0, longitud);
+                    cadenaRestante = cadenaRestante.Substring(longitud);
                 }
                 else
                 {
-                    valor = cadenaRestante;
-                    cadenaRestante = "";
+                    int indiceSeparador = cadenaRestante.IndexOf(FIELD_SEPARATOR);
+                    if (indiceSeparador >= 0)
+                    {
+                        valor = cadenaRestante.Substring(0, indiceSeparador);
+                        cadenaRestante = cadenaRestante.Substring(indiceSeparador + 1); // +1 para saltar el separador
+                    }
+                    else
+                    {
+                        valor = cadenaRestante;
+                        cadenaRestante = "";
+                    }
                 }
-            }
 
-            AsignarValor(ai, valor, result, camposAdicionales);
+                AsignarValor(ai, valor, result, camposAdicionales);
+            }
 
             /*try
             {

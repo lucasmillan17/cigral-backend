@@ -224,7 +224,7 @@ namespace CigralBackend.Tests.Services
             _mockRepository.Setup(r => r.First<Existencia>(It.IsAny<Expression<Func<Existencia, bool>>>())).ReturnsAsync((Existencia)null);
 
             // Act & Assert
-            // Note: Service doesn't validate expired lote, so this test just verifies the request goes through
+            // Note: Service doesn$t validate expired lote, so this test just verifies the request goes through
             var result = await _service.AumentarStock(request);
             Assert.NotNull(result);
         }
