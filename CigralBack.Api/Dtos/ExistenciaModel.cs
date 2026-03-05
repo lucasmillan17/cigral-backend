@@ -57,6 +57,7 @@ namespace CigralBackend.Application.Dtos
         int? ProductoId,
         int? LoteId,
         string? CodigoLote,
+        string? NumSerie,
         
         // Filtros de vencimiento
         DateTime? FechaVencimientoDesde,

@@ -177,8 +177,9 @@ namespace CigralBackend.Application.Services
         /// <returns>Información del remito creado</returns>
         /// <exception cref="NotFoundException">Si cliente o depósito no existen</exception>
         /// <exception cref="DomainException">Si hay errores de validación o stock insuficiente</exception>
-        public async Task<RemitoResponse> RegistrarEgreso(RemitoRequest request)
+        public async Task<ResultadoOperacion<RemitoResponse>> RegistrarEgreso(RemitoRequest request)
         {
+            var erroresValidacion = new List<ErrorDetalleDto>();
             // Validar que los detalles no estén vacíos
             if (request.Detalles == null || !request.Detalles.Any())
             {
@@ -216,6 +217,40 @@ namespace CigralBackend.Application.Services
                         $"El número de remito '{request.NumeroRemito}' ya existe."
                     );
                 }
+            }
+
+            foreach (var detalle in request.Detalles)
+            {
+                if (detalle.Cantidad <= 0)
+                {
+                    erroresValidacion.Add(new ErrorDetalleDto(
+                        Orden: request.Detalles.IndexOf(detalle),
+                        Mensaje: $"La cantidad para el producto {detalle.ProductoId} debe ser mayor a cero."
+                    ));
+                }
+
+                var stockExistente = await _existenciaService.GetStockDisponible(
+                    depositoId: request.DepositoId,
+                    productoId: detalle.ProductoId,
+                    numSerie: detalle.NumeroSerie,
+                    codigoLote: detalle.CodigoLote
+                );
+
+                if (stockExistente < detalle.Cantidad)
+                {
+                    erroresValidacion.Add(new ErrorDetalleDto(
+                        Orden: request.Detalles.IndexOf(detalle),
+                        Mensaje: $"Stock insuficiente para el producto {detalle.ProductoId}. Disponible: {stockExistente}, Solicitado: {detalle.Cantidad}."
+                    ));
+                }
+            }
+
+            if(erroresValidacion.Any())
+            {
+                return ResultadoOperacion<RemitoResponse>.Fallo(
+                    mensaje: "Errores de validación en los detalles del remito.",
+                    errores: erroresValidacion
+                );
             }
 
             using var transaction = await _repository.BeginTransaction();
@@ -273,7 +308,7 @@ namespace CigralBackend.Application.Services
 
                 await transaction.CommitAsync();
 
-                return new RemitoResponse(
+                var remitoResponse = new RemitoResponse(
                     Id: remito.Id,
                     NumeroRemito: remito.NumeroRemito,
                     Fecha: remito.Fecha,
@@ -283,6 +318,7 @@ namespace CigralBackend.Application.Services
                     CantidadDetalles: request.Detalles.Count,
                     CantidadTotal: cantidadTotal
                 );
+                return ResultadoOperacion<RemitoResponse>.Ok(remitoResponse);
             }
             catch
             {
@@ -522,5 +558,19 @@ namespace CigralBackend.Application.Services
 
             return new SiguienteRemitoResponse(SiguienteNumeroRemito: numeroSiguienteStr);
         }
+
+    }
+    public class ResultadoOperacion<T>
+    {
+        public bool Exito { get; set; }
+        public string? MensajeGeneral { get; set; }
+        public List<ErrorDetalleDto> ErroresDetalle { get; set; } = new();
+        public T? Datos { get; set; }
+
+        public static ResultadoOperacion<T> Ok(T datos) =>
+            new() { Exito = true, Datos = datos };
+
+        public static ResultadoOperacion<T> Fallo(string mensaje, List<ErrorDetalleDto> errores = null) =>
+            new() { Exito = false, MensajeGeneral = mensaje, ErroresDetalle = errores ?? new List<ErrorDetalleDto>() };
     }
 }

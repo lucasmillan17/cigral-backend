@@ -97,13 +97,23 @@ namespace CigralBackend.Controllers
         [ProducesResponseType(typeof(RemitoResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> RegistrarEgreso([FromBody] RemitoRequest request)
         {
-            var remito = await _remitoService.RegistrarEgreso(request);
+            var response = await _remitoService.RegistrarEgreso(request);
+
+            if(!response.Exito)
+            {
+                return UnprocessableEntity(new
+                {
+                    mensaje = response.MensajeGeneral,
+                    errores = response.ErroresDetalle
+                });
+            }
             return CreatedAtAction(
                 actionName: nameof(RegistrarEgreso),
-                routeValues: new { id = remito.Id },
-                value: remito
+                routeValues: new { id = response.Datos.Id },
+                value: response.Datos
             );
         }
 

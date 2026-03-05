@@ -21,7 +21,7 @@ namespace CigralBackend.Application.Services.Interfaces
         /// </summary>
         /// <param name="request">Datos del remito de egreso</param>
         /// <returns>Información del remito creado</returns>
-        Task<RemitoResponse> RegistrarEgreso(RemitoRequest request);
+        Task<ResultadoOperacion<RemitoResponse>> RegistrarEgreso(RemitoRequest request);
 
         /// <summary>
         /// Actualiza un remito existente (solo datos que no afectan stock).

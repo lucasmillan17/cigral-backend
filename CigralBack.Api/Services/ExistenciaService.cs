@@ -94,7 +94,7 @@ namespace CigralBackend.Application.Services
         /// <exception cref="NotFoundException">Si el producto, deposito o lote no existen</exception>
         /// <exception cref="DomainException">Si las validaciones de negocio fallan</exception>
         public async Task<ExistenciaModelResponse> AumentarStock(
-            ExistenciaModelRequest r, 
+            ExistenciaModelRequest r,
             int? remitoIngresoId = null,
             string? observaciones = null)
         {
@@ -107,7 +107,8 @@ namespace CigralBackend.Application.Services
                 );
             }
 
-            if(string.IsNullOrEmpty(r.NumSerie) && string.IsNullOrEmpty(r.CodigoLote)){
+            if (string.IsNullOrEmpty(r.NumSerie) && string.IsNullOrEmpty(r.CodigoLote))
+            {
                 throw new DomainException(
                     DomainErrorCode.SerieYCodigoLoteNoEspecificados,
                     "Debe especificar al menos un número de serie o un código de lote para aumentar el stock."
@@ -221,11 +222,11 @@ namespace CigralBackend.Application.Services
                 existencia.Cantidad = r.Cantidad;
                 existencia.ProductoId = r.ProductoId;
                 existencia.DepositoId = r.DepositoId;
-                if(lote != null)
+                if (lote != null)
                 {
                     existencia.LoteId = lote.Id;
                     existencia.FechaVencimiento = lote.FechaVencimiento;
-                   
+
                     lote.CantidadDisponible = existencia.Cantidad;
                     await _repository.Update(lote);
                 }
@@ -443,26 +444,28 @@ namespace CigralBackend.Application.Services
                     (!filters.ProductoId.HasValue || e.ProductoId == filters.ProductoId.Value) &&
                     (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
                     (!filters.LoteId.HasValue || e.LoteId == filters.LoteId.Value) &&
-                    (string.IsNullOrEmpty(filters.CodigoLote) || 
+                    (string.IsNullOrEmpty(filters.NumSerie) ||
+                        (e.NumSerie != null && e.NumSerie.Contains(filters.NumSerie))) &&
+                    (string.IsNullOrEmpty(filters.CodigoLote) ||
                         (e.Lote != null && e.Lote.CodigoLote.Contains(filters.CodigoLote))) &&
                     // Filtros de vencimiento
-                    (!filters.FechaVencimientoDesde.HasValue || 
+                    (!filters.FechaVencimientoDesde.HasValue ||
                         (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= filters.FechaVencimientoDesde.Value) ||
                         (e.Lote != null && e.Lote.FechaVencimiento >= filters.FechaVencimientoDesde.Value)) &&
-                    
-                    (!filters.FechaVencimientoHasta.HasValue || 
+
+                    (!filters.FechaVencimientoHasta.HasValue ||
                         (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= filters.FechaVencimientoHasta.Value) ||
                         (e.Lote != null && e.Lote.FechaVencimiento <= filters.FechaVencimientoHasta.Value)) &&
-                    
+
                     (!fechaLimiteVencimiento.HasValue ||
                         (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= fechaLimiteVencimiento.Value) ||
                         (e.Lote != null && e.Lote.FechaVencimiento <= fechaLimiteVencimiento.Value)) &&
-                    
+
                     (!filters.SoloConVencimiento.HasValue ||
                         (filters.SoloConVencimiento.Value && (e.FechaVencimiento.HasValue || e.Lote != null)) ||
                         (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && e.Lote == null)) &&
 
-                    (string.IsNullOrEmpty(filters.NombreProducto) || 
+                    (string.IsNullOrEmpty(filters.NombreProducto) ||
                         (e.Producto != null && e.Producto.Nombre.Contains(filters.NombreProducto))),
 
                 pageNumber: filters.PageNumber,
@@ -509,20 +512,20 @@ namespace CigralBackend.Application.Services
                 predicate: e =>
                     // Solo con fecha de vencimiento
                     (e.FechaVencimiento.HasValue || e.Lote != null) &&
-                    
+
                     // Dentro del rango de fechas
                     ((e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= fechaMinima && e.FechaVencimiento.Value <= fechaMaxima) ||
                      (e.Lote != null && e.Lote.FechaVencimiento >= fechaMinima && e.Lote.FechaVencimiento <= fechaMaxima)) &&
-                    
+
                     // Filtros opcionales
                     (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
                     (!filters.ProductoId.HasValue || e.ProductoId == filters.ProductoId.Value) &&
-                    
+
                     // Incluir vencidos solo si se solicita
-                    (filters.IncluirVencidos || 
+                    (filters.IncluirVencidos ||
                         (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= hoy) ||
                         (e.Lote != null && e.Lote.FechaVencimiento >= hoy)),
-                
+
                 pageNumber: 1,
                 pageSize: int.MaxValue, // Sin paginación
                 include: new[] { "Producto", "Deposito", "Lote" }
@@ -632,6 +635,17 @@ namespace CigralBackend.Application.Services
             }
 
             await _repository.Delete(existencia);
+        }
+
+        public async Task<int> GetStockDisponible(int productoId, int depositoId, string? codigoLote = null, string? numSerie = null)
+        {
+            var existencia = await _repository.First<Existencia>(
+                e => e.ProductoId == productoId &&
+                     e.DepositoId == depositoId &&
+                     (string.IsNullOrEmpty(codigoLote) || e.Lote.CodigoLote == codigoLote) &&
+                     (string.IsNullOrEmpty(numSerie) || e.NumSerie == numSerie)
+            );
+            return existencia?.Cantidad ?? 0;
         }
     }
 }

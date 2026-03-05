@@ -117,4 +117,9 @@ namespace CigralBackend.Application.Dtos
         int DepositoId,
         bool EsIngreso
     );
+
+    public record ErrorDetalleDto(
+        int Orden,
+        string Mensaje
+    );
 }
