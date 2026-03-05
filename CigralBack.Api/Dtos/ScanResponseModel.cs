@@ -19,5 +19,6 @@ namespace CigralBackend.Application.Dtos
         public bool ExisteProducto { get; set; }
         public int? ProductoId { get; set; }
         public string? NombreProducto { get; set; }
+        public string? InformacionAdicional { get; set; }
     }
 }

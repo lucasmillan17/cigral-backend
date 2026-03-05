@@ -1,6 +1,8 @@
 using CigralBackend.Application.Dtos;
+using CigralBackend.Application.Services;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain.Services;
+using CigralBackend.Domain.Wrappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -167,7 +169,7 @@ namespace CigralBackend.Controllers
         public async Task<IActionResult> ImprimirRemitoIngreso(int id)
         {
             var pdfBytes = await _pdfService.GenerarPdfRemitoIngreso(id);
-            
+
             return File(
                 fileContents: pdfBytes,
                 contentType: "application/pdf",
@@ -203,12 +205,45 @@ namespace CigralBackend.Controllers
         public async Task<IActionResult> ImprimirRemitoEgreso(int id)
         {
             var pdfBytes = await _pdfService.GenerarPdfRemitoEgreso(id);
-            
+
             return File(
                 fileContents: pdfBytes,
                 contentType: "application/pdf",
                 fileDownloadName: $"Remito_Egreso_{id}_{DateTime.Now:yyyyMMdd}.pdf"
             );
+        }
+
+        [HttpGet("ingreso")]
+        [ProducesResponseType(typeof(PagedResult<RemitoResponseGet>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetRemitosIngreso([FromQuery] RemitoFilters filters)
+        {
+            var remitos = await _remitoService.GetRemitosIngreso(filters);
+            return Ok(remitos);
+        }
+
+        [HttpGet("siguiente-nro")]
+        [ProducesResponseType(typeof(SiguienteRemitoResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetSiguienteNumeroRemito([FromBody]UltimoRemitoRequest r)
+        {
+            var siguienteRemito = await _remitoService.GetSiguienteNumeroRemito(r);
+            return Ok(siguienteRemito);
+        }
+
+        [HttpGet("egreso")]
+        [ProducesResponseType(typeof(PagedResult<RemitoResponseGet>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetRemitosEgreso([FromQuery] RemitoFilters filters)
+        {
+            var remitos = await _remitoService.GetRemitosEgreso(filters);
+            return Ok(remitos);
+        }
+
+        [HttpGet("Design")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetRemitoDesign()
+        {
+            await _pdfService.GenerarPdfRemitoDisenio(); // ID fijo para diseño
+
+            return Ok();
         }
     }
 }

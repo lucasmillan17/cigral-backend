@@ -130,7 +130,12 @@ namespace CigralBackend.Application.Services
             var productos = await _repository.GetFiltered<Producto>(p =>
                 (string.IsNullOrEmpty(f.Nombre) || p.Nombre.Contains(f.Nombre)) &&
                 (string.IsNullOrEmpty(f.Gtin) || p.GTIN.Contains(f.Gtin))
-            , f.PageNumber, f.PageSize, "Marca");
+
+            ,
+            pageNumber :f.PageNumber,
+            pageSize :f.PageSize,
+            include: new[] { "Marca" }
+            );
 
             return MapeoProductosResponse(productos);
         }

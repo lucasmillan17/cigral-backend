@@ -14,3 +14,7 @@ Release/
 appsettings.Development.json
 appsettings.local.json
 .env
+
+# logos y archivos de recursos
+*.png
+*.jpg

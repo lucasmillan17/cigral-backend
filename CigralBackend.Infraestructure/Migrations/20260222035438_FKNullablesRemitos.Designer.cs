@@ -4,6 +4,7 @@ using CigralBackend.Infraestructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CigralBackend.Infraestructure.Migrations
 {
     [DbContext(typeof(CigralBackendContext))]
-    partial class CigralBackendContextModelSnapshot : ModelSnapshot
+    [Migration("20260222035438_FKNullablesRemitos")]
+    partial class FKNullablesRemitos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -176,9 +179,6 @@ namespace CigralBackend.Infraestructure.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("int");
 
-                    b.Property<string>("InformacionAdicional")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int?>("LoteId")
                         .HasColumnType("int");
 
@@ -224,9 +224,6 @@ namespace CigralBackend.Infraestructure.Migrations
 
                     b.Property<DateTime?>("FechaVencimiento")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("InformacionAdicional")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("LoteId")
                         .HasColumnType("int");

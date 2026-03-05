@@ -50,6 +50,16 @@ namespace CigralBackend.Application.Dtos
         DateTime FechaVencimiento,
 
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
+        int Cantidad,
+        string? InformacionAdicional // Para guardar cualquier otro dato que queramos en formato JSON (ej: campos personalizados del parser, etc.)
+    );
+
+    public record RemitoDetalleResponse
+    (
+        int ProductoId,
+        string? CodigoLote,
+        string? NumeroSerie,
+        DateTime? FechaVencimiento,
         int Cantidad
     );
 
@@ -66,5 +76,45 @@ namespace CigralBackend.Application.Dtos
         string? Observaciones,
         int CantidadDetalles,
         int CantidadTotal
+    );
+
+    public record RemitoResponseGet
+    (
+        int Id,
+        string? NumeroRemito,
+        DateTime Fecha,
+        int DepositoId,
+        int EntidadId,
+        string? Observaciones,
+        List<RemitoDetalleResponse> Detalles
+    );
+
+    public enum OrdenRemito
+    {
+        Id,
+        Fecha
+    }
+
+    public record RemitoFilters(
+        int? DepositoId,
+        int? EntidadId,
+        DateTime? FechaDesde,
+        DateTime? FechaHasta,
+        string? NumeroRemito,
+
+        OrdenRemito? OrdenarPor = OrdenRemito.Id,
+        bool EsDescendente = false,
+
+        int PageNumber = 1,
+        int PageSize = 20
+    );
+
+    public record SiguienteRemitoResponse(
+        string? SiguienteNumeroRemito
+    );
+
+    public record UltimoRemitoRequest(
+        int DepositoId,
+        bool EsIngreso
     );
 }

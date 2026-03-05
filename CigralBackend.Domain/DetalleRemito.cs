@@ -11,10 +11,10 @@ namespace CigralBackend.Domain
     {
         public DetalleRemito() { }
         
-        public int RemitoIngresoId { get; set; }
+        public int? RemitoIngresoId { get; set; }
         public RemitoIngreso? RemitoIngreso { get; set; }
         
-        public int RemitoEgresoId { get; set; }
+        public int? RemitoEgresoId { get; set; }
         public RemitoEgreso? RemitoEgreso { get; set; }
         
         public int ProductoId { get; set; }
@@ -26,5 +26,6 @@ namespace CigralBackend.Domain
         public string? NumeroSerie { get; set; }
         
         public int Cantidad { get; set; }
+        public string? InformacionAdicional { get; set; }
     }
 }
