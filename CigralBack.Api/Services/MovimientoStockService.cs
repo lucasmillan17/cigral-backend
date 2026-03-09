@@ -29,12 +29,11 @@ namespace CigralBackend.Application.Services
         {
             var resultadoEntidad = await _repository.GetFiltered<MovimientoStock>(
                 predicate: m =>
-                    (!filters.ProductoId.HasValue || m.ProductoId == filters.ProductoId.Value) &&
+                    (string.IsNullOrEmpty(filters.NombreProducto) || m.Producto.Nombre.Contains(filters.NombreProducto)) &&
                     (!filters.DepositoId.HasValue || m.DepositoId == filters.DepositoId.Value) &&
-                    (!filters.LoteId.HasValue || m.LoteId == filters.LoteId.Value) &&
+                    (string.IsNullOrEmpty(filters.CodigoLote) || m.Lote.CodigoLote.Contains(filters.CodigoLote)) &&
                     (!filters.Tipo.HasValue || m.Tipo == filters.Tipo.Value) &&
-                    (!filters.RemitoIngresoId.HasValue || m.RemitoIngresoId == filters.RemitoIngresoId.Value) &&
-                    (!filters.RemitoEgresoId.HasValue || m.RemitoEgresoId == filters.RemitoEgresoId.Value) &&
+                    (string.IsNullOrEmpty(filters.NroRemito) || m.Producto.Nombre.Contains(filters.NroRemito)) &&
                     (!filters.FechaDesde.HasValue || m.FechaMovimiento >= filters.FechaDesde.Value) &&
                     (!filters.FechaHasta.HasValue || m.FechaMovimiento <= filters.FechaHasta.Value),
                 pageNumber: filters.PageNumber,

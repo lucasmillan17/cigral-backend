@@ -9,12 +9,11 @@ namespace CigralBackend.Application.Dtos
     /// </summary>
     public record MovimientoStockFilters
     (
-        int? ProductoId,
+        string? NombreProducto,
         int? DepositoId,
-        int? LoteId,
+        string? CodigoLote,
         TipoMovimiento? Tipo,
-        int? RemitoIngresoId,
-        int? RemitoEgresoId,
+        string? NroRemito,
         DateTime? FechaDesde,
         DateTime? FechaHasta,
         [Range(1, int.MaxValue, ErrorMessage = "La página debe ser mayor a 0")]

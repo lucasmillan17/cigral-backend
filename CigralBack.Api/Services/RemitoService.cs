@@ -98,7 +98,7 @@ namespace CigralBackend.Application.Services
                 // Procesar cada detalle
                 foreach (var detalle in request.Detalles)
                 {
-                    Lote lote = null;
+                    Lote? lote = null;
                     if (!string.IsNullOrEmpty(detalle.CodigoLote))
                     {
                             lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote);
