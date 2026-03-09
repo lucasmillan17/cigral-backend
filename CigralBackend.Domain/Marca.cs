@@ -16,5 +16,6 @@ namespace CigralBackend.Domain
         }
 
         public string Nombre { get; set; }
+        public bool Activo { get; set; } = true;
     }
 }

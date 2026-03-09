@@ -19,5 +19,6 @@ namespace CigralBackend.Domain
         public Marca? Marca { get; set; }
         public decimal? Precio { get; set; }
         public bool EsUnitario { get; set; }
+        public bool Activo { get; set; } = true;
     }
 }

@@ -18,5 +18,6 @@ namespace CigralBackend.Domain
         public string? Direccion { get; set; }
         public string? GLN { get; set; }
         public List<RemitoIngreso> Remitos { get; set; }
+        public bool Activo { get; set; } = true;
     }
 }

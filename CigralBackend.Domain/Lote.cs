@@ -16,5 +16,6 @@ namespace CigralBackend.Domain
         public int CantidadDisponible { get; set; }
         public Producto Producto { get; set; }
         public int ProductoId { get; set; }
+        public bool Activo { get; set; } = true;
     }
 }

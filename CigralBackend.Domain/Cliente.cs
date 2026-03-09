@@ -17,5 +17,6 @@ namespace CigralBackend.Domain
         public string? Telefono { get; set; }
         public string? Direccion { get; set; }
         public List<RemitoEgreso> Remitos { get; set; }
+        public bool Activo { get; set; } = true;
     }
 }

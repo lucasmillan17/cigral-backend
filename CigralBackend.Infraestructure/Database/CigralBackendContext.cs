@@ -37,10 +37,12 @@ namespace CigralBackend.Infraestructure.Database
                 entity.Property(e => e.Cuit).HasMaxLength(11);
                 entity.Property(e => e.Telefono).HasMaxLength(20);
                 entity.Property(e => e.Direccion).HasMaxLength(200);
+                entity.Property(e => e.Activo).HasDefaultValue(true);
                 entity.HasMany(e => e.Remitos)
                       .WithOne(r => r.Cliente)
                       .HasForeignKey(r => r.ClienteId)
                       .OnDelete(DeleteBehavior.Restrict);
+                entity.HasQueryFilter(c => c.Activo);
             });
 
             // Configuración de Proveedor
@@ -53,10 +55,12 @@ namespace CigralBackend.Infraestructure.Database
                 entity.Property(e => e.Cuit).HasMaxLength(11);
                 entity.Property(e => e.Telefono).HasMaxLength(20);
                 entity.Property(e => e.Direccion).HasMaxLength(200);
+                entity.Property(e => e.Activo).HasDefaultValue(true);
                 entity.HasMany(e => e.Remitos)
                       .WithOne(r => r.Proveedor)
                       .HasForeignKey(r => r.ProveedorId)
                       .OnDelete(DeleteBehavior.Restrict);
+                entity.HasQueryFilter(c => c.Activo);
             });
 
             // Configuración de Producto
@@ -76,13 +80,17 @@ namespace CigralBackend.Infraestructure.Database
                       .HasForeignKey(l => l.ProductoId)
                       .OnDelete(DeleteBehavior.Restrict);
                 entity.HasIndex(e => e.GTIN).IsUnique();
+                entity.Property(e => e.Activo).HasDefaultValue(true);
+                entity.HasQueryFilter(c => c.Activo);
             });
 
             //Configuración de Marca
             modelBuilder.Entity<Marca>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();                
+                entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Activo).HasDefaultValue(true);
+                entity.HasQueryFilter(c => c.Activo);
             });
 
             // Configuración de Lote
@@ -95,6 +103,9 @@ namespace CigralBackend.Infraestructure.Database
                       .WithMany(p => p.Lotes)
                       .HasForeignKey(e => e.ProductoId)
                       .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.CodigoLote).IsUnique();
+                entity.Property(e => e.Activo).HasDefaultValue(true);
+                entity.HasQueryFilter(c => c.Activo);
             });
 
             // Configuración de Deposito
@@ -103,6 +114,8 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Codigo).HasMaxLength(20).IsRequired();
+                entity.Property(e => e.Activo).HasDefaultValue(true);
+                entity.HasQueryFilter(c => c.Activo);
             });
 
             // Configuración de Existencia
@@ -159,6 +172,7 @@ namespace CigralBackend.Infraestructure.Database
                       .WithMany()
                       .HasForeignKey(e => e.DepositoId)
                       .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.NumeroRemito).IsUnique();
             });
 
             // Configuración de RemitoIngreso
@@ -181,6 +195,7 @@ namespace CigralBackend.Infraestructure.Database
                       .WithMany()   
                       .HasForeignKey(e => e.DepositoId)
                       .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.NumeroRemito).IsUnique();
             });
 
             // Configuración de MovimientoStock

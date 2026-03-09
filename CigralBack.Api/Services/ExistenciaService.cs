@@ -352,7 +352,14 @@ namespace CigralBackend.Application.Services
             // Disminuir cantidad
             existencia.Cantidad -= r.Cantidad;
             int stockNuevo = existencia.Cantidad;
-            await _repository.Update(existencia);
+            if(stockNuevo == 0)
+            {
+                await _repository.Delete(existencia);
+            }
+            else
+            {
+                await _repository.Update(existencia);
+            }
 
             // Registrar movimiento en auditoría
             await RegistrarMovimiento(
