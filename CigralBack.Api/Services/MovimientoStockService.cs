@@ -32,6 +32,7 @@ namespace CigralBackend.Application.Services
                     (string.IsNullOrEmpty(filters.NombreProducto) || m.Producto.Nombre.Contains(filters.NombreProducto)) &&
                     (!filters.DepositoId.HasValue || m.DepositoId == filters.DepositoId.Value) &&
                     (string.IsNullOrEmpty(filters.CodigoLote) || m.Lote.CodigoLote.Contains(filters.CodigoLote)) &&
+                    (string.IsNullOrEmpty(filters.NumeroSerie) || m.NumeroSerie.Contains(filters.NumeroSerie)) &&
                     (!filters.Tipo.HasValue || m.Tipo == filters.Tipo.Value) &&
                     (string.IsNullOrEmpty(filters.NroRemito) || m.Producto.Nombre.Contains(filters.NroRemito)) &&
                     (!filters.FechaDesde.HasValue || m.FechaMovimiento >= filters.FechaDesde.Value) &&

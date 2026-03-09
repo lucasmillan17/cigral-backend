@@ -12,6 +12,7 @@ namespace CigralBackend.Application.Dtos
         string? NombreProducto,
         int? DepositoId,
         string? CodigoLote,
+        string? NumeroSerie,
         TipoMovimiento? Tipo,
         string? NroRemito,
         DateTime? FechaDesde,
