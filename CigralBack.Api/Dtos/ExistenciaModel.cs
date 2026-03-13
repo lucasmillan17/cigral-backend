@@ -27,6 +27,7 @@ namespace CigralBackend.Application.Dtos
         int ProductoId,        // Útil para navegar al detalle del producto
         string ProductoNombre, // ¡INDISPENSABLE! Para mostrar en la grilla
         string ProductoGtin,   // Muy útil para que el usuario verifique visualmente
+        string? ProductoCodigoGenerico, // Muy útil para que el usuario verifique visualmente
 
         // --- Datos del Depósito ---
         int DepositoId,
@@ -58,7 +59,8 @@ namespace CigralBackend.Application.Dtos
         int? LoteId,
         string? CodigoLote,
         string? NumSerie,
-        
+        string? CodigoGenerico,
+
         // Filtros de vencimiento
         DateTime? FechaVencimientoDesde,
         DateTime? FechaVencimientoHasta,

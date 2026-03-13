@@ -13,12 +13,13 @@ namespace CigralBackend.Domain
 
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
-        public string GTIN { get; set; }
+        public string? GTIN { get; set; }
         public List<Lote>? Lotes { get; set; }
         public int? MarcaId { get; set; }
         public Marca? Marca { get; set; }
         public decimal? Precio { get; set; }
         public bool EsUnitario { get; set; }
         public bool Activo { get; set; } = true;
+        public string? CodigoGenerico { get; set; }
     }
 }

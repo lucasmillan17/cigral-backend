@@ -51,6 +51,7 @@ namespace CigralBackend.Application.Services
                 p.Nombre,
                 p.Descripcion,
                 p.GTIN,
+                p.CodigoGenerico,
                 p.Precio
             );
         }
@@ -63,13 +64,25 @@ namespace CigralBackend.Application.Services
         /// <exception cref="DomainException">Si el GTIN ya existe</exception>
         public async Task<ProductoModelResponse> CreateProducto(ProductoModelRequest r)
         {
-            // Validar que el GTIN no este duplicado
-            var existingProducto = await _repository.First<Producto>(p => p.GTIN == r.GTIN);
+            // Validar que tenga GTIN o CodigoGenerico
+            if (string.IsNullOrEmpty(r.GTIN) && string.IsNullOrEmpty(r.CodigoGenerico))
+            {
+                throw new DomainException(
+                    DomainErrorCode.GtinDuplicado,
+                    "El producto debe tener al menos un GTIN o un Codigo Generico."
+                );
+            }
+            // Validar que el GTIN o CodigoGenerico no este duplicado
+            var existingProducto = await _repository.First<Producto>(p =>
+            (string.IsNullOrEmpty(r.GTIN) || p.GTIN == r.GTIN) &&
+            (string.IsNullOrEmpty(r.CodigoGenerico) || p.CodigoGenerico == r.CodigoGenerico)
+            );
+
             if (existingProducto != null)
             {
                 throw new DomainException(
                     DomainErrorCode.GtinDuplicado,
-                    $"El producto con GTIN {r.GTIN} ya existe."
+                    $"El producto con GTIN {r.GTIN }o Codigo Generico {r.CodigoGenerico} ya existe."
                 );
             }
 
@@ -103,6 +116,7 @@ namespace CigralBackend.Application.Services
                 Nombre = r.Nombre,
                 Descripcion = r.Descripcion,
                 GTIN = r.GTIN,
+                CodigoGenerico = r.CodigoGenerico,
                 EsUnitario = r.EsUnitario ?? false,
                 Precio = r.Precio,
                 Marca = marca
@@ -129,7 +143,8 @@ namespace CigralBackend.Application.Services
         {
             var productos = await _repository.GetFiltered<Producto>(p =>
                 (string.IsNullOrEmpty(f.Nombre) || p.Nombre.Contains(f.Nombre)) &&
-                (string.IsNullOrEmpty(f.Gtin) || p.GTIN.Contains(f.Gtin))
+                (string.IsNullOrEmpty(f.Gtin) || p.GTIN.Contains(f.Gtin)) &&
+                (string.IsNullOrEmpty(f.CodigoGenerico) || p.CodigoGenerico.Contains(f.CodigoGenerico)) 
 
             ,
             pageNumber :f.PageNumber,
@@ -176,14 +191,16 @@ namespace CigralBackend.Application.Services
             }
 
             // Validar que el GTIN no este duplicado en otro producto
-            var productoConMismoGtin = await _repository.First<Producto>(
-                p => p.GTIN == r.GTIN && p.Id != id
+            var productoConMismoGtin = await _repository.First<Producto>(p => 
+                (string.IsNullOrEmpty(r.GTIN) || p.GTIN == r.GTIN) &&
+                (string.IsNullOrEmpty(r.CodigoGenerico) || p.CodigoGenerico == r.CodigoGenerico) &&
+                p.Id != id
             );
             if (productoConMismoGtin != null)
             {
                 throw new DomainException(
                     DomainErrorCode.GtinDuplicado,
-                    $"El GTIN {r.GTIN} ya existe en otro producto."
+                    $"El GTIN {r.GTIN} o CodigoGenerico {r.CodigoGenerico} ya existe en otro producto."
                 );
             }
 
@@ -217,6 +234,7 @@ namespace CigralBackend.Application.Services
             producto.Nombre = r.Nombre;
             producto.Descripcion = r.Descripcion;
             producto.GTIN = r.GTIN;
+            producto.CodigoGenerico = r.CodigoGenerico;
             producto.EsUnitario = r.EsUnitario ?? false;
             producto.Precio = r.Precio;
             producto.MarcaId = marca?.Id;

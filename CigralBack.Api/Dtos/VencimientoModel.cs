@@ -12,6 +12,7 @@ namespace CigralBackend.Application.Dtos
         int ProductoId,
         string ProductoNombre,
         string ProductoGtin,
+        string? ProductoCodigoGenerico,
         int DepositoId,
         string DepositoNombre,
         int? LoteId,

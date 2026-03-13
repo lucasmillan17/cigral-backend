@@ -35,6 +35,7 @@ namespace CigralBackend.Application.Services
                 e.ProductoId,
                 producto.Nombre,
                 producto.GTIN,
+                producto.CodigoGenerico ?? "Sin Código Genérico",
                 e.DepositoId,
                 deposito.Nombre,
                 e.LoteId ?? 0,
@@ -55,6 +56,7 @@ namespace CigralBackend.Application.Services
             int depositoId,
             int? loteId,
             string? numeroSerie,
+            string? codigoGenerico,
             int cantidad,
             int stockAnterior,
             int stockNuevo,
@@ -107,19 +109,19 @@ namespace CigralBackend.Application.Services
                 );
             }
 
-            if (string.IsNullOrEmpty(r.NumSerie) && string.IsNullOrEmpty(r.CodigoLote))
-            {
-                throw new DomainException(
-                    DomainErrorCode.SerieYCodigoLoteNoEspecificados,
-                    "Debe especificar al menos un número de serie o un código de lote para aumentar el stock."
-                );
-            }
-
             // Validar que el producto exista
             var producto = await _repository.GetById<Producto>(r.ProductoId);
             if (producto == null)
             {
                 throw new NotFoundException(nameof(Producto), r.ProductoId);
+            }
+
+            if (string.IsNullOrEmpty(r.NumSerie) && string.IsNullOrEmpty(r.CodigoLote) && string.IsNullOrEmpty(producto.CodigoGenerico))
+            {
+                throw new DomainException(
+                    DomainErrorCode.SerieYCodigoLoteNoEspecificados,
+                    "Debe especificar al menos un número de serie, un código de lote o un código genérico para aumentar el stock."
+                );
             }
 
             // Validar producto unitario
@@ -254,6 +256,7 @@ namespace CigralBackend.Application.Services
                 depositoId: r.DepositoId,
                 loteId: lote.Id,
                 numeroSerie: r.NumSerie,
+                codigoGenerico: producto.CodigoGenerico,
                 cantidad: r.Cantidad,
                 stockAnterior: stockAnterior,
                 stockNuevo: stockNuevo,
@@ -368,6 +371,7 @@ namespace CigralBackend.Application.Services
                 depositoId: r.DepositoId,
                 loteId: lote.Id,
                 numeroSerie: r.NumSerie,
+                codigoGenerico: producto.CodigoGenerico,
                 cantidad: -r.Cantidad, // Negativo para egreso
                 stockAnterior: stockAnterior,
                 stockNuevo: stockNuevo,
@@ -398,6 +402,7 @@ namespace CigralBackend.Application.Services
                 existencia.ProductoId,
                 existencia.Producto?.Nombre ?? "Sin Nombre",
                 existencia.Producto?.GTIN ?? "Sin GTIN",
+                existencia.Producto?.CodigoGenerico ?? "Sin Código Genérico",
                 existencia.DepositoId,
                 existencia.Deposito?.Nombre ?? "Sin Depósito",
                 existencia.LoteId ?? 0,
@@ -486,6 +491,7 @@ namespace CigralBackend.Application.Services
                 e.ProductoId,
                 e.Producto?.Nombre ?? "Sin Nombre",
                 e.Producto?.GTIN ?? "Sin GTIN",
+                e.Producto?.CodigoGenerico ?? "Sin Código Genérico",
                 e.DepositoId,
                 e.Deposito?.Nombre ?? "Sin Depósito",
                 e.LoteId ?? 0,
@@ -549,6 +555,7 @@ namespace CigralBackend.Application.Services
                         ProductoId: e.ProductoId,
                         ProductoNombre: e.Producto?.Nombre ?? "Sin Nombre",
                         ProductoGtin: e.Producto?.GTIN ?? "Sin GTIN",
+                        ProductoCodigoGenerico: e.Producto?.CodigoGenerico ?? "Sin Código Genérico",
                         DepositoId: e.DepositoId,
                         DepositoNombre: e.Deposito?.Nombre ?? "Sin Depósito",
                         LoteId: e.LoteId,

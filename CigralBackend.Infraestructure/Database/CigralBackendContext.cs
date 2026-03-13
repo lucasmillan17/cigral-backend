@@ -81,6 +81,7 @@ namespace CigralBackend.Infraestructure.Database
                       .OnDelete(DeleteBehavior.Restrict);
                 entity.HasIndex(e => e.GTIN).IsUnique();
                 entity.Property(e => e.Activo).HasDefaultValue(true);
+                entity.HasIndex(e => e.CodigoGenerico).IsUnique();
                 entity.HasQueryFilter(c => c.Activo);
             });
 

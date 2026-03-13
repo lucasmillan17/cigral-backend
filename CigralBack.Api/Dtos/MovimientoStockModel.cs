@@ -38,6 +38,7 @@ namespace CigralBackend.Application.Dtos
         int? LoteId,
         string? CodigoLote,
         string? NumeroSerie,
+        string? CodigoGenerico,
         int Cantidad,
         int StockAnterior,
         int StockNuevo,
