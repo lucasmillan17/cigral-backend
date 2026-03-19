@@ -486,6 +486,7 @@ namespace CigralBackend.Tests.Services
                 DiasParaVencer: null,
                 NombreProducto: null,
                 SoloConVencimiento: null,
+                CodigoGenerico: null,
                 PageNumber: 1,
                 PageSize: 10
             );
@@ -526,6 +527,7 @@ namespace CigralBackend.Tests.Services
                 DiasParaVencer: null,
                 NombreProducto: null,
                 SoloConVencimiento: null,
+                CodigoGenerico: null,
                 PageNumber: 1,
                 PageSize: 10
             );

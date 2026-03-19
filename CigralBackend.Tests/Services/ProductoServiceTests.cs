@@ -35,6 +35,7 @@ namespace CigralBackend.Tests.Services
                 "Producto Test",
                 "Descripcion Test",
                 "12345678901234",
+                null,
                 true,
                 100.50m,
                 null
@@ -65,6 +66,7 @@ namespace CigralBackend.Tests.Services
                 "Producto Test",
                 "Descripcion",
                 "12345678901234",
+                null,
                 true,
                 100m,
                 null
@@ -93,6 +95,7 @@ namespace CigralBackend.Tests.Services
                 "Producto Existente",
                 "Descripcion",
                 "12345678901234",
+                null,
                 true,
                 100m,
                 null
@@ -119,6 +122,7 @@ namespace CigralBackend.Tests.Services
                 "Producto Test",
                 "Descripcion",
                 "12345678901234",
+                null,
                 true,
                 100m,
                 "Marca Inexistente" // Marca que no existe
@@ -147,6 +151,7 @@ namespace CigralBackend.Tests.Services
                 "Producto Test",
                 "Descripcion",
                 "12345678901234",
+                null,
                 true,
                 100m,
                 "Marca Test" // Marca existente
@@ -236,6 +241,7 @@ namespace CigralBackend.Tests.Services
                 "Producto Actualizado",
                 "Nueva Descripcion",
                 "22222222222222",
+                null,
                 true,
                 150m,
                 null
@@ -264,7 +270,7 @@ namespace CigralBackend.Tests.Services
         public async Task UpdateProducto_ProductoNoExiste_DeberiaLanzarNotFoundException()
         {
             // Arrange
-            var request = new ProductoModelRequest("Test", "Desc", "12345678901234", true, 100m, null);
+            var request = new ProductoModelRequest("Test", "Desc", "12345678901234", null, true, 100m, null);
 
             _mockRepository.Setup(r => r.GetById<Producto>(999, It.IsAny<string[]>()))
                           .ReturnsAsync((Producto)null);
@@ -298,6 +304,7 @@ namespace CigralBackend.Tests.Services
                 "Producto Test",
                 "Desc",
                 "22222222222222", // GTIN del otro producto
+                null,
                 true,
                 100m,
                 null

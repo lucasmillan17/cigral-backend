@@ -15,8 +15,8 @@ namespace CigralBackend.Application.Dtos
         [MaxLength(500, ErrorMessage = "La descripción no puede superar los 500 caracteres")]
         string Descripcion,
         [MaxLength(14, ErrorMessage = "El GTIN no puede superar los 14 caracteres")]
-        string GTIN,
-        string CodigoGenerico,
+        string? GTIN,
+        string? CodigoGenerico,
         [Required(ErrorMessage = "El campo EsUnitario es obligatorio")]
         bool? EsUnitario,
         [Range(0, double.MaxValue, ErrorMessage = "El precio debe ser un valor positivo")]
