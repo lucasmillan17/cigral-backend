@@ -11,6 +11,145 @@ namespace CigralBackend.Application.Services
     public class BarCodeParser : IBarCodeParser
     {
 
+        private static readonly Dictionary<string, string> NombresAI = new Dictionary<string, string>
+{
+    // --- Identificadores de 2 y 3 dígitos principales ---
+    { "00", "SSCC (Código Seriado Contenedor de Embarque)" },
+    { "01", "GTIN (Número Global de Artículo Comercial)" },
+    { "02", "GTIN de Artículos Contenidos" },
+    { "10", "Número de Lote" },
+    { "11", "Fecha de Producción" },
+    { "12", "Fecha de Vencimiento" },
+    { "13", "Fecha de Empaquetado" },
+    { "15", "Fecha de Consumo Preferente" },
+    { "17", "Fecha de Vencimiento Máxima" },
+    { "20", "Número Variante" },
+    { "21", "Número de Serie" },
+    { "22", "Campos de Datos Secundarios" },
+    { "240", "Identificación de Artículo Adicional" },
+    { "241", "Número de Parte del Cliente" },
+    { "242", "Número de Variación a Medida" },
+    { "250", "Número de Serie Secundario" },
+    { "251", "Referencia a Entidad de Fuente" },
+    { "253", "GDTI (Identificador de Documento)" },
+    { "254", "Componente de Extensión GLN" },
+    { "30", "Cantidad de Artículos" },
+    { "37", "Cantidad de Artículos Comerciales" },
+
+    // --- Pesos y Medidas (Métricas) ---
+    { "310", "Peso Neto (kg)" },
+    { "311", "Longitud (m)" },
+    { "312", "Ancho/Diámetro (m)" },
+    { "313", "Profundidad/Altura (m)" },
+    { "314", "Área (m²)" },
+    { "315", "Volumen Neto (Litros)" },
+    { "316", "Volumen Neto (m³)" },
+    { "330", "Peso Logístico (kg)" },
+    { "331", "Longitud Logística (m)" },
+    { "332", "Ancho Logístico (m)" },
+    { "333", "Profundidad Logística (m)" },
+    { "334", "Área Logística (m²)" },
+    { "335", "Volumen Logístico (Litros)" },
+    { "336", "Volumen Logístico (cm³)" },
+    { "337", "Kilogramos por m²" },
+
+    // --- Pesos y Medidas (Imperiales) ---
+    { "320", "Peso Neto (lb)" },
+    { "321", "Longitud (pulgadas)" },
+    { "322", "Longitud (pies)" },
+    { "323", "Longitud (yardas)" },
+    { "324", "Ancho (pulgadas)" },
+    { "325", "Ancho (pies)" },
+    { "326", "Ancho (yardas)" },
+    { "327", "Profundidad (pulgadas)" },
+    { "328", "Profundidad (pies)" },
+    { "329", "Profundidad (yardas)" },
+    { "340", "Peso Logístico (lb)" },
+    { "341", "Longitud Logística (pulgadas)" },
+    { "342", "Longitud Logística (pies)" },
+    { "343", "Longitud Logística (yardas)" },
+    { "344", "Ancho Logístico (pulgadas)" },
+    { "345", "Ancho Logístico (pies)" },
+    { "346", "Ancho Logístico (yardas)" },
+    { "347", "Profundidad Logística (pulgadas)" },
+    { "348", "Profundidad Logística (pies)" },
+    { "349", "Profundidad Logística (yardas)" },
+    { "350", "Área (pulgadas²)" },
+    { "351", "Área (pies²)" },
+    { "352", "Área (yardas²)" },
+    { "353", "Área Logística (pulgadas²)" },
+    { "354", "Área Logística (pies²)" },
+    { "355", "Área Logística (yardas²)" },
+    { "356", "Peso Neto (Libras Troy)" },
+    { "357", "Peso Neto/Volumen (lb)" },
+    { "360", "Volumen Neto (Cuarto de galón)" },
+    { "361", "Volumen Neto (Galón USA)" },
+    { "362", "Volumen Logístico (Cuarto de galón)" },
+    { "363", "Volumen Logístico (Galón USA)" },
+    { "364", "Volumen Neto (pulgadas³)" },
+    { "365", "Volumen Neto (pies³)" },
+    { "366", "Volumen Neto (yardas³)" },
+    { "367", "Volumen Logístico (pulgadas³)" },
+    { "368", "Volumen Logístico (pies³)" },
+    { "369", "Volumen Logístico (yardas³)" },
+
+    // --- Moneda, Referencias y Localizaciones ---
+    { "390", "Monto Pagable (Moneda Local)" },
+    { "391", "Monto Pagable (Moneda ISO)" },
+    { "392", "Monto Pagable (Área única)" },
+    { "393", "Monto Pagable Variable (Moneda ISO)" },
+    { "400", "Número de Orden de Compra" },
+    { "401", "Número de Consignación" },
+    { "402", "Número de Envío" },
+    { "403", "Código de Enrutamiento" },
+    { "410", "GLN - Entregar A" },
+    { "411", "GLN - Facturar A" },
+    { "412", "GLN - Comprado De" },
+    { "413", "GLN - Enviar Para" },
+    { "414", "GLN - Localización Física" },
+    { "415", "GLN - Parte que Factura" },
+    { "420", "Código Postal Destino" },
+    { "421", "Código Postal y País ISO" },
+    { "422", "País de Origen" },
+    { "423", "País de Procesamiento Inicial" },
+    { "424", "País de Procesamiento" },
+    { "425", "País de Desensamblado" },
+    { "426", "País de Proceso Completo" },
+
+    // --- Identificadores Especiales (7000+ y 8000+) ---
+    { "7001", "Número de Stock OTAN (NSN)" },
+    { "7002", "Clasificación Carnes UN/ECE" },
+    { "7003", "Fecha y Hora de Vencimiento" },
+    { "7004", "Potencia Activa" },
+    { "703",  "Aprobación de Procesador" },
+    { "8001", "Productos Redondos (Dimensiones)" },
+    { "8002", "Identificador Teléfono Celular" },
+    { "8003", "Identificador Bienes Retornables (GRAI)" },
+    { "8004", "Identificador Bienes Individuales (GIAI)" },
+    { "8005", "Precio por Unidad" },
+    { "8006", "Identificación de Componentes" },
+    { "8007", "Cuenta Bancaria (IBAN)" },
+    { "8008", "Fecha y Hora de Producción" },
+    { "8018", "Relación de Servicio (GSRN)" },
+    { "8020", "Referencia de Talón de Pago" },
+    { "8100", "Código Cupón GS1-128" },
+    { "8101", "Código Cupón Extendido" },
+    { "8102", "Código Cupón Extendido" },
+    { "8110", "Código Cupón EEUU" },
+    { "90",   "Información Acordada (Socios)" },
+    
+    // Agregamos el bloque 91-99 de Uso Interno de la Compañía
+    { "91", "Información Interna Compañía (91)" },
+    { "92", "Información Interna Compañía (92)" },
+    { "93", "Información Interna Compañía (93)" },
+    { "94", "Información Interna Compañía (94)" },
+    { "95", "Información Interna Compañía (95)" },
+    { "96", "Información Interna Compañía (96)" },
+    { "97", "Información Interna Compañía (97)" },
+    { "98", "Información Interna Compañía (98)" },
+    { "99", "Información Interna Compañía (99)" }
+};
+
         private int ObtenerLongitudAI(string cadenaRestante)
         {
             if (cadenaRestante.Length < 2) return 2; // Por seguridad
@@ -119,8 +258,16 @@ namespace CigralBackend.Application.Services
                     result.FechaVencimiento = ConvertirAFecha(valor);
                     break;
                 default:
-                    // Lo guardamos en el JSON con el formato original "IA + VALOR"
-                    adicionales[ai] = valor;
+                    // LA MAGIA DE LA TRADUCCIÓN AQUÍ
+                    string nombreClave = NombresAI.ContainsKey(ai) ? NombresAI[ai] : $"AI {ai}";
+
+                    // Un pequeño truco para los pesos (que miden 4 dígitos y empiezan con 31, 32, etc.)
+                    if (ai.Length == 4 && ai.StartsWith("310")) nombreClave = "Peso Neto (kg)";
+                    if (ai.Length == 4 && ai.StartsWith("320")) nombreClave = "Peso Neto (lb)";
+
+                    // Guardamos usando el nombre traducido en lugar del número
+                    adicionales[nombreClave] = valor;
+                    break;
                     break;
             }
         }
@@ -207,72 +354,7 @@ namespace CigralBackend.Application.Services
                 }
 
                 AsignarValor(ai, valor, result, camposAdicionales);
-            }
-
-            /*try
-            {
-                // Escaneo GTIN
-                if (scannedCode.StartsWith("01"))
-                {
-                    scannedCode = scannedCode.Remove(0, 2); // Eliminar el AI del inicio para facilitar el parseo
-                    var gtin = scannedCode.Substring(0, 14);
-                    scannedCode = scannedCode.Remove(0, 14);
-                    result.Gtin = gtin;
-                    esValido = true;
-                }
-                // Escaneo fecha vencimiento
-                if (scannedCode.StartsWith("17"))
-                {
-                    scannedCode = scannedCode.Remove(0, 2); // Eliminar el AI
-                    var fechaStr = scannedCode.Substring(0, 6);
-                    scannedCode = scannedCode.Remove(0, 6);
-                    if (DateTime.TryParseExact(fechaStr, "yyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fechaVencimiento))
-                    {
-                        result.FechaVencimiento = fechaVencimiento;
-                    }
-                }
-                if(!esValido)
-                {
-                    // Si no se detectó un GTIN válido, no se continúa con el parseo de campos variables
-                    return result;
-                }
-                // Separo campos variables por el separador
-                var campos = scannedCode.Split(FIELD_SEPARATOR);
-                foreach (var campo in campos)
-                {
-                    switch (campo)
-                    {
-                        case var c when c.StartsWith("10"): // Lote
-                            result.Lote = c[2..];
-                            break;
-
-                        case var c when c.StartsWith("21"): // Número de serie
-                            result.NumeroSerie = c[2..];
-                            break;
-
-                        case var c when c.StartsWith("30"): // Cantidad
-                            if (int.TryParse(c[2..], out int cantidad))
-                            {
-                                result.Cantidad = cantidad;
-                            }
-                            break;
-
-                        // Aquí puedes seguir agregando los que descubriste hoy
-                        case var c when c.StartsWith("11"): // Fecha de Producción
-                                                            // result.FechaProduccion = ...
-                            break;
-
-                        case var c when c.StartsWith("240"): // Código interno (¡Ojo, este tiene 3 dígitos!)
-                                                             // result.CodigoInterno = c[3..]; 
-                            break;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                throw new FormatException("El código escaneado no tiene un formato válido o contiene datos incompletos.");
-            }
-            */
+            } 
 
             if (result.EsValido && result.Cantidad <= 0)
             {
@@ -287,6 +369,8 @@ namespace CigralBackend.Application.Services
             return result;
         }
     }
+
+    
 
     public class BarCodeParsed
     {
@@ -313,5 +397,9 @@ namespace CigralBackend.Application.Services
         /// </summary>
         public bool EsValido => !string.IsNullOrEmpty(Gtin);
     }
+
+
 }
+
+
 
