@@ -363,7 +363,13 @@ namespace CigralBackend.Application.Services
 
             if (camposAdicionales.Any())
             {
-                result.InformacionAdicional = System.Text.Json.JsonSerializer.Serialize(camposAdicionales);
+                var opcionesJson = new System.Text.Json.JsonSerializerOptions
+                {
+                    // Esto le dice a .NET: "No escapes las tildes ni las eñes, déjalas en paz"
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+
+                result.InformacionAdicional = System.Text.Json.JsonSerializer.Serialize(camposAdicionales, opcionesJson);
             }
 
             return result;
