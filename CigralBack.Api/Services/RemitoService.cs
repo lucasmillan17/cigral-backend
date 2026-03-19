@@ -86,6 +86,7 @@ namespace CigralBackend.Application.Services
                 {
                     Fecha = DateTime.Now,
                     NumeroRemito = request.NumeroRemito,
+                    ComprobanteAsociado = request.ComprobanteAsociado,
                     Observaciones = request.Observaciones,
                     ProveedorId = request.EntidadId,
                     DepositoId = request.DepositoId
@@ -154,6 +155,7 @@ namespace CigralBackend.Application.Services
                 return new RemitoResponse(
                     Id: remito.Id,
                     NumeroRemito: remito.NumeroRemito,
+                    ComprobanteAsociado: remito.ComprobanteAsociado,
                     Fecha: remito.Fecha,
                     DepositoId: remito.DepositoId,
                     EntidadId: remito.ProveedorId,
@@ -261,6 +263,7 @@ namespace CigralBackend.Application.Services
                 {
                     Fecha = DateTime.Now,
                     NumeroRemito = request.NumeroRemito,
+                    ComprobanteAsociado = request.ComprobanteAsociado,
                     Observaciones = request.Observaciones,
                     ClienteId = request.EntidadId,
                     DepositoId = request.DepositoId
@@ -311,6 +314,7 @@ namespace CigralBackend.Application.Services
                 var remitoResponse = new RemitoResponse(
                     Id: remito.Id,
                     NumeroRemito: remito.NumeroRemito,
+                    ComprobanteAsociado: remito.ComprobanteAsociado,
                     Fecha: remito.Fecha,
                     DepositoId: remito.DepositoId,
                     EntidadId: remito.ClienteId,
@@ -359,12 +363,14 @@ namespace CigralBackend.Application.Services
                 // Actualizar solo campos permitidos
                 remito.NumeroRemito = request.NumeroRemito;
                 remito.Observaciones = request.Observaciones;
+                remito.ComprobanteAsociado = request.ComprobanteAsociado;
 
                 await _repository.Update(remito);
 
                 return new RemitoResponse(
                     Id: remito.Id,
                     NumeroRemito: remito.NumeroRemito,
+                    ComprobanteAsociado: remito.ComprobanteAsociado,
                     Fecha: remito.Fecha,
                     DepositoId: remito.DepositoId,
                     EntidadId: remito.ProveedorId,
@@ -406,6 +412,7 @@ namespace CigralBackend.Application.Services
                 return new RemitoResponse(
                     Id: remito.Id,
                     NumeroRemito: remito.NumeroRemito,
+                    ComprobanteAsociado: remito.ComprobanteAsociado,
                     Fecha: remito.Fecha,
                     DepositoId: remito.DepositoId,
                     EntidadId: remito.ClienteId,
@@ -455,6 +462,7 @@ namespace CigralBackend.Application.Services
             var remitos = resultadoEntidad.Items.Select(e => new RemitoResponseGet(
                 Id: e.Id,
                 NumeroRemito: e.NumeroRemito,
+                ComprobanteAsociado: e.ComprobanteAsociado,
                 Fecha: e.Fecha,
                 DepositoId: e.DepositoId,
                 EntidadId: e.ProveedorId,
@@ -500,6 +508,7 @@ namespace CigralBackend.Application.Services
             var remitos = resultadoEntidad.Items.Select(e => new RemitoResponseGet(
                 Id: e.Id,
                 NumeroRemito: e.NumeroRemito,
+                ComprobanteAsociado: e.ComprobanteAsociado,
                 Fecha: e.Fecha,
                 DepositoId: e.DepositoId,
                 EntidadId: e.ClienteId,

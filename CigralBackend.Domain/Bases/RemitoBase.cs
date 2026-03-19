@@ -14,5 +14,6 @@ namespace CigralBackend.Domain.Bases
         public string? NumeroRemito { get; set; }
         public int DepositoId { get; set; }
         public Deposito Deposito { get; set; }
+        public string? ComprobanteAsociado { get; set; }
     }
 }

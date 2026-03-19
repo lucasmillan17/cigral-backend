@@ -17,6 +17,8 @@ namespace CigralBackend.Application.Dtos
 
         string? NumeroRemito,
 
+        string? ComprobanteAsociado,
+
         string? Observaciones,
 
         [Required(ErrorMessage = "Los detalles son obligatorios")]
@@ -30,6 +32,8 @@ namespace CigralBackend.Application.Dtos
     public record UpdateRemitoRequest
     (
         string? NumeroRemito,
+
+        string? ComprobanteAsociado,
 
         string? Observaciones
     );
@@ -51,6 +55,7 @@ namespace CigralBackend.Application.Dtos
 
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
         int Cantidad,
+
         string? InformacionAdicional // Para guardar cualquier otro dato que queramos en formato JSON (ej: campos personalizados del parser, etc.)
     );
 
@@ -70,6 +75,7 @@ namespace CigralBackend.Application.Dtos
     (
         int Id,
         string? NumeroRemito,
+        string? ComprobanteAsociado,
         DateTime Fecha,
         int DepositoId,
         int EntidadId,
@@ -82,6 +88,7 @@ namespace CigralBackend.Application.Dtos
     (
         int Id,
         string? NumeroRemito,
+        string? ComprobanteAsociado,
         DateTime Fecha,
         int DepositoId,
         int EntidadId,
