@@ -56,6 +56,7 @@ namespace CigralBackend.Infraestructure.Services
                 Fecha = remito.Fecha,
                 Observaciones = remito.Observaciones,
                 TipoRemito = "INGRESO",
+                ComprobanteAsociado = remito.ComprobanteAsociado,
                 RazonSocial = remito.Proveedor?.RazonSocial,
                 CUIT = remito.Proveedor?.Cuit,
                 Direccion = remito.Proveedor?.Direccion,
@@ -108,6 +109,7 @@ namespace CigralBackend.Infraestructure.Services
                 Fecha = remito.Fecha,
                 Observaciones = remito.Observaciones,
                 TipoRemito = "EGRESO",
+                ComprobanteAsociado = remito.ComprobanteAsociado,
                 RazonSocial = remito.Cliente?.RazonSocial,
                 CUIT = remito.Cliente?.Cuit,
                 Direccion = remito.Cliente?.Direccion,
@@ -193,7 +195,7 @@ namespace CigralBackend.Infraestructure.Services
                     {
                         col.Item().Background(Colors.Blue.Medium).PaddingHorizontal(15).PaddingVertical(10).AlignMiddle().AlignCenter().Text($"ANEXO DE REMITO {remito.TipoRemito}")
                         .Bold().FontSize(16).FontColor(Colors.White);
-                        col.Item().PaddingTop(10).Text($"Afecta a Remito N°: -----").FontSize(10);
+                        col.Item().PaddingTop(10).Text($"Comprobante Asociado N°: {remito.ComprobanteAsociado}").FontSize(10);
                         col.Item().PaddingTop(10).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingBottom(5)
                             .Text($"Número: {remito.NumeroRemito}").Bold();
                         col.Item().PaddingTop(8).Text($"Fecha: {remito.Fecha:dd/MM/yyyy HH:mm}");
@@ -386,6 +388,7 @@ namespace CigralBackend.Infraestructure.Services
                 Fecha = DateTime.Now,
                 Observaciones = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
                 TipoRemito = "INGRESO",
+                ComprobanteAsociado = "FA-123456",
                 RazonSocial = "Razon Social PRUEBA",
                 CUIT = "00-00000000-0",
                 Direccion = "Dirección PRUEBAAA",

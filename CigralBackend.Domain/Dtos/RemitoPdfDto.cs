@@ -13,7 +13,7 @@ namespace CigralBackend.Domain.Dtos
         public DateTime Fecha { get; init; }
         public string? Observaciones { get; init; }
         public string TipoRemito { get; init; } = string.Empty; // "Ingreso" o "Egreso"
-
+        public string? ComprobanteAsociado { get; init; } = string.Empty;
         // Información del Cliente/Proveedor
         public string? RazonSocial { get; init; }
         public string? CUIT { get; init; }
