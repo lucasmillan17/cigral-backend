@@ -15,6 +15,7 @@ namespace CigralBackend.Application.Dtos
         string? NumeroSerie,
         TipoMovimiento? Tipo,
         string? NroRemito,
+        string? ComprobanteAsociado,
         DateTime? FechaDesde,
         DateTime? FechaHasta,
         [Range(1, int.MaxValue, ErrorMessage = "La página debe ser mayor a 0")]
@@ -44,6 +45,8 @@ namespace CigralBackend.Application.Dtos
         int StockNuevo,
         int? RemitoIngresoId,
         int? RemitoEgresoId,
+        string? NroRemito,
+        string? ComprobanteAsociado,
         string? Usuario,
         string? Observaciones
     );

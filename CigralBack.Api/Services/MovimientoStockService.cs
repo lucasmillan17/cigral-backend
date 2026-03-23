@@ -34,12 +34,18 @@ namespace CigralBackend.Application.Services
                     (string.IsNullOrEmpty(filters.CodigoLote) || m.Lote.CodigoLote.Contains(filters.CodigoLote)) &&
                     (string.IsNullOrEmpty(filters.NumeroSerie) || m.NumeroSerie.Contains(filters.NumeroSerie)) &&
                     (!filters.Tipo.HasValue || m.Tipo == filters.Tipo.Value) &&
-                    (string.IsNullOrEmpty(filters.NroRemito) || m.Producto.Nombre.Contains(filters.NroRemito)) &&
+                    (string.IsNullOrEmpty(filters.NroRemito) ||
+                    m.RemitoEgreso.NumeroRemito.Contains(filters.NroRemito) ||
+                    m.RemitoIngreso.NumeroRemito.Contains(filters.NroRemito)) &&
+                    (string.IsNullOrEmpty(filters.ComprobanteAsociado) ||
+                    m.RemitoEgreso.ComprobanteAsociado.Contains(filters.ComprobanteAsociado) ||
+                    m.RemitoIngreso.ComprobanteAsociado.Contains(filters.ComprobanteAsociado)) &&
                     (!filters.FechaDesde.HasValue || m.FechaMovimiento >= filters.FechaDesde.Value) &&
                     (!filters.FechaHasta.HasValue || m.FechaMovimiento <= filters.FechaHasta.Value),
+                orderBy: q => q.OrderByDescending(m => m.FechaMovimiento),
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
-                include: new[] { "Producto", "Deposito", "Lote" }
+                include: new[] { "Producto", "Deposito", "Lote", "RemitoIngreso", "RemitoEgreso" }
             );
 
             var itemsDto = resultadoEntidad.Items.Select(m => new MovimientoStockResponse(
@@ -59,6 +65,8 @@ namespace CigralBackend.Application.Services
                 StockNuevo: m.StockNuevo,
                 RemitoIngresoId: m.RemitoIngresoId,
                 RemitoEgresoId: m.RemitoEgresoId,
+                NroRemito: m.RemitoEgreso?.NumeroRemito ?? m.RemitoIngreso?.NumeroRemito,
+                ComprobanteAsociado: m.RemitoEgreso?.ComprobanteAsociado ?? m.RemitoIngreso?.ComprobanteAsociado,
                 Usuario: m.Usuario,
                 Observaciones: m.Observaciones
             )).ToList();
@@ -77,7 +85,7 @@ namespace CigralBackend.Application.Services
         /// </summary>
         public async Task<MovimientoStockResponse> GetMovimientoById(int id)
         {
-            var movimiento = await _repository.GetById<MovimientoStock>(id, "Producto", "Deposito", "Lote");
+            var movimiento = await _repository.GetById<MovimientoStock>(id, "Producto", "Deposito", "Lote", "RemitoIngreso", "RemitoEgreso");
 
             if (movimiento == null)
             {
@@ -101,6 +109,8 @@ namespace CigralBackend.Application.Services
                 StockNuevo: movimiento.StockNuevo,
                 RemitoIngresoId: movimiento.RemitoIngresoId,
                 RemitoEgresoId: movimiento.RemitoEgresoId,
+                NroRemito: movimiento.RemitoEgreso?.NumeroRemito ?? movimiento.RemitoIngreso?.NumeroRemito,
+                ComprobanteAsociado: movimiento.RemitoEgreso?.ComprobanteAsociado ?? movimiento.RemitoIngreso?.ComprobanteAsociado,
                 Usuario: movimiento.Usuario,
                 Observaciones: movimiento.Observaciones
             );
