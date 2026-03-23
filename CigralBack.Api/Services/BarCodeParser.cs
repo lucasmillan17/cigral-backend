@@ -241,7 +241,7 @@ namespace CigralBackend.Application.Services
         {
             switch (ai)
             {
-                case "01":
+                case "01" or "02":
                     result.Gtin = valor;
                     break;
                 case "10":
