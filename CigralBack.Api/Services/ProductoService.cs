@@ -52,6 +52,7 @@ namespace CigralBackend.Application.Services
                 p.Descripcion,
                 p.GTIN,
                 p.CodigoGenerico,
+                p.CodigoInterno,
                 p.Precio
             );
         }
@@ -82,7 +83,7 @@ namespace CigralBackend.Application.Services
             {
                 throw new DomainException(
                     DomainErrorCode.GtinDuplicado,
-                    $"El producto con GTIN {r.GTIN }o Codigo Generico {r.CodigoGenerico} ya existe."
+                    $"El producto con GTIN {r.GTIN }o Codigo Generico {r.CodigoGenerico} o Codigo Interno {r.CodigoInterno} ya existe."
                 );
             }
 
@@ -117,6 +118,7 @@ namespace CigralBackend.Application.Services
                 Descripcion = r.Descripcion,
                 GTIN = r.GTIN,
                 CodigoGenerico = r.CodigoGenerico,
+                CodigoInterno = r.CodigoInterno,
                 EsUnitario = r.EsUnitario ?? false,
                 Precio = r.Precio,
                 Marca = marca
@@ -145,6 +147,7 @@ namespace CigralBackend.Application.Services
                 (string.IsNullOrEmpty(f.Nombre) || p.Nombre.Contains(f.Nombre)) &&
                 (string.IsNullOrEmpty(f.Gtin) || p.GTIN.Contains(f.Gtin)) &&
                 (string.IsNullOrEmpty(f.CodigoGenerico) || p.CodigoGenerico.Contains(f.CodigoGenerico)) 
+                && (string.IsNullOrEmpty(f.CodigoInterno) || p.CodigoInterno.Contains(f.CodigoInterno))
 
             ,
             pageNumber :f.PageNumber,
@@ -194,13 +197,14 @@ namespace CigralBackend.Application.Services
             var productoConMismoGtin = await _repository.First<Producto>(p => 
                 (string.IsNullOrEmpty(r.GTIN) || p.GTIN == r.GTIN) &&
                 (string.IsNullOrEmpty(r.CodigoGenerico) || p.CodigoGenerico == r.CodigoGenerico) &&
+                (string.IsNullOrEmpty(r.CodigoInterno) || p.CodigoInterno == r.CodigoInterno) &&
                 p.Id != id
             );
             if (productoConMismoGtin != null)
             {
                 throw new DomainException(
                     DomainErrorCode.GtinDuplicado,
-                    $"El GTIN {r.GTIN} o CodigoGenerico {r.CodigoGenerico} ya existe en otro producto."
+                    $"El GTIN {r.GTIN} o CodigoGenerico {r.CodigoGenerico} o CodigoInterno {r.CodigoInterno} ya existe en otro producto."
                 );
             }
 
@@ -235,6 +239,7 @@ namespace CigralBackend.Application.Services
             producto.Descripcion = r.Descripcion;
             producto.GTIN = r.GTIN;
             producto.CodigoGenerico = r.CodigoGenerico;
+            producto.CodigoInterno = r.CodigoInterno;
             producto.EsUnitario = r.EsUnitario ?? false;
             producto.Precio = r.Precio;
             producto.MarcaId = marca?.Id;

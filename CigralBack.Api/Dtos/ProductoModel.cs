@@ -17,6 +17,7 @@ namespace CigralBackend.Application.Dtos
         [MaxLength(14, ErrorMessage = "El GTIN no puede superar los 14 caracteres")]
         string? GTIN,
         string? CodigoGenerico,
+        string? CodigoInterno,
         [Required(ErrorMessage = "El campo EsUnitario es obligatorio")]
         bool? EsUnitario,
         [Range(0, double.MaxValue, ErrorMessage = "El precio debe ser un valor positivo")]
@@ -32,6 +33,7 @@ namespace CigralBackend.Application.Dtos
         string Descripcion,
         string? GTIN,
         string? CodigoGenerico,
+        string? CodigoInterno,
         decimal? Precio
     );
 
@@ -40,6 +42,7 @@ namespace CigralBackend.Application.Dtos
         string? Nombre,
         string? Gtin,
         string? CodigoGenerico,
+        string? CodigoInterno,
         string? Marca,
         [Range(1, int.MaxValue, ErrorMessage = "La página debe ser mayor a 0")]
         int PageNumber = 1,

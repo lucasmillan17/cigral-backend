@@ -21,5 +21,6 @@ namespace CigralBackend.Domain
         public bool EsUnitario { get; set; }
         public bool Activo { get; set; } = true;
         public string? CodigoGenerico { get; set; }
+        public string? CodigoInterno { get; set; }
     }
 }

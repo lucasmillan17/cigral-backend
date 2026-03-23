@@ -34,6 +34,7 @@ namespace CigralBackend.Api.Controllers
                 Nombre: null,
                 Gtin: result.Gtin,
                 CodigoGenerico: null,
+                CodigoInterno: null,
                 Marca: null,
                 PageNumber: 1,
                 PageSize: 1

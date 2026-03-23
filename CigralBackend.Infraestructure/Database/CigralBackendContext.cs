@@ -82,6 +82,7 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasIndex(e => e.GTIN).IsUnique();
                 entity.Property(e => e.Activo).HasDefaultValue(true);
                 entity.HasIndex(e => e.CodigoGenerico).IsUnique();
+                entity.HasIndex(e => e.CodigoInterno).IsUnique();
                 entity.HasQueryFilter(c => c.Activo);
             });
 
