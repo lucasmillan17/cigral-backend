@@ -22,6 +22,7 @@ namespace CigralBackend.Infraestructure.Database
         public DbSet<RemitoEgreso> RemitosEgreso { get; set; }
         public DbSet<RemitoIngreso> RemitosIngreso { get; set; }
         public DbSet<MovimientoStock> MovimientosStock { get; set; }
+        public DbSet<EntidadResumen> EntidadesResumen { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -240,6 +241,10 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasIndex(e => new { e.ProductoId, e.DepositoId });
                 entity.HasIndex(e => e.Tipo);
             });
+
+            modelBuilder.Entity<EntidadResumen>()
+                .ToView("vw_Entidades_Resumen")
+                .HasNoKey();
         }
     }
 }

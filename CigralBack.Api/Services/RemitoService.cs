@@ -568,6 +568,8 @@ namespace CigralBackend.Application.Services
             return new SiguienteRemitoResponse(SiguienteNumeroRemito: numeroSiguienteStr);
         }
 
+     
+
     }
     public class ResultadoOperacion<T>
     {

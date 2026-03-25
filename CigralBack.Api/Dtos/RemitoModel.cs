@@ -110,7 +110,7 @@ namespace CigralBackend.Application.Dtos
         string? NumeroRemito,
 
         OrdenRemito? OrdenarPor = OrdenRemito.Id,
-        bool EsDescendente = false,
+        bool EsDescendente = true,
 
         int PageNumber = 1,
         int PageSize = 20

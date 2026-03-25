@@ -202,5 +202,37 @@ namespace CigralBackend.Application.Services
 
             await _repository.Delete(cliente);
         }
+
+        public async Task<PagedResult<EntidadResumenResponse>> GetEntidades(ClienteFilters filters)
+        {
+            var resultado = await _repository.GetFiltered<EntidadResumen>(
+                orderBy: q => q.OrderBy(e => e.RazonSocial), // Ordenar por RazonSocial
+                predicate: c =>
+                    (string.IsNullOrEmpty(filters.RazonSocial) || c.RazonSocial.Contains(filters.RazonSocial)) &&
+                    (string.IsNullOrEmpty(filters.GLN) || c.GLN.Contains(filters.GLN)) &&
+                    (string.IsNullOrEmpty(filters.Cuit) || c.Cuit.Contains(filters.Cuit)),
+                pageNumber: filters.PageNumber,
+                pageSize: filters.PageSize
+            );
+
+            var itemsDto = resultado.Items.Select(c => new EntidadResumenResponse(
+                IdOriginal: c.IdOriginal,
+                TipoEntidad: c.TipoEntidad,
+                RazonSocial: c.RazonSocial,
+                GLN: c.GLN,
+                Email: c.Email,
+                Cuit: c.Cuit,
+                Telefono: c.Telefono,
+                Direccion: c.Direccion
+            )).ToList();
+
+            return new PagedResult<EntidadResumenResponse>
+            {
+                Items = itemsDto,
+                TotalCount = resultado.TotalCount,
+                PageNumber = resultado.PageNumber,
+                PageSize = resultado.PageSize
+            };
+        }
     }
 }

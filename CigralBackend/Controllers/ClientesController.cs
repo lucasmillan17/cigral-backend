@@ -92,5 +92,14 @@ namespace CigralBackend.Controllers
             await _clienteService.DeleteCliente(id);
             return NoContent();
         }
+
+        [HttpGet("entidades")]
+        [ProducesResponseType(typeof(PagedResult<EntidadResumenResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetEntidades([FromQuery] ClienteFilters filters)
+        {
+            var clientes = await _clienteService.GetEntidades(filters);
+            return Ok(clientes);
+        }
+
     }
 }

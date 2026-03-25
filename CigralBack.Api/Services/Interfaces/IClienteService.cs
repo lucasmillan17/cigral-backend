@@ -33,5 +33,6 @@ namespace CigralBackend.Application.Services.Interfaces
         /// Elimina un cliente.
         /// </summary>
         Task DeleteCliente(int id);
+        Task<PagedResult<EntidadResumenResponse>> GetEntidades(ClienteFilters filters);
     }
 }
