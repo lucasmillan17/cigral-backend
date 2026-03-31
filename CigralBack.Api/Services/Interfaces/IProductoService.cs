@@ -1,4 +1,5 @@
 ﻿using CigralBackend.Application.Dtos;
+using CigralBackend.Infraestructure.Dtos;
 using CigralBackend.Domain.Wrappers;
 
 namespace CigralBackend.Application.Services.Interfaces
@@ -35,12 +36,14 @@ namespace CigralBackend.Application.Services.Interfaces
         /// <param name="id">ID del producto</param>
         /// <param name="r">Nuevos datos del producto</param>
         /// <returns>El producto actualizado</returns>
-        Task<ProductoModelResponse> UpdateProducto(int id, ProductoModelRequest r);
+        Task<ProductoModelResponse> UpdateProducto(int id, ProductoModelUpdateRequest r);
 
         /// <summary>
         /// Elimina un producto.
         /// </summary>
         /// <param name="id">ID del producto a eliminar</param>
         Task DeleteProducto(int id);
+        Task ImportarDesdeCsvAsync(int proveedorId, string marca, Stream archivoStream);
+        Task<ProductoModelResponse> UpdateGTINProducto(int idProducto, string nuevoGTIN);
     }
 }

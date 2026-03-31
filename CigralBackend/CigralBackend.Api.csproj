@@ -24,8 +24,4 @@
     <ProjectReference Include="..\CigralBackend.Infraestructure\CigralBackend.Infraestructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="CigralBackend.Tests\Parsers\" />
-  </ItemGroup>
-
 </Project>

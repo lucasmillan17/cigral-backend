@@ -4,6 +4,8 @@ using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
+using CigralBackend.Infraestructure.Services;
+using CigralBackend.Infraestructure.Services.Interfaces;
 using CigralBackend.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -89,6 +91,7 @@ namespace CigralBackend
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<CigralBackend.Domain.Services.IPdfService, CigralBackend.Infraestructure.Services.PdfService>();
             builder.Services.AddSingleton<IBarCodeParser, BarCodeParser>();
+            builder.Services.AddScoped<ICatalogParserService, CsvCatalogParserService>();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

@@ -70,7 +70,7 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Descripcion).HasMaxLength(500);
-                entity.Property(e => e.GTIN).HasMaxLength(14).IsRequired();
+                entity.Property(e => e.GTIN).HasMaxLength(14).IsRequired(false);
                 entity.Property(e => e.Precio).HasColumnType("decimal(18,2)");
                 entity.HasOne(e => e.Marca)
                       .WithMany()
@@ -80,7 +80,7 @@ namespace CigralBackend.Infraestructure.Database
                       .WithOne(l => l.Producto)
                       .HasForeignKey(l => l.ProductoId)
                       .OnDelete(DeleteBehavior.Restrict);
-                entity.HasIndex(e => e.GTIN).IsUnique();
+                entity.HasIndex(e => e.GTIN).IsUnique().HasFilter("[GTIN] IS NOT NULL");
                 entity.Property(e => e.Activo).HasDefaultValue(true);
                 entity.HasIndex(e => e.CodigoGenerico).IsUnique();
                 entity.HasIndex(e => e.CodigoInterno).IsUnique();

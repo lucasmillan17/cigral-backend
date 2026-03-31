@@ -42,7 +42,7 @@ namespace CigralBackend.Controllers
         /// <param name="productoFilters">Filtros de busqueda</param>
         /// <returns>Lista paginada de productos</returns>
         [HttpGet]
-        [ProducesResponseType(typeof(PagedResult<ProductoModelResponse>),StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PagedResult<ProductoModelResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetProducts([FromQuery] ProductoFilters productoFilters)
         {
             var products = await _productoService.GetProductoFiltered(productoFilters);
@@ -73,7 +73,7 @@ namespace CigralBackend.Controllers
         [ProducesResponseType(typeof(ProductoModelResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductoModelRequest producto)
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductoModelUpdateRequest producto)
         {
             var updatedProduct = await _productoService.UpdateProducto(id, producto);
             return Ok(updatedProduct);
@@ -91,6 +91,27 @@ namespace CigralBackend.Controllers
         {
             await _productoService.DeleteProducto(id);
             return NoContent();
+        }
+
+        [HttpPost("importar-catalogo/{proveedorId}")]
+        public async Task<IActionResult> ImportarCatalogoCsv(int proveedorId, string marca, IFormFile archivo)
+        {
+            if (archivo == null || archivo.Length == 0)
+                return BadRequest("No se envió ningún archivo.");
+
+            // Aquí llamaríamos al servicio que procesa la lógica
+            await _productoService.ImportarDesdeCsvAsync(proveedorId, marca, archivo.OpenReadStream());
+
+            return Ok(new { Mensaje = "Catálogo importado correctamente." });
+        }
+
+        [HttpPut("actualizar-gtin/{productoId}")]
+        public async Task<IActionResult> ActualizarGtin(int productoId, [FromBody] string nuevoGtin)
+        {
+            if (string.IsNullOrEmpty(nuevoGtin))
+                return BadRequest("El GTIN no puede estar vacío.");
+            await _productoService.UpdateGTINProducto(productoId, nuevoGtin);
+            return Ok(new { Mensaje = "GTIN actualizado correctamente." });
         }
     }
 }

@@ -5,8 +5,12 @@ using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
 using CigralBackend.Infraestructure.Database.Interfaces;
+using CigralBackend.Infraestructure.Dtos;
+using CigralBackend.Infraestructure.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,10 +23,15 @@ namespace CigralBackend.Application.Services
     public class ProductoService : IProductoService
     {
         private readonly IRepository _repository;
+        private readonly IMarcaService _marcaService;
+        private readonly ICatalogParserService _catalogParser;
 
-        public ProductoService(IRepository productoRepository)
+        public ProductoService(IRepository productoRepository, IMarcaService marcaService, ICatalogParserService CatalogParser)
         {
             _repository = productoRepository;
+            _marcaService = marcaService;
+            _catalogParser = CatalogParser;
+
         }
 
         /// <summary>
@@ -65,6 +74,7 @@ namespace CigralBackend.Application.Services
         /// <exception cref="DomainException">Si el GTIN ya existe</exception>
         public async Task<ProductoModelResponse> CreateProducto(ProductoModelRequest r)
         {
+            int idMarca = 0;
             // Validar que tenga GTIN o CodigoGenerico
             if (string.IsNullOrEmpty(r.GTIN) && string.IsNullOrEmpty(r.CodigoGenerico))
             {
@@ -83,7 +93,7 @@ namespace CigralBackend.Application.Services
             {
                 throw new DomainException(
                     DomainErrorCode.GtinDuplicado,
-                    $"El producto con GTIN {r.GTIN }o Codigo Generico {r.CodigoGenerico} o Codigo Interno {r.CodigoInterno} ya existe."
+                    $"El producto con GTIN {r.GTIN}o Codigo Generico {r.CodigoGenerico} o Codigo Interno {r.CodigoInterno} ya existe."
                 );
             }
 
@@ -104,10 +114,12 @@ namespace CigralBackend.Application.Services
                 marca = await _repository.First<Marca>(m => m.Nombre == r.Marca);
                 if (marca == null)
                 {
-                    throw new DomainException(
-                        DomainErrorCode.MarcaNoValida,
-                        $"La marca con nombre {r.Marca} no existe."
-                    );
+                    var MarcaNueva = await _marcaService.CreateMarca(new MarcaRequest(Nombre: r.Marca));
+                    idMarca = MarcaNueva.Id;
+                }
+                else
+                {
+                    idMarca = marca.Id;
                 }
             }
 
@@ -121,12 +133,13 @@ namespace CigralBackend.Application.Services
                 CodigoInterno = r.CodigoInterno,
                 EsUnitario = r.EsUnitario ?? false,
                 Precio = r.Precio,
-                Marca = marca
+                MarcaId = idMarca
             };
 
             await _repository.Add<Producto>(producto);
 
             return ResponseGenerator(producto);
+
         }
 
         /// <summary>
@@ -144,15 +157,31 @@ namespace CigralBackend.Application.Services
         public async Task<PagedResult<ProductoModelResponse>> GetProductoFiltered(ProductoFilters f)
         {
             var productos = await _repository.GetFiltered<Producto>(p =>
+                // ==========================================================
+                // BLOQUE 1: BÚSQUEDA GLOBAL (Con OR ||)
+                // Si f.BusquedaGlobal está vacío, todo este bloque da 'true' y se ignora.
+                // Si tiene texto, exige que coincida con AL MENOS UNA de estas columnas.
+                // ==========================================================
+                (string.IsNullOrEmpty(f.BusquedaGlobal) ||
+                (
+                    p.Nombre.Contains(f.BusquedaGlobal) ||
+                    (p.CodigoInterno != null && p.CodigoInterno.Contains(f.BusquedaGlobal)) ||
+                    (p.GTIN != null && p.GTIN.Contains(f.BusquedaGlobal)) ||
+                    (p.Marca != null && p.Marca.Nombre.Contains(f.BusquedaGlobal))
+                ))
+                && // <--- Unimos el bloque global con los filtros específicos usando AND
+                   // ==========================================================
+                   // BLOQUE 2: FILTROS ESPECÍFICOS (Con AND &&)
+                   // Se evalúan individualmente. Si el frontend no los envía, se ignoran.
+                   // ==========================================================
                 (string.IsNullOrEmpty(f.Nombre) || p.Nombre.Contains(f.Nombre)) &&
-                (string.IsNullOrEmpty(f.Gtin) || p.GTIN.Contains(f.Gtin)) &&
-                (string.IsNullOrEmpty(f.CodigoGenerico) || p.CodigoGenerico.Contains(f.CodigoGenerico)) 
-                && (string.IsNullOrEmpty(f.CodigoInterno) || p.CodigoInterno.Contains(f.CodigoInterno))
+                (string.IsNullOrEmpty(f.Gtin) || (p.GTIN != null && p.GTIN.Contains(f.Gtin))) &&
+                (string.IsNullOrEmpty(f.CodigoGenerico) || (p.CodigoGenerico != null && p.CodigoGenerico.Contains(f.CodigoGenerico))) &&
+                (string.IsNullOrEmpty(f.CodigoInterno) || (p.CodigoInterno != null && p.CodigoInterno.Contains(f.CodigoInterno))),
 
-            ,
-            pageNumber :f.PageNumber,
-            pageSize :f.PageSize,
-            include: new[] { "Marca" }
+                pageNumber: f.PageNumber,
+                pageSize: f.PageSize,
+                include: new[] { "Marca" }
             );
 
             return MapeoProductosResponse(productos);
@@ -184,8 +213,9 @@ namespace CigralBackend.Application.Services
         /// <returns>El producto actualizado</returns>
         /// <exception cref="NotFoundException">Si el producto no existe</exception>
         /// <exception cref="DomainException">Si hay conflictos de negocio</exception>
-        public async Task<ProductoModelResponse> UpdateProducto(int id, ProductoModelRequest r)
+        public async Task<ProductoModelResponse> UpdateProducto(int id, ProductoModelUpdateRequest r)
         {
+            int idMarca = 0;
             // Validar que el producto exista
             var producto = await _repository.GetById<Producto>(id);
             if (producto == null)
@@ -194,11 +224,13 @@ namespace CigralBackend.Application.Services
             }
 
             // Validar que el GTIN no este duplicado en otro producto
-            var productoConMismoGtin = await _repository.First<Producto>(p => 
-                (string.IsNullOrEmpty(r.GTIN) || p.GTIN == r.GTIN) &&
-                (string.IsNullOrEmpty(r.CodigoGenerico) || p.CodigoGenerico == r.CodigoGenerico) &&
-                (string.IsNullOrEmpty(r.CodigoInterno) || p.CodigoInterno == r.CodigoInterno) &&
-                p.Id != id
+            var productoConMismoGtin = await _repository.First<Producto>(p =>
+                p.Id != id && // Excluimos el producto actual
+                (
+                    (!string.IsNullOrEmpty(r.GTIN) && p.GTIN == r.GTIN) ||
+                    (!string.IsNullOrEmpty(r.CodigoGenerico) && p.CodigoGenerico == r.CodigoGenerico) ||
+                    (!string.IsNullOrEmpty(r.CodigoInterno) && p.CodigoInterno == r.CodigoInterno)
+                )
             );
             if (productoConMismoGtin != null)
             {
@@ -227,10 +259,9 @@ namespace CigralBackend.Application.Services
                 marca = await _repository.First<Marca>(p => p.Nombre == r.Marca);
                 if (marca == null)
                 {
-                    throw new DomainException(
-                        DomainErrorCode.MarcaNoValida,
-                        $"La marca con Nombre {r.Marca} no existe."
-                    );
+                    var nuevaMarca = new MarcaRequest(Nombre: r.Marca);
+                    var Marca = await _marcaService.CreateMarca(nuevaMarca);
+                    idMarca = Marca.Id;
                 }
             }
 
@@ -240,9 +271,8 @@ namespace CigralBackend.Application.Services
             producto.GTIN = r.GTIN;
             producto.CodigoGenerico = r.CodigoGenerico;
             producto.CodigoInterno = r.CodigoInterno;
-            producto.EsUnitario = r.EsUnitario ?? false;
             producto.Precio = r.Precio;
-            producto.MarcaId = marca?.Id;
+            producto.MarcaId = marca != null ? marca.Id : idMarca;
 
             await _repository.Update(producto);
 
@@ -263,6 +293,99 @@ namespace CigralBackend.Application.Services
             }
 
             await _repository.Delete(producto);
+        }
+
+        public async Task ImportarDesdeCsvAsync(int proveedorId, string marcaNombre, Stream archivoStream)
+        {
+            // 1. Validar proveedor (Podrías omitir este paso si ya no vas a vincular el ID en ninguna tabla, 
+            // pero lo dejamos por si a futuro decides registrar en una bitácora quién fue el proveedor del archivo).
+            var proveedor = await _repository.GetById<Proveedor>(proveedorId);
+            if (proveedor == null) throw new NotFoundException(nameof(Proveedor), proveedorId);
+
+            // 2. Delegar la lectura del archivo a la Infraestructura
+            var registros = _catalogParser.ParsearCatalogo(archivoStream);
+
+            // 3. Comenzar transacción (Usamos _context directamente para mantener la consistencia con SaveChanges)
+            using var transaction = await _repository.BeginTransaction();
+
+            try
+            {
+                foreach (var fila in registros)
+                {
+                    int idMarca = 0;
+                    var nombreLimpio = fila.Denominacion.Trim();
+                    var codigoRef = fila.Codigo.Trim();
+
+                    // Verificamos la marca, y la creamos si no existe
+                    var marca = (Marca?)null;
+                    if (!string.IsNullOrEmpty(marcaNombre))
+                    {
+                        marca = await _repository.First<Marca>(m => m.Nombre == marcaNombre);
+                        if (marca == null)
+                        {
+                            var MarcaNueva = await _marcaService.CreateMarca(new MarcaRequest(Nombre: marcaNombre));
+                            idMarca = MarcaNueva.Id;
+                        }
+                        else
+                        {
+                            idMarca = marca.Id;
+                        }
+                    }
+
+                    // Buscamos si el producto ya existe por Nombre O por CodigoInterno
+                    var productoExistente = await _repository.First<Producto>(p =>
+                        p.Nombre == nombreLimpio || p.CodigoInterno == codigoRef);
+
+                    if (productoExistente == null)
+                    {
+                        // Si no existe, lo creamos con el código del Excel como CodigoInterno
+                        productoExistente = new Producto
+                        {
+                            Nombre = nombreLimpio,
+                            CodigoInterno = codigoRef,
+                            MarcaId = idMarca,
+                            Descripcion = "",
+                            Activo = true
+                        };
+                        await _repository.Add(productoExistente);
+                    }
+                    else
+                    {
+                        // Opcional: Si el producto ya existía por nombre, pero no tenía código interno o marca, se lo actualizamos
+                        if (string.IsNullOrEmpty(productoExistente.CodigoInterno) || productoExistente.Marca == null)
+                        {
+                            productoExistente.CodigoInterno = codigoRef;
+                            productoExistente.MarcaId = idMarca; // También podríamos actualizar la marca si se especificó
+                            await _repository.Update(productoExistente);
+                        }
+                    }
+                }
+
+                // Confirmamos la transacción
+                await transaction.CommitAsync();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw; // Relanzamos para que el ExceptionHandlingMiddleware lo atrape
+            }
+        }
+
+        public async Task<ProductoModelResponse> UpdateGTINProducto(int idProducto, string nuevoGTIN)
+        {
+            var GtinExistente = await _repository.First<Producto>(p => p.GTIN == nuevoGTIN && p.Id != idProducto);
+            if (GtinExistente != null) throw new DomainException(
+                DomainErrorCode.GtinDuplicado,
+                $"El GTIN {nuevoGTIN} ya existe en otro producto."
+            );
+
+            var producto = await _repository.GetById<Producto>(idProducto);
+            if (producto == null) throw new NotFoundException(nameof(Producto), idProducto);
+            producto.GTIN = nuevoGTIN;
+            await _repository.Update(producto);
+
+            return ResponseGenerator(producto);
+
         }
     }
 }

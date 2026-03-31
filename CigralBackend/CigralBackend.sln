@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36811.4
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11620.152 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CigralBackend.Api", "CigralBackend.Api.csproj", "{BFDAB7D3-A857-4020-9162-7193AC1462A5}"
 EndProject
@@ -10,8 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CigralBackend.Domain", "..\CigralBackend.Domain\CigralBackend.Domain.csproj", "{A9A21F9D-73FF-4BB9-AB0B-EE6E940BED47}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CigralBackend.Infraestructure", "..\CigralBackend.Infraestructure\CigralBackend.Infraestructure.csproj", "{CE6F29C7-8B59-449C-A5F1-1D934F1983F7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CigralBackend.Tests", "..\CigralBackend.Tests\CigralBackend.Tests.csproj", "{82581241-405C-3F62-329C-B4DF9802E361}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +33,6 @@ Global
 		{CE6F29C7-8B59-449C-A5F1-1D934F1983F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE6F29C7-8B59-449C-A5F1-1D934F1983F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE6F29C7-8B59-449C-A5F1-1D934F1983F7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{82581241-405C-3F62-329C-B4DF9802E361}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{82581241-405C-3F62-329C-B4DF9802E361}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{82581241-405C-3F62-329C-B4DF9802E361}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{82581241-405C-3F62-329C-B4DF9802E361}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

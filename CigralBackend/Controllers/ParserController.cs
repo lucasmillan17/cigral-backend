@@ -33,6 +33,7 @@ namespace CigralBackend.Api.Controllers
             (
                 Nombre: null,
                 Gtin: result.Gtin,
+                BusquedaGlobal: null,
                 CodigoGenerico: null,
                 CodigoInterno: null,
                 Marca: null,
