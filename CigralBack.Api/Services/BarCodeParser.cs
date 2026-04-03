@@ -250,7 +250,7 @@ namespace CigralBackend.Application.Services
                 case "21":
                     result.NumeroSerie = valor;
                     break;
-                case "30":
+                case "30" or "37":
                     if (int.TryParse(valor, out int cant)) result.Cantidad = cant;
                     break;
                 case "17":

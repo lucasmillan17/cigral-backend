@@ -451,34 +451,72 @@ namespace CigralBackend.Application.Services
                 };
             };
 
+            // Calculamos la fecha tope para los "Días para vencer" acá afuera
+            DateTime? limiteDiasParaVencer = filters.DiasParaVencer.HasValue
+                ? hoy.AddDays(filters.DiasParaVencer.Value)
+                : null;
+
             var resultadoEntidad = await _repository.GetFiltered<Existencia>(
                 predicate: e =>
+                    // --- FILTROS EXACTOS Y DE TEXTO ---
                     (!filters.ProductoId.HasValue || e.ProductoId == filters.ProductoId.Value) &&
                     (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
                     (!filters.LoteId.HasValue || e.LoteId == filters.LoteId.Value) &&
+
                     (string.IsNullOrEmpty(filters.NumSerie) ||
                         (e.NumSerie != null && e.NumSerie.Contains(filters.NumSerie))) &&
+
                     (string.IsNullOrEmpty(filters.CodigoLote) ||
                         (e.Lote != null && e.Lote.CodigoLote.Contains(filters.CodigoLote))) &&
-                    // Filtros de vencimiento
-                    (!filters.FechaVencimientoDesde.HasValue ||
-                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= filters.FechaVencimientoDesde.Value) ||
-                        (e.Lote != null && e.Lote.FechaVencimiento >= filters.FechaVencimientoDesde.Value)) &&
-
-                    (!filters.FechaVencimientoHasta.HasValue ||
-                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= filters.FechaVencimientoHasta.Value) ||
-                        (e.Lote != null && e.Lote.FechaVencimiento <= filters.FechaVencimientoHasta.Value)) &&
-
-                    (!fechaLimiteVencimiento.HasValue ||
-                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= fechaLimiteVencimiento.Value) ||
-                        (e.Lote != null && e.Lote.FechaVencimiento <= fechaLimiteVencimiento.Value)) &&
-
-                    (!filters.SoloConVencimiento.HasValue ||
-                        (filters.SoloConVencimiento.Value && (e.FechaVencimiento.HasValue || e.Lote != null)) ||
-                        (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && e.Lote == null)) &&
 
                     (string.IsNullOrEmpty(filters.NombreProducto) ||
-                        (e.Producto != null && e.Producto.Nombre.Contains(filters.NombreProducto))),
+                        (e.Producto != null && e.Producto.Nombre.Contains(filters.NombreProducto))) &&
+
+                    // --- FILTROS DE FECHAS (Agrupados correctamente) ---
+
+                    // Vencimiento DESDE
+                    (!filters.FechaVencimientoDesde.HasValue ||
+                        ( // <-- Paréntesis clave para agrupar el OR
+                            (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= filters.FechaVencimientoDesde.Value) ||
+                            (e.Lote != null && e.Lote.FechaVencimiento >= filters.FechaVencimientoDesde.Value)
+                        )
+                    ) &&
+
+                    // Vencimiento HASTA
+                    (!filters.FechaVencimientoHasta.HasValue ||
+                        (
+                            (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= filters.FechaVencimientoHasta.Value) ||
+                            (e.Lote != null && e.Lote.FechaVencimiento <= filters.FechaVencimientoHasta.Value)
+                        )
+                    ) &&
+
+                    // Límite Vencimiento (Extra)
+                    (!fechaLimiteVencimiento.HasValue ||
+                        (
+                            (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= fechaLimiteVencimiento.Value) ||
+                            (e.Lote != null && e.Lote.FechaVencimiento <= fechaLimiteVencimiento.Value)
+                        )
+                    ) &&
+
+                    // DÍAS PARA VENCER (Arreglado)
+                    (!limiteDiasParaVencer.HasValue ||
+                        (
+                            // Opción A: Tiene fecha propia, NO está vencido hoy, y vence antes del límite
+                            (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value.Date >= hoy && e.FechaVencimiento.Value.Date <= limiteDiasParaVencer.Value)
+                            ||
+                            // Opción B: Su lote tiene fecha, NO está vencido hoy, y vence antes del límite
+                            (e.Lote != null && e.Lote.FechaVencimiento.Date >= hoy && e.Lote.FechaVencimiento.Date <= limiteDiasParaVencer.Value)
+                        )
+                    ) &&
+
+                    // SOLO CON VENCIMIENTO
+                    (!filters.SoloConVencimiento.HasValue ||
+                        (
+                            (filters.SoloConVencimiento.Value && (e.FechaVencimiento.HasValue || e.Lote != null))
+                            ||
+                            (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && e.Lote == null)
+                        )
+                    ),
 
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
