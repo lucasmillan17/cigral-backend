@@ -455,7 +455,7 @@ namespace CigralBackend.Application.Services
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
                 orderBy: orderByLogic<RemitoIngreso>(filters),
-                include: new[] { "Detalles", "Detalles.Lote", "Deposito" }
+                include: new[] { "Detalles", "Detalles.Lote", "Deposito", "Proveedor" }
             );
 
             var remitos = resultadoEntidad.Items.Select(e => new RemitoResponseGet(
@@ -464,7 +464,9 @@ namespace CigralBackend.Application.Services
                 ComprobanteAsociado: e.ComprobanteAsociado,
                 Fecha: e.Fecha,
                 DepositoId: e.DepositoId,
+                NombreDeposito: e.Deposito.Nombre,
                 EntidadId: e.ProveedorId,
+                NombreEntidad: e.Proveedor.RazonSocial,
                 Observaciones: e.Observaciones,
                 Detalles: e.Detalles.Select(d => new RemitoDetalleResponse(
                     ProductoId: d.ProductoId,
@@ -501,7 +503,7 @@ namespace CigralBackend.Application.Services
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
                 orderBy: orderByLogic<RemitoEgreso>(filters),
-                include: new[] { "Detalles", "Detalles.Lote", "Deposito" }
+                include: new[] { "Detalles", "Detalles.Lote", "Deposito", "Cliente" }
             );
 
             var remitos = resultadoEntidad.Items.Select(e => new RemitoResponseGet(
@@ -510,7 +512,9 @@ namespace CigralBackend.Application.Services
                 ComprobanteAsociado: e.ComprobanteAsociado,
                 Fecha: e.Fecha,
                 DepositoId: e.DepositoId,
+                NombreDeposito: e.Deposito.Nombre,
                 EntidadId: e.ClienteId,
+                NombreEntidad: e.Cliente.RazonSocial,
                 Observaciones: e.Observaciones,
                 Detalles: e.Detalles.Select(d => new RemitoDetalleResponse(
                     ProductoId: d.ProductoId,

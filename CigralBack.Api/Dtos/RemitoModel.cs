@@ -92,7 +92,9 @@ namespace CigralBackend.Application.Dtos
         string? ComprobanteAsociado,
         DateTime Fecha,
         int DepositoId,
+        string NombreDeposito,
         int EntidadId,
+        string NombreEntidad,
         string? Observaciones,
         List<RemitoDetalleResponse> Detalles
     );
