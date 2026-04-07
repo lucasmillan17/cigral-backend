@@ -5,6 +5,7 @@ using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
 using CigralBackend.Infraestructure.Database.Interfaces;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,10 +20,17 @@ namespace CigralBackend.Application.Services
     public class ExistenciaService : IExistenciaService
     {
         private readonly IRepository _repository;
-
-        public ExistenciaService(IRepository repository)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public ExistenciaService(IRepository repository, IHttpContextAccessor httpContextAccessor)
         {
             _repository = repository;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private string GetCurrentUserName()
+        {
+            // Busca el claim configurado en AuthService.GenerateJwtToken
+            return _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Sistema";
         }
 
         /// <summary>
@@ -64,6 +72,8 @@ namespace CigralBackend.Application.Services
             string? observaciones = null,
             string? usuario = null)
         {
+            usuario = GetCurrentUserName();
+
             var movimiento = new MovimientoStock
             {
                 Tipo = tipo,
@@ -95,10 +105,11 @@ namespace CigralBackend.Application.Services
         /// <exception cref="NotFoundException">Si el producto, deposito o lote no existen</exception>
         /// <exception cref="DomainException">Si las validaciones de negocio fallan</exception>
         public async Task<ExistenciaModelResponse> AumentarStock(
-            ExistenciaModelRequest r,
-            int? remitoIngresoId = null,
-            string? observaciones = null)
+    ExistenciaModelRequest r,
+    int? remitoIngresoId = null,
+    string? observaciones = null)
         {
+            if(r.EsDevolucion) observaciones = "[DEVOLUCIÓN]";
             // Validar cantidad
             if (r.Cantidad <= 0)
             {
@@ -146,49 +157,25 @@ namespace CigralBackend.Application.Services
                 lote = await _repository.First<Lote>(l => l.CodigoLote == r.CodigoLote);
                 if (lote == null)
                 {
-                    //throw new NotFoundException(nameof(Lote), r.CodigoLote);
-                    // Creamos un lote nuevo si no existe, ya que se está ingresando stock con ese código de lote
+                    // Creamos un lote nuevo inicializado en 0 (la cantidad se sumará más abajo de forma global)
                     lote = new Lote
                     {
                         CodigoLote = r.CodigoLote,
-                        FechaVencimiento = r.FechaVencimiento, // Si no se especifica fecha de vencimiento, asignamos una por defecto
-                        CantidadDisponible = r.Cantidad,
+                        FechaVencimiento = r.FechaVencimiento,
+                        CantidadDisponible = 0,
                         ProductoId = r.ProductoId
                     };
 
-                    _repository.Add(lote).Wait(); // Esperamos a que se cree el lote para obtener su ID
-                }
-
-                // Validar que el lote no esté vencido
-                /*if (lote.FechaVencimiento < DateTime.Now)
-                {
-                    throw new DomainException(
-                        DomainErrorCode.LoteVencido,
-                        $"El lote '{lote.CodigoLote}' está vencido. Fecha de vencimiento: {lote.FechaVencimiento:dd/MM/yyyy}"
-                    );
-                }*/
-            }
-
-            // Validar número de serie duplicado si se especifica
-            if (!string.IsNullOrEmpty(r.NumSerie))
-            {
-                var existenciaConMismoNumSerie = await _repository.First<Existencia>(
-                    e => e.NumSerie == r.NumSerie && e.ProductoId == r.ProductoId
-                );
-                if (existenciaConMismoNumSerie != null)
-                {
-                    throw new DomainException(
-                        DomainErrorCode.SerieDuplicada,
-                        $"Ya existe una existencia del producto '{producto.Nombre}' con el número de serie '{r.NumSerie}'."
-                    );
+                    lote = await _repository.Add(lote);
                 }
             }
 
-            // Buscar existencia existente (sin número de serie para permitir sumar cantidades)
+            // Buscar existencia existente (Protegido contra Lote nulo)
+            int? loteIdBusqueda = lote?.Id;
             var existencia = await _repository.First<Existencia>(
                 e => e.ProductoId == r.ProductoId &&
                      e.DepositoId == r.DepositoId &&
-                     e.LoteId == lote.Id &&
+                     e.LoteId == loteIdBusqueda &&
                      (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie)
             );
 
@@ -197,44 +184,31 @@ namespace CigralBackend.Application.Services
 
             if (existencia != null)
             {
-                // Aumentar cantidad existente
+                // Aumentar cantidad de la existencia encontrada
                 existencia.Cantidad += r.Cantidad;
-                if (lote != null)
-                {
-                    lote.CantidadDisponible = existencia.Cantidad;
-                    await _repository.Update(lote);
-                }
                 stockNuevo = existencia.Cantidad;
                 await _repository.Update(existencia);
             }
             else
             {
                 // Crear nueva existencia
-                existencia = new Existencia();
-                /*{
+                existencia = new Existencia
+                {
                     ProductoId = r.ProductoId,
                     DepositoId = r.DepositoId,
-                    LoteId = lote.Id,
-                    NumSerie = r.NumSerie,
-                    FechaVencimiento = r.FechaVencimiento,
                     Cantidad = r.Cantidad
-                };*/
+                };
 
-                existencia.Cantidad = r.Cantidad;
-                existencia.ProductoId = r.ProductoId;
-                existencia.DepositoId = r.DepositoId;
                 if (lote != null)
                 {
                     existencia.LoteId = lote.Id;
                     existencia.FechaVencimiento = lote.FechaVencimiento;
-
-                    lote.CantidadDisponible = existencia.Cantidad;
-                    await _repository.Update(lote);
                 }
                 else
                 {
                     existencia.FechaVencimiento = r.FechaVencimiento;
                 }
+
                 if (!string.IsNullOrEmpty(r.NumSerie))
                 {
                     existencia.NumSerie = r.NumSerie;
@@ -248,12 +222,20 @@ namespace CigralBackend.Application.Services
                 stockNuevo = existencia.Cantidad;
             }
 
+            // === ACTUALIZACIÓN DEL LOTE GLOBAL ===
+            // Sumamos la cantidad entrante de forma independiente a la existencia
+            if (lote != null)
+            {
+                lote.CantidadDisponible += r.Cantidad;
+                await _repository.Update(lote);
+            }
+
             // Registrar movimiento en auditoría
             await RegistrarMovimiento(
                 tipo: remitoIngresoId.HasValue ? TipoMovimiento.Ingreso : TipoMovimiento.AjustePositivo,
                 productoId: r.ProductoId,
                 depositoId: r.DepositoId,
-                loteId: lote.Id,
+                loteId: lote?.Id,
                 numeroSerie: r.NumSerie,
                 cantidad: r.Cantidad,
                 stockAnterior: stockAnterior,
@@ -326,8 +308,7 @@ namespace CigralBackend.Application.Services
             // Buscar existencia existente
             var existencia = await _repository.First<Existencia>(
                 e => e.ProductoId == r.ProductoId &&
-                     e.DepositoId == r.DepositoId &&
-                     e.LoteId == lote.Id &&
+                     (string.IsNullOrEmpty(r.CodigoLote) || e.LoteId == lote.Id) &&
                      (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie)
             );
 

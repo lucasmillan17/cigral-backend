@@ -5,7 +5,9 @@ using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
 using CigralBackend.Infraestructure.Database.Interfaces;
+using CigralBackend.Infraestructure.Services.Interfaces;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CigralBackend.Application.Services
@@ -16,10 +18,12 @@ namespace CigralBackend.Application.Services
     public class ClienteService : IClienteService
     {
         private readonly IRepository _repository;
+        private readonly ICatalogParserService _parserService;
 
-        public ClienteService(IRepository repository)
+        public ClienteService(IRepository repository, ICatalogParserService parserService)
         {
             _repository = repository;
+            _parserService = parserService;
         }
 
         /// <summary>
@@ -233,6 +237,40 @@ namespace CigralBackend.Application.Services
                 PageNumber = resultado.PageNumber,
                 PageSize = resultado.PageSize
             };
+        }
+
+        public async Task ImportarClientesCsvAsync(Stream fileStream)
+        {
+            // 1. Delegar a Infraestructura la lectura del CSV
+            var records = _parserService.ParsearClientes(fileStream);
+
+            // 2. Aplicar lógica de negocio y mapeo a Dominio
+            foreach (var record in records)
+            {
+                var cuitLimpio = record.Cuit?.Replace("-", "").Replace(" ", "") ?? "";
+                if (cuitLimpio.Length > 11) cuitLimpio = cuitLimpio.Substring(0, 11);
+
+                var direccion = $"{record.Linea1} {record.Linea2} {record.Linea3}".Trim();
+                direccion = Regex.Replace(direccion, @"\s+", " ");
+                if (direccion.Length > 200) direccion = direccion.Substring(0, 200);
+
+                var telefono = record.Telefono?.Trim() ?? "";
+                if (telefono.Length > 20) telefono = telefono.Substring(0, 20);
+
+                var razonSocial = record.RazonSocial?.Trim() ?? "SIN NOMBRE";
+                if (razonSocial.Length > 200) razonSocial = razonSocial.Substring(0, 200);
+
+                var nuevoCliente = new Cliente
+                {
+                    RazonSocial = razonSocial,
+                    Cuit = cuitLimpio,
+                    Direccion = direccion,
+                    Telefono = telefono,
+                    Activo = true
+                };
+
+                await _repository.Add(nuevoCliente);
+            }
         }
     }
 }

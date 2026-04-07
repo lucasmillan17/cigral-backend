@@ -4,6 +4,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
 using System.IO;
+using System.Text;
 
 namespace CigralBackend.Infraestructure.Services
 {
@@ -25,6 +26,38 @@ namespace CigralBackend.Infraestructure.Services
 
             // Esto lee el CSV y lo mapea automáticamente al DTO
             return csv.GetRecords<ProductoCsvDto>().ToList();
+        }
+
+        public List<ClienteCsvDto> ParsearClientes(Stream archivoStream)
+        {
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                Delimiter = ";",
+                HasHeaderRecord = true,
+                MissingFieldFound = null,
+                BadDataFound = null
+            };
+
+            using var reader = new StreamReader(archivoStream, Encoding.Latin1, leaveOpen: true);
+            using var csv = new CsvReader(reader, config);
+
+            return csv.GetRecords<ClienteCsvDto>().ToList();
+        }
+
+        public List<ProveedorCsvDto> ParsearProveedores(Stream archivoStream)
+        {
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                Delimiter = ";",
+                HasHeaderRecord = true,
+                MissingFieldFound = null,
+                BadDataFound = null
+            };
+
+            using var reader = new StreamReader(archivoStream, Encoding.Latin1, leaveOpen: true);
+            using var csv = new CsvReader(reader, config);
+
+            return csv.GetRecords<ProveedorCsvDto>().ToList();
         }
     }
 }

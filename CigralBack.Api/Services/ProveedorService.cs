@@ -5,7 +5,9 @@ using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
 using CigralBackend.Infraestructure.Database.Interfaces;
+using CigralBackend.Infraestructure.Services.Interfaces;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CigralBackend.Application.Services
@@ -16,10 +18,46 @@ namespace CigralBackend.Application.Services
     public class ProveedorService : IProveedorService
     {
         private readonly IRepository _repository;
+        private readonly ICatalogParserService _parserService;
 
-        public ProveedorService(IRepository repository)
+        public ProveedorService(IRepository repository, ICatalogParserService parserService)
         {
             _repository = repository;
+            _parserService = parserService;
+        }
+
+        public async Task ImportarProveedoresCsvAsync(Stream fileStream)
+        {
+            // 1. Delegar a Infraestructura la lectura del CSV
+            var records = _parserService.ParsearProveedores(fileStream);
+
+            // 2. Aplicar lógica de negocio y mapeo a Dominio
+            foreach (var record in records)
+            {
+                var cuitLimpio = record.Cuit?.Replace("-", "").Replace(" ", "") ?? "";
+                if (cuitLimpio.Length > 11) cuitLimpio = cuitLimpio.Substring(0, 11);
+
+                var direccion = $"{record.Direccion1} {record.Direccion2} {record.Direccion3}".Trim();
+                direccion = Regex.Replace(direccion, @"\s+", " ");
+                if (direccion.Length > 200) direccion = direccion.Substring(0, 200);
+
+                var telefono = record.Telefono?.Trim() ?? "";
+                if (telefono.Length > 20) telefono = telefono.Substring(0, 20);
+
+                var razonSocial = record.RazonSocial?.Trim() ?? "SIN NOMBRE";
+                if (razonSocial.Length > 200) razonSocial = razonSocial.Substring(0, 200);
+
+                var nuevoProveedor = new Proveedor
+                {
+                    RazonSocial = razonSocial,
+                    Cuit = cuitLimpio,
+                    Direccion = direccion,
+                    Telefono = telefono,
+                    Activo = true
+                };
+
+                await _repository.Add(nuevoProveedor);
+            }
         }
 
         /// <summary>

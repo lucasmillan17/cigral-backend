@@ -21,11 +21,13 @@ namespace CigralBackend.Application.Services
     {
         private readonly IRepository _repository;
         private readonly IExistenciaService _existenciaService;
+        private readonly IProductoService _productoService;
 
-        public RemitoService(IRepository repository, IExistenciaService existenciaService)
+        public RemitoService(IRepository repository, IExistenciaService existenciaService, IProductoService productoService)
         {
             _repository = repository;
             _existenciaService = existenciaService;
+            _productoService = productoService;
         }
 
         /// <summary>
@@ -62,19 +64,16 @@ namespace CigralBackend.Application.Services
             }
 
             // Validar número de remito único (si se proporciona)
-            if (!string.IsNullOrEmpty(request.NumeroRemito))
+            if (string.IsNullOrEmpty(request.NumeroRemito))
             {
-                var existeNumero = await _repository.First<RemitoIngreso>(
+                /*var existeNumero = await _repository.First<RemitoIngreso>(
                     r => r.NumeroRemito == request.NumeroRemito
-                );
-
-                if (existeNumero != null)
-                {
+                );*/
                     throw new DomainException(
                         DomainErrorCode.NumeroRemitoDuplicado,
-                        $"El número de remito '{request.NumeroRemito}' ya existe."
+                        $"No se recibio numero de remito"
                     );
-                }
+                
             }
 
             // Iniciar transacción para todo el proceso (cabecera, detalles y movimientos de stock)
@@ -136,7 +135,8 @@ namespace CigralBackend.Application.Services
                         CodigoLote: detalle.CodigoLote,
                         FechaVencimiento: detalle.FechaVencimiento,
                         Cantidad: detalle.Cantidad,
-                        InformacionAdicional: detalle.InformacionAdicional
+                        InformacionAdicional: detalle.InformacionAdicional,
+                        EsDevolucion: request.EsDevolucion
                     );
 
                     // Llamamos al servicio de existencias que internamente hará validaciones y guardados.
@@ -206,43 +206,42 @@ namespace CigralBackend.Application.Services
             }
 
             // Validar número de remito único (si se proporciona)
-            if (!string.IsNullOrEmpty(request.NumeroRemito))
+            if (string.IsNullOrEmpty(request.NumeroRemito))
             {
-                var existeNumero = await _repository.First<RemitoEgreso>(
-                    r => r.NumeroRemito == request.NumeroRemito
-                );
-                
-                if (existeNumero != null)
-                {
+               
                     throw new DomainException(
                         DomainErrorCode.NumeroRemitoDuplicado,
-                        $"El número de remito '{request.NumeroRemito}' ya existe."
+                        $"No se recibio un numero de remito"
                     );
-                }
+                
             }
 
             foreach (var detalle in request.Detalles)
             {
                 if (detalle.Cantidad <= 0)
                 {
+                    var producto = await _productoService.GetProductoById(detalle.ProductoId); 
                     erroresValidacion.Add(new ErrorDetalleDto(
                         Orden: request.Detalles.IndexOf(detalle),
-                        Mensaje: $"La cantidad para el producto {detalle.ProductoId} debe ser mayor a cero."
+                        Mensaje: $"La cantidad para el producto {producto.Nombre}, Lote: {detalle.CodigoLote}, debe ser mayor a cero."
                     ));
                 }
+
+                string numeroSerie = detalle.NumeroSerie == "Sin Número de Serie" ? null : detalle.NumeroSerie;
 
                 var stockExistente = await _existenciaService.GetStockDisponible(
                     depositoId: request.DepositoId,
                     productoId: detalle.ProductoId,
-                    numSerie: detalle.NumeroSerie,
+                    numSerie: numeroSerie,
                     codigoLote: detalle.CodigoLote
                 );
 
                 if (stockExistente < detalle.Cantidad)
                 {
+                    var producto = await _productoService.GetProductoById(detalle.ProductoId);
                     erroresValidacion.Add(new ErrorDetalleDto(
                         Orden: request.Detalles.IndexOf(detalle),
-                        Mensaje: $"Stock insuficiente para el producto {detalle.ProductoId}. Disponible: {stockExistente}, Solicitado: {detalle.Cantidad}."
+                        Mensaje: $"Stock insuficiente para el producto {producto.Nombre}, Lote: {detalle.CodigoLote}. Disponible: {stockExistente}, Solicitado: {detalle.Cantidad}."
                     ));
                 }
             }

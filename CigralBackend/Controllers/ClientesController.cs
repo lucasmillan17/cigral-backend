@@ -101,5 +101,25 @@ namespace CigralBackend.Controllers
             return Ok(clientes);
         }
 
+        [HttpPost("importar")]
+        public async Task<IActionResult> ImportarClientes(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("El archivo es inválido o está vacío.");
+            }
+
+            try
+            {
+                using var stream = file.OpenReadStream();
+                await _clienteService.ImportarClientesCsvAsync(stream);
+                return Ok(new { message = "Clientes importados correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al procesar el archivo de clientes", detail = ex.Message });
+            }
+        }
+
     }
 }

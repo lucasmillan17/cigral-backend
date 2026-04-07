@@ -17,7 +17,8 @@ namespace CigralBackend.Application.Dtos
         [Required(ErrorMessage = "La cantidad es obligatoria")]
         [Range(0, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor o igual a 0")]
         int Cantidad,
-        string ? InformacionAdicional // Para guardar cualquier otro dato que queramos en formato JSON (ej: campos personalizados del parser, etc.)
+        string ? InformacionAdicional, // Para guardar cualquier otro dato que queramos en formato JSON (ej: campos personalizados del parser, etc.)
+        bool EsDevolucion = false // Para marcar esta existencia como una devolución (si es true, se puede mostrar en rojo en la grilla, etc.)
     );
 
     public record ExistenciaModelResponse(

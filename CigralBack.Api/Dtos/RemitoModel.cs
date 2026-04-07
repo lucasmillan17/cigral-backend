@@ -23,7 +23,8 @@ namespace CigralBackend.Application.Dtos
 
         [Required(ErrorMessage = "Los detalles son obligatorios")]
         [MinLength(1, ErrorMessage = "Debe haber al menos un detalle")]
-        List<RemitoDetalleRequest> Detalles
+        List<RemitoDetalleRequest> Detalles,
+        bool EsDevolucion = false
     );
 
     /// <summary>

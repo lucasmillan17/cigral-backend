@@ -34,5 +34,6 @@ namespace CigralBackend.Application.Services.Interfaces
         /// </summary>
         Task DeleteCliente(int id);
         Task<PagedResult<EntidadResumenResponse>> GetEntidades(ClienteFilters filters);
+        Task ImportarClientesCsvAsync(Stream fileStream);
     }
 }

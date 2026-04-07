@@ -175,7 +175,6 @@ namespace CigralBackend.Infraestructure.Database
                       .WithMany()
                       .HasForeignKey(e => e.DepositoId)
                       .OnDelete(DeleteBehavior.Restrict);
-                entity.HasIndex(e => e.NumeroRemito).IsUnique();
             });
 
             // Configuración de RemitoIngreso
@@ -198,7 +197,6 @@ namespace CigralBackend.Infraestructure.Database
                       .WithMany()   
                       .HasForeignKey(e => e.DepositoId)
                       .OnDelete(DeleteBehavior.Restrict);
-                entity.HasIndex(e => e.NumeroRemito).IsUnique();
             });
 
             // Configuración de MovimientoStock

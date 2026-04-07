@@ -33,5 +33,6 @@ namespace CigralBackend.Application.Services.Interfaces
         /// Elimina un proveedor.
         /// </summary>
         Task DeleteProveedor(int id);
+        Task ImportarProveedoresCsvAsync(Stream fileStream);
     }
 }

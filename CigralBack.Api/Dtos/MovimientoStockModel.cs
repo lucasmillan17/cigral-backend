@@ -21,7 +21,8 @@ namespace CigralBackend.Application.Dtos
         [Range(1, int.MaxValue, ErrorMessage = "La página debe ser mayor a 0")]
         int PageNumber = 1,
         [Range(1, 100, ErrorMessage = "El tamaño de página no puede superar los 100 items")]
-        int PageSize = 10
+        int PageSize = 10,
+        bool EsDevolucion = false // Para filtrar solo movimientos que sean devoluciones (si es true, se pueden mostrar en rojo en la grilla, etc.)
     );
 
     /// <summary>

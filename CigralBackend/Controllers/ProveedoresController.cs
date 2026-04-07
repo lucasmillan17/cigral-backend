@@ -92,5 +92,25 @@ namespace CigralBackend.Controllers
             await _proveedorService.DeleteProveedor(id);
             return NoContent();
         }
+
+        [HttpPost("importar")]
+        public async Task<IActionResult> ImportarProveedores(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("El archivo es inválido o está vacío.");
+            }
+
+            try
+            {
+                using var stream = file.OpenReadStream();
+                await _proveedorService.ImportarProveedoresCsvAsync(stream);
+                return Ok(new { message = "Proveedores importados correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error al procesar el archivo de proveedores", detail = ex.Message });
+            }
+        }
     }
 }

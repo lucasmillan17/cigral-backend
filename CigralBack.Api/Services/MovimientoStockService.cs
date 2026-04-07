@@ -40,6 +40,7 @@ namespace CigralBackend.Application.Services
                     (string.IsNullOrEmpty(filters.ComprobanteAsociado) ||
                     m.RemitoEgreso.ComprobanteAsociado.Contains(filters.ComprobanteAsociado) ||
                     m.RemitoIngreso.ComprobanteAsociado.Contains(filters.ComprobanteAsociado)) &&
+                    (filters.EsDevolucion ? m.Observaciones.Contains("[DEVOLUCIÓN]") : true) &&
                     (!filters.FechaDesde.HasValue || m.FechaMovimiento >= filters.FechaDesde.Value) &&
                     (!filters.FechaHasta.HasValue || m.FechaMovimiento <= filters.FechaHasta.Value),
                 orderBy: q => q.OrderByDescending(m => m.FechaMovimiento),
