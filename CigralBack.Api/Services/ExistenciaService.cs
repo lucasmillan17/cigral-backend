@@ -47,7 +47,7 @@ namespace CigralBackend.Application.Services
                 e.DepositoId,
                 deposito.Nombre,
                 e.LoteId ?? 0,
-                lote?.CodigoLote ?? "Sin Código de Lote",
+                lote?.CodigoLote.ToUpper() ?? "Sin Código de Lote",
                 e.NumSerie ?? "Sin Número de Serie",
                 lote?.FechaVencimiento ?? e.FechaVencimiento,
                 e.Cantidad,
@@ -109,7 +109,9 @@ namespace CigralBackend.Application.Services
     int? remitoIngresoId = null,
     string? observaciones = null)
         {
-            if(r.EsDevolucion) observaciones = "[DEVOLUCIÓN]";
+            var loteUpper = r.CodigoLote?.ToUpper();
+
+            if (r.EsDevolucion) observaciones = "[DEVOLUCIÓN]";
             // Validar cantidad
             if (r.Cantidad <= 0)
             {
@@ -126,7 +128,7 @@ namespace CigralBackend.Application.Services
                 throw new NotFoundException(nameof(Producto), r.ProductoId);
             }
 
-            if (string.IsNullOrEmpty(r.NumSerie) && string.IsNullOrEmpty(r.CodigoLote) && string.IsNullOrEmpty(producto.CodigoGenerico))
+            if (string.IsNullOrEmpty(r.NumSerie) && string.IsNullOrEmpty(loteUpper) && string.IsNullOrEmpty(producto.CodigoGenerico))
             {
                 throw new DomainException(
                     DomainErrorCode.SerieYCodigoLoteNoEspecificados,
@@ -152,15 +154,15 @@ namespace CigralBackend.Application.Services
 
             // Validar que el lote exista si se especifica
             Lote? lote = null;
-            if (!string.IsNullOrEmpty(r.CodigoLote))
+            if (!string.IsNullOrEmpty(loteUpper))
             {
-                lote = await _repository.First<Lote>(l => l.CodigoLote == r.CodigoLote);
+                lote = await _repository.First<Lote>(l => l.CodigoLote == loteUpper);
                 if (lote == null)
                 {
                     // Creamos un lote nuevo inicializado en 0 (la cantidad se sumará más abajo de forma global)
                     lote = new Lote
                     {
-                        CodigoLote = r.CodigoLote,
+                        CodigoLote = loteUpper,
                         FechaVencimiento = r.FechaVencimiento,
                         CantidadDisponible = 0,
                         ProductoId = r.ProductoId
@@ -262,6 +264,8 @@ namespace CigralBackend.Application.Services
             int? remitoEgresoId = null,
             string? observaciones = null)
         {
+
+            var loteUpper = r.CodigoLote?.ToUpper();
             // Validar cantidad
             if (r.Cantidad <= 0)
             {
@@ -298,17 +302,17 @@ namespace CigralBackend.Application.Services
             Lote? lote = null;
             if (!string.IsNullOrEmpty(r.CodigoLote))
             {
-                lote = await _repository.First<Lote>(l => l.CodigoLote == r.CodigoLote);
+                lote = await _repository.First<Lote>(l => l.CodigoLote == loteUpper);
                 if (lote == null)
                 {
-                    throw new NotFoundException(nameof(Lote), r.CodigoLote);
+                    throw new NotFoundException(nameof(Lote), loteUpper);
                 }
             }
 
             // Buscar existencia existente
             var existencia = await _repository.First<Existencia>(
                 e => e.ProductoId == r.ProductoId &&
-                     (string.IsNullOrEmpty(r.CodigoLote) || e.LoteId == lote.Id) &&
+                     (string.IsNullOrEmpty(loteUpper) || e.LoteId == lote.Id) &&
                      (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie)
             );
 
@@ -384,7 +388,7 @@ namespace CigralBackend.Application.Services
                 existencia.DepositoId,
                 existencia.Deposito?.Nombre ?? "Sin Depósito",
                 existencia.LoteId ?? 0,
-                existencia.Lote?.CodigoLote ?? "Sin Código de Lote",
+                existencia.Lote?.CodigoLote.ToUpper() ?? "Sin Código de Lote",
                 existencia.NumSerie ?? "Sin Número de Serie",
                 existencia.Lote?.FechaVencimiento ?? existencia.FechaVencimiento,
                 existencia.Cantidad,
@@ -511,7 +515,7 @@ namespace CigralBackend.Application.Services
                 e.DepositoId,
                 e.Deposito?.Nombre ?? "Sin Depósito",
                 e.LoteId ?? 0,
-                e.Lote?.CodigoLote ?? "Sin Código de Lote",
+                e.Lote?.CodigoLote.ToUpper() ?? "Sin Código de Lote",
                 e.NumSerie ?? "Sin Número de Serie",
                 e.Lote?.FechaVencimiento ?? e.FechaVencimiento,
                 e.Cantidad,
@@ -575,7 +579,7 @@ namespace CigralBackend.Application.Services
                         DepositoId: e.DepositoId,
                         DepositoNombre: e.Deposito?.Nombre ?? "Sin Depósito",
                         LoteId: e.LoteId,
-                        CodigoLote: e.Lote?.CodigoLote,
+                        CodigoLote: e.Lote?.CodigoLote.ToUpper(),
                         NumeroSerie: e.NumSerie,
                         FechaVencimiento: fechaVenc,
                         DiasParaVencer: diasParaVencer,
@@ -671,8 +675,7 @@ namespace CigralBackend.Application.Services
         {
             var existencia = await _repository.First<Existencia>(
                 e => e.ProductoId == productoId &&
-                     e.DepositoId == depositoId &&
-                     (string.IsNullOrEmpty(codigoLote) || e.Lote.CodigoLote == codigoLote) &&
+                     (string.IsNullOrEmpty(codigoLote) || e.Lote.CodigoLote == codigoLote.ToUpper()) &&
                      (string.IsNullOrEmpty(numSerie) || e.NumSerie == numSerie)
             );
             return existencia?.Cantidad ?? 0;

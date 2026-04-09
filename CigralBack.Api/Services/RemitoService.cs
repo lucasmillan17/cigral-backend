@@ -99,9 +99,9 @@ namespace CigralBackend.Application.Services
                 foreach (var detalle in request.Detalles)
                 {
                     Lote? lote = null;
-                    if (!string.IsNullOrEmpty(detalle.CodigoLote))
+                    if (!string.IsNullOrEmpty(detalle.CodigoLote.ToUpper()))
                     {
-                            lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote);
+                            lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote.ToUpper());
                         if (lote == null)
                         {
                             // Si el lote no existe, lo creamos
@@ -132,7 +132,7 @@ namespace CigralBackend.Application.Services
                         DepositoId: request.DepositoId,
                         ProductoId: detalle.ProductoId,
                         NumSerie: detalle.NumeroSerie,
-                        CodigoLote: detalle.CodigoLote,
+                        CodigoLote: detalle.CodigoLote.ToUpper(),
                         FechaVencimiento: detalle.FechaVencimiento,
                         Cantidad: detalle.Cantidad,
                         InformacionAdicional: detalle.InformacionAdicional,
@@ -223,7 +223,7 @@ namespace CigralBackend.Application.Services
                     var producto = await _productoService.GetProductoById(detalle.ProductoId); 
                     erroresValidacion.Add(new ErrorDetalleDto(
                         Orden: request.Detalles.IndexOf(detalle),
-                        Mensaje: $"La cantidad para el producto {producto.Nombre}, Lote: {detalle.CodigoLote}, debe ser mayor a cero."
+                        Mensaje: $"La cantidad para el producto {producto.Nombre}, Lote: {detalle.CodigoLote.ToUpper()}, debe ser mayor a cero."
                     ));
                 }
 
@@ -233,7 +233,7 @@ namespace CigralBackend.Application.Services
                     depositoId: request.DepositoId,
                     productoId: detalle.ProductoId,
                     numSerie: numeroSerie,
-                    codigoLote: detalle.CodigoLote
+                    codigoLote: detalle.CodigoLote.ToUpper()
                 );
 
                 if (stockExistente < detalle.Cantidad)
@@ -241,7 +241,7 @@ namespace CigralBackend.Application.Services
                     var producto = await _productoService.GetProductoById(detalle.ProductoId);
                     erroresValidacion.Add(new ErrorDetalleDto(
                         Orden: request.Detalles.IndexOf(detalle),
-                        Mensaje: $"Stock insuficiente para el producto {producto.Nombre}, Lote: {detalle.CodigoLote}. Disponible: {stockExistente}, Solicitado: {detalle.Cantidad}."
+                        Mensaje: $"Stock insuficiente para el producto {producto.Nombre}, Lote: {detalle.CodigoLote.ToUpper()}. Disponible: {stockExistente}, Solicitado: {detalle.Cantidad}."
                     ));
                 }
             }
@@ -275,7 +275,7 @@ namespace CigralBackend.Application.Services
                 // Procesar cada detalle
                 foreach (var detalle in request.Detalles)
                 {
-                    var lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote);
+                    var lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote.ToUpper());
                     // Crear el detalle del remito
                     var detalleRemito = new DetalleRemito
                     {
@@ -293,7 +293,7 @@ namespace CigralBackend.Application.Services
                         DepositoId: request.DepositoId,
                         ProductoId: detalle.ProductoId,
                         NumSerie: detalle.NumeroSerie,
-                        CodigoLote: lote?.CodigoLote,
+                        CodigoLote: lote?.CodigoLote.ToUpper(),
                         FechaVencimiento: detalle.FechaVencimiento,
                         Cantidad: detalle.Cantidad,
                         InformacionAdicional: detalle.InformacionAdicional
@@ -470,7 +470,7 @@ namespace CigralBackend.Application.Services
                 Observaciones: e.Observaciones,
                 Detalles: e.Detalles.Select(d => new RemitoDetalleResponse(
                     ProductoId: d.ProductoId,
-                    CodigoLote: d.Lote != null ? d.Lote.CodigoLote : null,
+                    CodigoLote: d.Lote != null ? d.Lote.CodigoLote.ToUpper() : null,
                     FechaVencimiento: d.Lote != null ? d.Lote.FechaVencimiento : (DateTime?)null,
                     NumeroSerie: d.NumeroSerie,
                     Cantidad: d.Cantidad
@@ -518,7 +518,7 @@ namespace CigralBackend.Application.Services
                 Observaciones: e.Observaciones,
                 Detalles: e.Detalles.Select(d => new RemitoDetalleResponse(
                     ProductoId: d.ProductoId,
-                    CodigoLote: d.Lote != null ? d.Lote.CodigoLote : null,
+                    CodigoLote: d.Lote != null ? d.Lote.CodigoLote.ToUpper() : null,
                     FechaVencimiento: d.Lote != null ? d.Lote.FechaVencimiento : (DateTime?)null,
                     NumeroSerie: d.NumeroSerie,
                     Cantidad: d.Cantidad

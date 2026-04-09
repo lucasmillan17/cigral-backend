@@ -245,7 +245,7 @@ namespace CigralBackend.Application.Services
                     result.Gtin = valor;
                     break;
                 case "10":
-                    result.Lote = valor;
+                    result.Lote = valor.ToUpper();
                     break;
                 case "21":
                     result.NumeroSerie = valor;
