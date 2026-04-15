@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -302,21 +303,19 @@ namespace CigralBackend.Application.Services
             Lote? lote = null;
             if (!string.IsNullOrEmpty(r.CodigoLote))
             {
-                lote = await _repository.First<Lote>(l => l.CodigoLote == loteUpper);
-                if (lote == null)
-                {
-                    throw new NotFoundException(nameof(Lote), loteUpper);
-                }
+                lote = await _repository.First<Lote>(l => l.CodigoLote == loteUpper)
+                    ?? throw new NotFoundException(nameof(Lote), loteUpper);
+                
             }
 
             // Buscar existencia existente
-            var existencia = await _repository.First<Existencia>(
+            var existenciasADescontar = await _repository.GetFiltered<Existencia>(
                 e => e.ProductoId == r.ProductoId &&
                      (string.IsNullOrEmpty(loteUpper) || e.LoteId == lote.Id) &&
                      (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie)
             );
 
-            if (existencia == null)
+            if (existenciasADescontar == null || !existenciasADescontar.Items.Any())
             {
                 throw new NotFoundException(
                     nameof(Existencia),
@@ -325,34 +324,88 @@ namespace CigralBackend.Application.Services
             }
 
             // Validar stock suficiente
-            if (existencia.Cantidad < r.Cantidad)
+
+            var stockDisponible = existenciasADescontar.Items.Sum(e => e.Cantidad);
+
+            if (stockDisponible < r.Cantidad)
             {
                 throw new DomainException(
                     DomainErrorCode.StockInsuficiente,
-                    $"Stock insuficiente. Disponible: {existencia.Cantidad}, Solicitado: {r.Cantidad}"
+                    $"Stock insuficiente. Disponible: {stockDisponible}, Solicitado: {r.Cantidad}"
                 );
             }
 
-            int stockAnterior = existencia.Cantidad;
+            int stockAnterior = stockDisponible;
+            int cantidadACubrir = r.Cantidad;
 
-            // Disminuir cantidad
-            existencia.Cantidad -= r.Cantidad;
-            int stockNuevo = existencia.Cantidad;
-            if(stockNuevo == 0)
+            bool manejaTransaccionPropia = !_repository.HasActiveTransaction();
+            var transaction = manejaTransaccionPropia ? await _repository.BeginTransaction() : null;
+
+            try
             {
-                await _repository.Delete(existencia);
+                foreach(var existencia in existenciasADescontar.Items) {
+
+                    if (cantidadACubrir == 0) break;
+                    if (existencia.Cantidad == 0) continue;
+
+                    // Disminuir cantidad
+                
+                    if(existencia.Cantidad >= cantidadACubrir)
+                    {
+                        existencia.Cantidad -= cantidadACubrir;
+                        cantidadACubrir = 0;
+                    }
+                    else
+                    {
+                        cantidadACubrir -= existencia.Cantidad;
+                        existencia.Cantidad = 0;
+                    }
+
+                    if (existencia.Cantidad == 0)
+                    {
+                        await _repository.Delete(existencia);
+                    }
+                    else
+                    {
+                        await _repository.Update(existencia);
+                    }
+
+                }
+                // Solo hacemos commit si NOSOTROS abrimos esta transacción
+                if (manejaTransaccionPropia && transaction != null)
+                {
+                    await transaction.CommitAsync();
+                }
+
             }
-            else
+            catch
             {
-                await _repository.Update(existencia);
+                if (manejaTransaccionPropia && transaction != null)
+                {
+                    await transaction.RollbackAsync();
+                }
+                throw new DomainException(
+                    DomainErrorCode.StockInsuficiente,
+                    $"Stock insuficiente. Disponible: {stockAnterior}, Solicitado: {r.Cantidad}"
+                );
             }
+            finally
+            {
+                // Limpiamos la memoria de la transacción si la creamos
+                if (manejaTransaccionPropia && transaction != null)
+                {
+                    await transaction.DisposeAsync();
+                }
+            }
+
+            var stockNuevo = stockAnterior - r.Cantidad;
 
             // Registrar movimiento en auditoría
             await RegistrarMovimiento(
                 tipo: remitoEgresoId.HasValue ? TipoMovimiento.Egreso : TipoMovimiento.AjusteNegativo,
                 productoId: r.ProductoId,
                 depositoId: r.DepositoId,
-                loteId: lote.Id,
+                loteId: lote?.Id,
                 numeroSerie: r.NumSerie,
                 cantidad: -r.Cantidad, // Negativo para egreso
                 stockAnterior: stockAnterior,
@@ -361,7 +414,9 @@ namespace CigralBackend.Application.Services
                 observaciones: observaciones
             );
 
-            return ResponseGenerator(existencia, producto, deposito, lote);
+            var existenciaBase = existenciasADescontar.Items.First();
+
+            return ResponseGenerator(existenciaBase, producto, deposito, lote);
         }
 
         /// <summary>
@@ -517,7 +572,7 @@ namespace CigralBackend.Application.Services
                 e.LoteId ?? 0,
                 e.Lote?.CodigoLote.ToUpper() ?? "Sin Código de Lote",
                 e.NumSerie ?? "Sin Número de Serie",
-                e.Lote?.FechaVencimiento ?? e.FechaVencimiento,
+                e.FechaVencimiento ?? e.Lote?.FechaVencimiento,
                 e.Cantidad,
                 e.InformacionAdicional
             )).ToList();
@@ -673,12 +728,16 @@ namespace CigralBackend.Application.Services
 
         public async Task<int> GetStockDisponible(int productoId, int depositoId, string? codigoLote = null, string? numSerie = null)
         {
-            var existencia = await _repository.First<Existencia>(
+            var existencia = await _repository.GetFiltered<Existencia>(
                 e => e.ProductoId == productoId &&
                      (string.IsNullOrEmpty(codigoLote) || e.Lote.CodigoLote == codigoLote.ToUpper()) &&
                      (string.IsNullOrEmpty(numSerie) || e.NumSerie == numSerie)
             );
-            return existencia?.Cantidad ?? 0;
+
+            var existenciasASumar = existencia.Items;
+
+            var cantidadReal = existenciasASumar.Sum(e => e.Cantidad);
+            return cantidadReal;
         }
     }
 }

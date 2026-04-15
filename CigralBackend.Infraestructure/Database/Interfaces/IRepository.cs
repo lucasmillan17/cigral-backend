@@ -80,6 +80,7 @@ namespace CigralBackend.Infraestructure.Database.Interfaces
         /// <returns>IDbContextTransaction para controlar la transacción</returns>
         Task<IDbContextTransaction> BeginTransaction();
         Task<T?> Last<T>(Expression<Func<T, bool>> predicate, params string[] include) where T : EntityBase;
+        bool HasActiveTransaction();
     }
 
 }

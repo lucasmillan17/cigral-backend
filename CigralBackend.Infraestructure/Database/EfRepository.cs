@@ -136,6 +136,14 @@ namespace CigralBackend.Infraestructure.Database
         }
 
         /// <summary>
+        /// Verifica si ya existe una transacción activa en el contexto actual.
+        /// </summary>
+        public bool HasActiveTransaction()
+        {
+            return _context.Database.CurrentTransaction != null;
+        }
+
+        /// <summary>
         /// Aplica eager loading de propiedades de navegación especificadas.
         /// </summary>
         /// <typeparam name="T">Tipo de entidad</typeparam>

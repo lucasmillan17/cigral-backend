@@ -233,7 +233,7 @@ namespace CigralBackend.Application.Services
                     depositoId: request.DepositoId,
                     productoId: detalle.ProductoId,
                     numSerie: numeroSerie,
-                    codigoLote: detalle.CodigoLote.ToUpper()
+                    codigoLote: detalle?.CodigoLote?.ToUpper()
                 );
 
                 if (stockExistente < detalle.Cantidad)
