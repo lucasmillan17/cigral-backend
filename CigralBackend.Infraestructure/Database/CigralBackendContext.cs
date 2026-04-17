@@ -23,6 +23,7 @@ namespace CigralBackend.Infraestructure.Database
         public DbSet<RemitoIngreso> RemitosIngreso { get; set; }
         public DbSet<MovimientoStock> MovimientosStock { get; set; }
         public DbSet<EntidadResumen> EntidadesResumen { get; set; }
+        public DbSet<Consignacion> Consignaciones { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -238,6 +239,21 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasIndex(e => e.FechaMovimiento);
                 entity.HasIndex(e => new { e.ProductoId, e.DepositoId });
                 entity.HasIndex(e => e.Tipo);
+            });
+
+            modelBuilder.Entity<Consignacion>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => new { e.ClienteId, e.ExistenciaId }).IsUnique();
+                entity.Property(e => e.FechaModificacion).IsRequired();
+                entity.HasOne(e => e.Existencia)
+                      .WithMany()
+                      .HasForeignKey(e => e.ExistenciaId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Cliente)
+                      .WithMany()
+                      .HasForeignKey(e => e.ClienteId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<EntidadResumen>()

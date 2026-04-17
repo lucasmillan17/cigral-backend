@@ -309,6 +309,7 @@ namespace CigralBackend.Application.Services
             }
 
             // Buscar existencia existente
+            // Buscar existencia existente
             var existenciasADescontar = await _repository.GetFiltered<Existencia>(
                 e => e.ProductoId == r.ProductoId &&
                      (string.IsNullOrEmpty(loteUpper) || e.LoteId == lote.Id) &&
@@ -323,19 +324,31 @@ namespace CigralBackend.Application.Services
                 );
             }
 
-            // Validar stock suficiente
+            // --- NUEVA LÓGICA DE CONSIGNACIONES AQUÍ ---
+            var idsExistencias = existenciasADescontar.Items.Select(e => e.Id).ToList();
 
-            var stockDisponible = existenciasADescontar.Items.Sum(e => e.Cantidad);
+            var consignacionesVinculadas = await _repository.GetFiltered<Consignacion>(
+                c => idsExistencias.Contains(c.ExistenciaId),
+                pageNumber: 1,
+                pageSize: int.MaxValue
+            );
 
-            if (stockDisponible < r.Cantidad)
+            int stockFisico = existenciasADescontar.Items.Sum(e => e.Cantidad);
+            int stockConsignado = consignacionesVinculadas.Items.Sum(c => c.Cantidad);
+            int stockDisponibleReal = stockFisico - stockConsignado;
+
+            // Validar stock real disponible (Físico - Consignado)
+            if (stockDisponibleReal < r.Cantidad)
             {
+                // NOTA: Asegúrate de tener StockReservadoEnConcesion en tu DomainErrorCode, 
+                // o usa StockInsuficiente si prefieres.
                 throw new DomainException(
                     DomainErrorCode.StockInsuficiente,
-                    $"Stock insuficiente. Disponible: {stockDisponible}, Solicitado: {r.Cantidad}"
+                    $"Stock insuficiente debido a consignaciones. Físico: {stockFisico}, En Consignación: {stockConsignado}. Disponible Real: {stockDisponibleReal}, Solicitado: {r.Cantidad}"
                 );
             }
 
-            int stockAnterior = stockDisponible;
+            int stockAnterior = stockFisico; // Para el registro de auditoría usamos el físico
             int cantidadACubrir = r.Cantidad;
 
             bool manejaTransaccionPropia = !_repository.HasActiveTransaction();
@@ -726,7 +739,7 @@ namespace CigralBackend.Application.Services
             await _repository.Delete(existencia);
         }
 
-        public async Task<int> GetStockDisponible(int productoId, int depositoId, string? codigoLote = null, string? numSerie = null)
+        public async Task<int> GetStockDisponible(int productoId, string? codigoLote = null, string? numSerie = null)
         {
             var existencia = await _repository.GetFiltered<Existencia>(
                 e => e.ProductoId == productoId &&
@@ -736,8 +749,22 @@ namespace CigralBackend.Application.Services
 
             var existenciasASumar = existencia.Items;
 
-            var cantidadReal = existenciasASumar.Sum(e => e.Cantidad);
-            return cantidadReal;
+            if (!existenciasASumar.Any()) return 0;
+
+            var idsExistencias = existenciasASumar.Select(e => e.Id).ToList();
+
+            // Buscar cuánto de ese stock está retenido en consignaciones
+            var consignaciones = await _repository.GetFiltered<Consignacion>(
+                c => idsExistencias.Contains(c.ExistenciaId),
+                pageNumber: 1,
+                pageSize: int.MaxValue
+            );
+
+            var cantidadFisica = existenciasASumar.Sum(e => e.Cantidad);
+            var cantidadConsignada = consignaciones.Items.Sum(c => c.Cantidad);
+
+            // Devolvemos solo lo que realmente se puede tocar
+            return cantidadFisica - cantidadConsignada;
         }
     }
 }

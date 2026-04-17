@@ -68,7 +68,8 @@ namespace CigralBackend.Domain.Exceptions
                 DomainErrorCode.SerieDuplicada => "El numero de serie ya existe.",
                 DomainErrorCode.LoteNoEncontrado => "El lote especificado no existe.",
                 DomainErrorCode.ExistenciaNoEncontrada => "La existencia no fue encontrada.",
-                
+                DomainErrorCode.StockEnConsignacion => "La existencia no fue encontrada.",
+
                 DomainErrorCode.ClienteNoExiste => "El cliente especificado no existe.",
                 DomainErrorCode.GlnClienteDuplicado => "El GLN del cliente ya existe.",
                 DomainErrorCode.CuitClienteDuplicado => "El CUIT del cliente ya existe.",

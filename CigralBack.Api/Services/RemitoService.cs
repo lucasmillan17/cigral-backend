@@ -230,7 +230,6 @@ namespace CigralBackend.Application.Services
                 string numeroSerie = detalle.NumeroSerie == "Sin Número de Serie" ? null : detalle.NumeroSerie;
 
                 var stockExistente = await _existenciaService.GetStockDisponible(
-                    depositoId: request.DepositoId,
                     productoId: detalle.ProductoId,
                     numSerie: numeroSerie,
                     codigoLote: detalle?.CodigoLote?.ToUpper()

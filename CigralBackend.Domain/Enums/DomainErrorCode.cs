@@ -93,6 +93,11 @@ namespace CigralBackend.Domain.Enums
         /// </summary>
         SerieYCodigoLoteNoEspecificados = 3008,
 
+        /// <summary>
+        /// Existe una consignacion que no permite sacar stock.
+        /// </summary>
+        StockEnConsignacion = 3009,
+
         // 4000 - Errores de Clientes
         /// <summary>
         /// El cliente especificado no existe.
