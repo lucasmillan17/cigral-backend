@@ -766,5 +766,25 @@ namespace CigralBackend.Application.Services
             // Devolvemos solo lo que realmente se puede tocar
             return cantidadFisica - cantidadConsignada;
         }
+
+        public async Task<StockDisponibleResponse> GetStockDisponible(int existenciaId)
+        {
+            var existencia = await _repository.GetById<Existencia>(existenciaId);
+
+            if (existencia == null) return new StockDisponibleResponse(0);
+
+            // Buscar cuánto de ese stock está retenido en consignaciones
+            var consignaciones = await _repository.GetFiltered<Consignacion>(
+                c => c.ExistenciaId == existenciaId,
+                pageNumber: 1,
+                pageSize: int.MaxValue
+            );
+
+            var cantidadFisica = existencia.Cantidad;
+            var cantidadConsignada = consignaciones.Items.Sum(c => c.Cantidad);
+
+            // Devolvemos solo lo que realmente se puede tocar
+            return new StockDisponibleResponse(Cantidad: (cantidadFisica - cantidadConsignada));
+        }
     }
 }

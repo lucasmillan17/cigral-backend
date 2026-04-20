@@ -69,5 +69,6 @@ namespace CigralBackend.Application.Services.Interfaces
         /// <param name="id">ID de la existencia a eliminar</param>
         Task DeleteExistencia(int id);
         Task<int> GetStockDisponible(int productoId, string? codigoLote = null, string? numSerie = null);
+        Task<StockDisponibleResponse> GetStockDisponible(int existenciaId);
     }
 }

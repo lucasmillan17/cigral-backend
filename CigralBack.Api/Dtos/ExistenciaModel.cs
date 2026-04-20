@@ -78,4 +78,6 @@ namespace CigralBackend.Application.Dtos
         [Range(1, 100, ErrorMessage = "El tamaño de página no puede superar los 100 items")]
         int PageSize = 10
     );
+
+    public record StockDisponibleResponse(int Cantidad);
 }

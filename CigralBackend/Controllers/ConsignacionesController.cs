@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
-using CigralBackend.Application.Dtos;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CigralBackend.Api.Controllers
 {
-    [ApiController]
+    [Authorize]
+    [ApiController]    
     [Route("api/[controller]")]
     public class ConsignacionesController : ControllerBase
     {
@@ -45,6 +47,7 @@ namespace CigralBackend.Api.Controllers
         /// <summary>
         /// Obtiene la lista de consignaciones paginadas y filtradas.
         /// </summary>
+        [ProducesResponseType(typeof(GetConsignacionResponse), StatusCodes.Status200OK)]
         [HttpGet]
         public async Task<IActionResult> GetConsignaciones([FromQuery] ConsignacionFilters filters)
         {
