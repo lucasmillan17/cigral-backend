@@ -18,7 +18,7 @@ namespace CigralBackend.Domain
         /// <summary>El nombre del campo que cambió. Ej: "Estado", "Cantidad"</summary>
         public string Campo { get; set; }
 
-        public string ValorAnterior { get; set; }
+        public string? ValorAnterior { get; set; }
         public string ValorActual { get; set; }
 
         public string Usuario { get; set; }
