@@ -109,6 +109,6 @@ namespace CigralBackend.Domain
         /// <summary>
         /// Transferencia entre depósitos
         /// </summary>
-        Transferencia = 5
+        Transferencia = 5,
     }
 }
