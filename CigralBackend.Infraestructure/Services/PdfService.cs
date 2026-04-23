@@ -1,7 +1,6 @@
 using CigralBackend.Domain;
-using CigralBackend.Domain.Dtos;
+using CigralBackend.Infraestructure.Dtos;
 using CigralBackend.Domain.Exceptions;
-using CigralBackend.Domain.Services;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using QuestPDF.Companion;
@@ -407,6 +406,107 @@ namespace CigralBackend.Infraestructure.Services
 
             await Task.CompletedTask;
 
+        }
+
+        /// <summary>
+        /// Genera un PDF con el reporte de consignaciones agrupado por cliente.
+        /// </summary>
+        public byte[] GenerarPdfReporteConsignaciones(ReporteConsignacionesPdfDto reporte)
+        {
+            var documento = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(10));
+
+                    // Reutilizamos tu Header y Footer existentes
+                    page.Header().Element(ComposeHeader);
+                    page.Content().Element(c => ComposeContentConsignaciones(c, reporte));
+                    page.Footer().Element(ComposeFooter);
+                });
+            });
+
+            return documento.GeneratePdf();
+        }
+
+        /// <summary>
+        /// Compone el contenido específico para el reporte de consignaciones.
+        /// </summary>
+        private void ComposeContentConsignaciones(IContainer container, ReporteConsignacionesPdfDto reporte)
+        {
+            container.PaddingVertical(10).Column(column =>
+            {
+                column.Spacing(15);
+
+                // Título del reporte
+                column.Item().AlignCenter().Text("REPORTE DE CONSIGNACIONES ACTIVAS")
+                    .Bold().FontSize(16).FontColor(Colors.Blue.Medium);
+
+                column.Item().AlignCenter().Text($"Fecha de emisión: {reporte.FechaReporte:dd/MM/yyyy HH:mm}");
+
+                column.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+
+                // Iterar por cada cliente en el reporte
+                foreach (var cliente in reporte.Clientes)
+                {
+                    // EnsureSpace evita que el bloque de un cliente se rompa a la mitad en un salto de página
+                    column.Item().EnsureSpace().Column(clienteCol =>
+                    {
+                        clienteCol.Spacing(5);
+
+                        // Encabezado del Cliente
+                        clienteCol.Item().Background(Colors.Grey.Lighten3).Padding(5)
+                            .Text($"Cliente: {cliente.RazonSocial}").Bold().FontSize(12);
+
+                        // Tabla de Consignaciones para este cliente
+                        clienteCol.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(3); // Producto
+                                columns.RelativeColumn(1.5f); // Código/GTIN
+                                columns.RelativeColumn(1.5f); // Fecha
+                                columns.RelativeColumn(1); // Cantidad
+                            });
+
+                            table.Header(header =>
+                            {
+                                header.Cell().BorderBottom(1).BorderColor(Colors.Black).Padding(3).Text("Producto").Bold();
+                                header.Cell().BorderBottom(1).BorderColor(Colors.Black).Padding(3).Text("Código").Bold();
+                                header.Cell().BorderBottom(1).BorderColor(Colors.Black).Padding(3).Text("Última Mod.").Bold();
+                                header.Cell().BorderBottom(1).BorderColor(Colors.Black).Padding(3).AlignRight().Text("Cant.").Bold();
+                            });
+
+                            foreach (var consig in cliente.Consignaciones)
+                            {
+                                table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(3)
+                                    .Text(consig.ProductoNombre).FontSize(9);
+
+                                table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(3)
+                                    .Text(consig.GtinODetalle).FontSize(8);
+
+                                table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(3)
+                                    .Text(consig.FechaModificacion.ToString("dd/MM/yyyy")).FontSize(9);
+
+                                table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(3)
+                                    .AlignRight().Text(consig.Cantidad.ToString()).Bold().FontSize(9);
+                            }
+                        });
+
+                        // Fila de Totales del cliente
+                        clienteCol.Item().PaddingTop(3).AlignRight().Row(row =>
+                        {
+                            row.AutoItem().Text("Unidades Totales: ").Bold();
+                            row.AutoItem().Text(cliente.TotalUnidades.ToString()).Bold().FontColor(Colors.Blue.Medium);
+                        });
+
+                        // Espacio extra antes del próximo cliente
+                        clienteCol.Item().PaddingBottom(10);
+                    });
+                }
+            });
         }
     }
 }

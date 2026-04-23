@@ -12,6 +12,8 @@ namespace CigralBackend.Application.Services.Interfaces
     {
         Task<ConsignacionResponse> AumentarConsignacion(ConsignacionRequest request);
         Task<ConsignacionResponse?> DisminuirConsignacion(int consignacionId, int cantidadADisminuir);
+        byte[] GenerarPdfMockParaDisenio();
+        Task<byte[]> GenerarReportePdfAsync(PrintConsignacionesRequest request);
         Task<PagedResult<GetConsignacionResponse>> GetConsignaciones(ConsignacionFilters filters);
     }
 }

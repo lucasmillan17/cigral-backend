@@ -54,6 +54,35 @@ namespace CigralBackend.Api.Controllers
             var response = await _consignacionService.GetConsignaciones(filters);
             return Ok(response);
         }
+
+        [HttpPost("imprimir")]
+        public async Task<IActionResult> ImprimirConsignaciones([FromBody] PrintConsignacionesRequest request)
+        {
+            // Le pasamos el request (con los IDs) al servicio
+            var pdfBytes = await _consignacionService.GenerarReportePdfAsync(request);
+
+            // Devolvemos el byte[] como un archivo PDF descargable
+            return File(pdfBytes, "application/pdf", "Reporte_Consignaciones.pdf");
+        }
+
+        [HttpGet("imprimir/test")]
+        [AllowAnonymous]
+
+        // [AllowAnonymous] // Descomentá esto si querés probarlo sin pasar el token de autorización
+        public IActionResult TestDisenioPdf()
+        {
+            try
+            {
+                var pdfBytes = _consignacionService.GenerarPdfMockParaDisenio();
+
+                // Retornamos el byte array como un archivo PDF
+                return File(pdfBytes, "application/pdf", "Test_Disenio_Consignaciones.pdf");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al generar el PDF de prueba: {ex.Message}");
+            }
+        }
     }
 }
 

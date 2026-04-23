@@ -89,7 +89,7 @@ namespace CigralBackend
             builder.Services.AddScoped<IProveedorService, ProveedorService>();
             builder.Services.AddScoped<IDepositoService, DepositoService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<CigralBackend.Domain.Services.IPdfService, CigralBackend.Infraestructure.Services.PdfService>();
+            builder.Services.AddScoped<IPdfService, PdfService>();
             builder.Services.AddSingleton<IBarCodeParser, BarCodeParser>();
             builder.Services.AddScoped<ICatalogParserService, CsvCatalogParserService>();
             builder.Services.AddScoped<IConsignacionService, ConsignacionService>();

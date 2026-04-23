@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
+using CigralBackend.Infraestructure.Dtos;
 
-namespace CigralBackend.Domain.Services
+namespace CigralBackend.Infraestructure.Services
 {
     /// <summary>
     /// Interfaz para servicios de generación de PDFs.
@@ -22,5 +23,6 @@ namespace CigralBackend.Domain.Services
         /// <returns>Bytes del PDF generado</returns>
         Task<byte[]> GenerarPdfRemitoEgreso(int remitoId);
         Task GenerarPdfRemitoDisenio();
+        byte[] GenerarPdfReporteConsignaciones(ReporteConsignacionesPdfDto reporte);
     }
 }

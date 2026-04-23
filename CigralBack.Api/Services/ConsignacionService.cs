@@ -3,8 +3,11 @@ using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
+using CigralBackend.Application.Services;
 using CigralBackend.Domain.Wrappers;
 using CigralBackend.Infraestructure.Database.Interfaces;
+using CigralBackend.Infraestructure.Services;
+using CigralBackend.Infraestructure.Dtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +19,11 @@ namespace CigralBackend.Application.Services
     public class ConsignacionService : IConsignacionService
     {
         private readonly IRepository _repository;
-        public ConsignacionService(IRepository repository) 
+        private readonly IPdfService _pdfService;
+        public ConsignacionService(IRepository repository, IPdfService pdfService) 
         {
             _repository = repository;
+            _pdfService = pdfService;
         }
 
         public async Task<ConsignacionResponse> AumentarConsignacion(ConsignacionRequest request)
@@ -208,6 +213,74 @@ namespace CigralBackend.Application.Services
                 PageNumber = resultadoEntidad.PageNumber,
                 PageSize = resultadoEntidad.PageSize
             };
+        }
+
+        public async Task<byte[]> GenerarReportePdfAsync(PrintConsignacionesRequest request)
+        {
+            // 1. Buscar las consignaciones usando tu repositorio
+            var pagedResult = await _repository.GetFiltered<Consignacion>(
+                predicate: c => request.ConsignacionIds.Contains(c.Id),
+                pageNumber: 1,
+                pageSize: int.MaxValue, // TRUCO: Forzamos un tamaño máximo para anular la paginación y traer todas
+                orderBy: query => query.OrderBy(c => c.Cliente.RazonSocial), // Ya las traemos ordenadas desde la DB
+                "Cliente",
+                "Existencia.Producto" // Asegurate de que la ruta de navegación sea correcta según tu entidad
+            );
+
+            var consignacionesDeDb = pagedResult.Items;
+
+            // 2. Si no encontró ninguna, podrías lanzar una excepción o retornar un reporte vacío
+            if (!consignacionesDeDb.Any())
+            {
+                throw new NotFoundException(nameof(Consignacion), "No se encontraron las consignaciones solicitadas para imprimir.");
+            }
+
+            // 3. Agrupar y mapear a los Records (tal cual lo vimos antes)
+            var clientesAgrupados = consignacionesDeDb
+                .GroupBy(c => c.Cliente.RazonSocial)
+                .Select(g => new ConsignacionClientePdfDto(
+                    g.Key,
+                    g.Select(c => new DetalleConsignacionPdfDto(
+                        c.Existencia.Producto.Nombre,
+                        c.Existencia.Producto.GTIN ?? "-",
+                        c.Cantidad,
+                        c.FechaModificacion
+                    )).ToList()
+                )).ToList();
+
+            var reporteDto = new ReporteConsignacionesPdfDto(clientesAgrupados, DateTime.Now);
+
+            // 4. Delegar la creación visual al PdfService
+            return _pdfService.GenerarPdfReporteConsignaciones(reporteDto);
+        }
+
+        public byte[] GenerarPdfMockParaDisenio()
+        {
+            // 1. Armamos el mockup de clientes y sus consignaciones
+            var clientesMock = new List<ConsignacionClientePdfDto>
+            {
+                new ConsignacionClientePdfDto("Hospital Centro de Salud", new List<DetalleConsignacionPdfDto>
+                {
+                    new DetalleConsignacionPdfDto("Jeringas Descartables 5ml x 100u", "7791234567890", 150, DateTime.Now.AddDays(-2)),
+                    new DetalleConsignacionPdfDto("Gasa Estéril 10x10cm (Caja con nombre super largo para ver cómo reacciona el salto de línea en QuestPDF y si rompe el diseño de la tabla)", "7790987654321", 50, DateTime.Now.AddDays(-5))
+                }),
+                new ConsignacionClientePdfDto("Sanatorio Parque", new List<DetalleConsignacionPdfDto>
+                {
+                    new DetalleConsignacionPdfDto("Alcohol en Gel 1L", "7791111111111", 100, DateTime.Now.AddDays(-1)),
+                    new DetalleConsignacionPdfDto("Solución Fisiológica 500ml", "7792222222222", 250, DateTime.Now),
+                    new DetalleConsignacionPdfDto("Cinta Hipolergénica 5cm", "7793333333333", 25, DateTime.Now.AddHours(-10))
+                }),
+                new ConsignacionClientePdfDto("Farmacia San Miguel", new List<DetalleConsignacionPdfDto>
+                {
+                    new DetalleConsignacionPdfDto("Ibuprofeno 400mg x 10u", "7794444444444", 500, DateTime.Now.AddDays(-15))
+                })
+            };
+
+            // 2. Creamos el DTO general
+            var reporteDto = new ReporteConsignacionesPdfDto(clientesMock, DateTime.Now);
+
+            // 3. Se lo pasamos al motor de PDF
+            return _pdfService.GenerarPdfReporteConsignaciones(reporteDto);
         }
     }
 }

@@ -49,5 +49,6 @@ namespace CigralBackend.Application.Dtos
          int Cantidad,
          DateTime FechaModificacion
      );
+    public record PrintConsignacionesRequest(List<int> ConsignacionIds);
 
 }
