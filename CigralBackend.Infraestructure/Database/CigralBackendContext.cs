@@ -2,15 +2,16 @@ using CigralBackend.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace CigralBackend.Infraestructure.Database
 {
     public class CigralBackendContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
     {
-        public CigralBackendContext(DbContextOptions<CigralBackendContext> options) : base(options)
+        IHttpContextAccessor _userContext;
+        public CigralBackendContext(DbContextOptions<CigralBackendContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
         {
-
-
+            _userContext = httpContextAccessor;
         }
 
         public DbSet<Cliente> Clientes { get; set; }
@@ -314,7 +315,7 @@ namespace CigralBackend.Infraestructure.Database
                                 ValorAnterior = valorAnterior, // Lo que antes era stockAnterior
                                 ValorActual = valorActual,     // Lo que antes era stockPosterior
                                 Fecha = DateTime.UtcNow,
-                                Usuario = "Sistema" // TODO: Puedes inyectar IHttpContextAccessor para obtener el email/ID del usuario logueado
+                                Usuario = _userContext.HttpContext?.User?.Identity?.Name ?? "Sistema" // TODO: Puedes inyectar IHttpContextAccessor para obtener el email/ID del usuario logueado
                             });
                         }
                     }
@@ -331,7 +332,7 @@ namespace CigralBackend.Infraestructure.Database
                         ValorAnterior = null,
                         ValorActual = "Nuevo Registro Creado",
                         Fecha = DateTime.UtcNow,
-                        Usuario = "Sistema"
+                        Usuario = _userContext.HttpContext?.User?.Identity?.Name ?? "Sistema"
                     });
                 }
             }
