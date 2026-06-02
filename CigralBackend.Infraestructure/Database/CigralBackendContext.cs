@@ -2,13 +2,16 @@ using CigralBackend.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace CigralBackend.Infraestructure.Database
 {
     public class CigralBackendContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
     {
-        public CigralBackendContext(DbContextOptions<CigralBackendContext> options) : base(options)
+        IHttpContextAccessor _userContext;
+        public CigralBackendContext(DbContextOptions<CigralBackendContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
         {
+            _userContext = httpContextAccessor;
         }
 
         public DbSet<Cliente> Clientes { get; set; }
@@ -23,6 +26,8 @@ namespace CigralBackend.Infraestructure.Database
         public DbSet<RemitoIngreso> RemitosIngreso { get; set; }
         public DbSet<MovimientoStock> MovimientosStock { get; set; }
         public DbSet<EntidadResumen> EntidadesResumen { get; set; }
+        public DbSet<Consignacion> Consignaciones { get; set; }
+        public DbSet<RegistroAuditoria> Auditorias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -240,9 +245,105 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasIndex(e => e.Tipo);
             });
 
+            modelBuilder.Entity<Consignacion>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => new { e.ClienteId, e.ExistenciaId }).IsUnique();
+                entity.Property(e => e.FechaModificacion).IsRequired();
+                entity.HasOne(e => e.Existencia)
+                      .WithMany()
+                      .HasForeignKey(e => e.ExistenciaId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Cliente)
+                      .WithMany()
+                      .HasForeignKey(e => e.ClienteId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<RegistroAuditoria>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Entidad).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.EntidadId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Accion).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Campo).HasMaxLength(100);
+                entity.Property(e => e.Usuario).HasMaxLength(100);
+                entity.HasIndex(e => e.Entidad);
+                entity.HasIndex(e => e.Fecha);
+            });
+
             modelBuilder.Entity<EntidadResumen>()
                 .ToView("vw_Entidades_Resumen")
                 .HasNoKey();
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var entradasAuditoria = new List<RegistroAuditoria>();
+
+            // Obtenemos todas las entidades que han sido modificadas
+            var entradasModificadas = ChangeTracker.Entries()
+                .Where(e => e.State == EntityState.Modified || e.State == EntityState.Added || e.State == EntityState.Deleted)
+                .ToList();
+
+            foreach (var entry in entradasModificadas)
+            {
+                // Evitamos auditar la tabla de auditoría para no crear un bucle infinito
+                if (entry.Entity is RegistroAuditoria)
+                    continue;
+
+                var nombreEntidad = entry.Entity.GetType().Name;
+                var pk = entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey())?.CurrentValue?.ToString();
+
+                // Si es una actualización, buscamos campo por campo cuáles cambiaron
+                if (entry.State == EntityState.Modified)
+                {
+                    foreach (var property in entry.OriginalValues.Properties)
+                    {
+                        var valorAnterior = entry.OriginalValues[property]?.ToString();
+                        var valorActual = entry.CurrentValues[property]?.ToString();
+
+                        // Solo guardamos si el valor realmente cambió
+                        if (valorAnterior != valorActual)
+                        {
+                            entradasAuditoria.Add(new RegistroAuditoria
+                            {
+                                Entidad = nombreEntidad,
+                                EntidadId = pk,
+                                Accion = "Update",
+                                Campo = property.Name, // Aquí usamos el campo genérico
+                                ValorAnterior = valorAnterior, // Lo que antes era stockAnterior
+                                ValorActual = valorActual,     // Lo que antes era stockPosterior
+                                Fecha = DateTime.UtcNow,
+                                Usuario = _userContext.HttpContext?.User?.Identity?.Name ?? "Sistema" // TODO: Puedes inyectar IHttpContextAccessor para obtener el email/ID del usuario logueado
+                            });
+                        }
+                    }
+                }
+                else if (entry.State == EntityState.Added)
+                {
+                    // Lógica opcional para guardar inserciones
+                    entradasAuditoria.Add(new RegistroAuditoria
+                    {
+                        Entidad = nombreEntidad,
+                        EntidadId = "Nuevo", // El ID real se genera después del SaveChanges
+                        Accion = "Insert",
+                        Campo = "Todos",
+                        ValorAnterior = null,
+                        ValorActual = "Nuevo Registro Creado",
+                        Fecha = DateTime.UtcNow,
+                        Usuario = _userContext.HttpContext?.User?.Identity?.Name ?? "Sistema"
+                    });
+                }
+            }
+
+            // Guardamos las auditorías en el contexto antes de hacer el commit final
+            if (entradasAuditoria.Any())
+            {
+                Auditorias.AddRange(entradasAuditoria);
+            }
+
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }

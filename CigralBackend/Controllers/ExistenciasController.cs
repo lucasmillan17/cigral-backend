@@ -171,5 +171,13 @@ namespace CigralBackend.Controllers
             await _existenciaService.DeleteExistencia(id);
             return NoContent();
         }
+
+        [HttpGet("{id}/stock-disponible")]
+        [ProducesResponseType(typeof(StockDisponibleResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetStockDisponible(int id)
+        {
+            var cantidad = await _existenciaService.GetStockDisponible(id);
+            return Ok(cantidad);
+        }
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace CigralBackend.Domain.Dtos
+namespace CigralBackend.Infraestructure.Dtos
 {
     /// <summary>
     /// DTO con información completa de remito para generar PDF.

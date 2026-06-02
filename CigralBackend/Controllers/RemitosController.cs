@@ -1,7 +1,7 @@
 using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services;
 using CigralBackend.Application.Services.Interfaces;
-using CigralBackend.Domain.Services;
+using CigralBackend.Infraestructure.Services;
 using CigralBackend.Domain.Wrappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
