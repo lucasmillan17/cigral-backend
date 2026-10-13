@@ -29,9 +29,19 @@ namespace CigralBackend.Infraestructure.Database
         public DbSet<Consignacion> Consignaciones { get; set; }
         public DbSet<RegistroAuditoria> Auditorias { get; set; }
 
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            // Todas las columnas de texto como citext: las búsquedas (Contains), comparaciones e
+            // índices únicos siguen sin distinguir mayúsculas, igual que en SQL Server.
+            configurationBuilder.Properties<string>().HaveColumnType("citext");
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // citext: texto que no distingue mayúsculas, como el collation por defecto de SQL Server.
+            modelBuilder.HasPostgresExtension("citext");
 
             // Configuración de Cliente
             modelBuilder.Entity<Cliente>(entity =>
@@ -76,7 +86,7 @@ namespace CigralBackend.Infraestructure.Database
                 entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Descripcion).HasMaxLength(500);
                 entity.Property(e => e.GTIN).HasMaxLength(14).IsRequired(false);
-                entity.Property(e => e.Precio).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Precio).HasPrecision(18, 2);
                 entity.HasOne(e => e.Marca)
                       .WithMany()
                       .HasForeignKey(e => e.MarcaId)
@@ -85,7 +95,7 @@ namespace CigralBackend.Infraestructure.Database
                       .WithOne(l => l.Producto)
                       .HasForeignKey(l => l.ProductoId)
                       .OnDelete(DeleteBehavior.Restrict);
-                entity.HasIndex(e => e.GTIN).IsUnique().HasFilter("[GTIN] IS NOT NULL");
+                entity.HasIndex(e => e.GTIN).IsUnique().HasFilter("\"GTIN\" IS NOT NULL");
                 entity.Property(e => e.Activo).HasDefaultValue(true);
                 entity.HasIndex(e => e.CodigoGenerico).IsUnique();
                 entity.HasIndex(e => e.CodigoInterno).IsUnique();

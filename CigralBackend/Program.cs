@@ -1,4 +1,3 @@
-using Azure.Core;
 using CigralBackend.Application.Services;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
@@ -20,6 +19,10 @@ namespace CigralBackend
     {
         public static async Task Main(string[] args)
         {
+            // PostgreSQL: DateTime se guarda como "timestamp" sin zona horaria (igual que datetime2 en SQL Server).
+            // Sin esto Npgsql rechaza mezclar DateTime.Now y DateTime.UtcNow, y el código usa ambos.
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -27,7 +30,7 @@ namespace CigralBackend
             
             // Configurar DbContext
             builder.Services.AddDbContext<CigralBackendContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // Configurar Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
