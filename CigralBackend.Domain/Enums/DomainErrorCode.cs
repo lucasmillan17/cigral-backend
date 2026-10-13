@@ -185,6 +185,11 @@ namespace CigralBackend.Domain.Enums
         /// <summary>
         /// Nueva contraseña igual a la anterior.
         /// </summary>
-        ContrasenaDuplicada = 7006
+        ContrasenaDuplicada = 7006,
+
+        /// <summary>
+        /// Usuario bloqueado temporalmente por demasiados intentos fallidos.
+        /// </summary>
+        UsuarioBloqueado = 7007
     }
 }

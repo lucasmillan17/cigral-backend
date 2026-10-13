@@ -8,10 +8,13 @@ using CigralBackend.Infraestructure.Services.Interfaces;
 using CigralBackend.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace CigralBackend
 {
@@ -81,6 +84,24 @@ namespace CigralBackend
 
             builder.Services.AddAuthorization();
 
+            // IP real del cliente detrás del proxy de Easypanel (Traefik), necesaria para el límite por IP.
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                // El contenedor solo es accesible a través del proxy, así que se confía en él.
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
+
+            // Límite de intentos de login por IP (protección contra fuerza bruta).
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.AddPolicy("login", httpContext => RateLimitPartition.GetFixedWindowLimiter(
+                    httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            });
+
             // Registrar el repositorio
             builder.Services.AddScoped<IRepository, EfRepository>();
             builder.Services.AddScoped<IProductoService, ProductoService>();
@@ -112,6 +133,19 @@ namespace CigralBackend
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.ApiKey,
                     Scheme = "Bearer"
+                });
+
+                // Header x-cigral-auth, para poder probar desde Swagger cuando la API lo exige
+                c.AddSecurityDefinition("AuthHeader", new OpenApiSecurityScheme
+                {
+                    Description = "Clave del header x-cigral-auth",
+                    Name = AuthHeaderMiddleware.HeaderName,
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    { new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "AuthHeader" } }, new List<string>() }
                 });
 
                 // Le decimos a Swagger que use ese esquema
@@ -148,19 +182,26 @@ namespace CigralBackend
 
             var app = builder.Build();
 
+            app.UseForwardedHeaders();
+
             // Registrar el middleware de manejo de excepciones ANTES de otros middlewares
             app.UseGlobalExceptionHandler();
 
-            // Configure the HTTP request pipeline.
-            //if (app.Environment.IsDevelopment())
-            //{
+            // Swagger: habilitado en desarrollo; en otros entornos solo con Swagger:Habilitado = true
+            if (app.Configuration.GetValue("Swagger:Habilitado", app.Environment.IsDevelopment()))
+            {
                 app.UseSwagger();
                 app.UseSwaggerUI();
-            //}
+            }
 
             //app.UseHttpsRedirection();
 
             app.UseCors("PermitirTodo");
+
+            // Exige x-cigral-auth (antes lo validaba el proxy de Cloudflare)
+            app.UseAuthHeader();
+
+            app.UseRateLimiter();
 
             app.UseAuthentication();
             app.UseAuthorization();

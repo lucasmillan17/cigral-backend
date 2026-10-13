@@ -30,10 +30,23 @@ Swagger queda en `http://localhost:8080/swagger`.
      ```
      ConnectionStrings__DefaultConnection=Host=<host interno postgres>;Port=5432;Database=cigral;Username=<usuario>;Password=<contraseña>
      Jwt__Key=<clave aleatoria de 64+ caracteres, distinta a la de appsettings.json>
+     AuthHeader__Key=<valor del header x-cigral-auth que envía el cliente de escritorio>
+     Swagger__Habilitado=true   # opcional: solo en el entorno de pruebas
      ```
 
 Al arrancar, la API aplica las migraciones pendientes y, si la base está vacía, crea el usuario
 administrador inicial.
+
+## Seguridad
+
+- **Header `x-cigral-auth`**: si `AuthHeader__Key` está definida, la API rechaza con 401 toda
+  petición que no traiga ese header con el valor correcto (antes lo validaba Cloudflare). Sin la
+  variable no se exige, como en desarrollo local.
+- **Login**: máximo 10 intentos por minuto por IP (429 al superarlo) y bloqueo del usuario por
+  5 minutos tras 5 contraseñas incorrectas.
+- **Swagger**: solo se publica en desarrollo o con `Swagger__Habilitado=true`.
+- La IP del cliente se toma de `X-Forwarded-For`, que agrega el proxy de Easypanel. Si se vuelve a
+  activar el proxy de Cloudflare, el límite por IP pasa a contar por nodo de Cloudflare.
 
 ## Migrar datos desde SQL Server
 

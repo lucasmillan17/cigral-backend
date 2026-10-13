@@ -66,9 +66,6 @@ namespace CigralBackend.Api.Controllers
         }
 
         [HttpGet("imprimir/test")]
-        [AllowAnonymous]
-
-        // [AllowAnonymous] // Descomentá esto si querés probarlo sin pasar el token de autorización
         public IActionResult TestDisenioPdf()
         {
             try

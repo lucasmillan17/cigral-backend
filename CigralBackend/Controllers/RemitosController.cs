@@ -248,7 +248,6 @@ namespace CigralBackend.Controllers
         }
 
         [HttpGet("Design")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetRemitoDesign()
         {
             await _pdfService.GenerarPdfRemitoDisenio(); // ID fijo para diseño

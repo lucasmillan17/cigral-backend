@@ -2,6 +2,7 @@ using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -28,6 +29,7 @@ namespace CigralBackend.Controllers
         /// <returns>Token JWT y datos del usuario</returns>
         [HttpPost("login")]
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

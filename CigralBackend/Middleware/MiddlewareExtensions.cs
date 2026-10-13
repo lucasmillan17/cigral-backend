@@ -14,5 +14,15 @@ namespace CigralBackend.Middleware
         {
             return app.UseMiddleware<ExceptionHandlingMiddleware>();
         }
+
+        /// <summary>
+        /// Registra el middleware que exige el header x-cigral-auth.
+        /// </summary>
+        /// <param name="app">Application builder</param>
+        /// <returns>Application builder para encadenamiento</returns>
+        public static IApplicationBuilder UseAuthHeader(this IApplicationBuilder app)
+        {
+            return app.UseMiddleware<AuthHeaderMiddleware>();
+        }
     }
 }
