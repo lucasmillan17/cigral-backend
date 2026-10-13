@@ -51,7 +51,15 @@ namespace CigralBackend.Application.Services
             }
 
             // Verificar contraseña con Identity
-            var result = await _signInManager.CheckPasswordSignInAsync(usuario, request.Password, lockoutOnFailure: false);
+            var result = await _signInManager.CheckPasswordSignInAsync(usuario, request.Password, lockoutOnFailure: true);
+
+            if (result.IsLockedOut)
+            {
+                throw new DomainException(
+                    DomainErrorCode.UsuarioBloqueado,
+                    "Usuario bloqueado por demasiados intentos fallidos. Intentá de nuevo en unos minutos."
+                );
+            }
 
             if (!result.Succeeded)
             {
