@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+﻿using CigralBackend.Application.Dtos;
 using CigralBackend.Domain.Wrappers;
 using System.Threading.Tasks;
 
@@ -20,7 +20,7 @@ namespace CigralBackend.Application.Services.Interfaces
         Task<ClienteModelResponse> GetClienteById(int id);
 
         /// <summary>
-        /// Obtiene clientes filtrados con paginaci�n.
+        /// Obtiene clientes filtrados con paginación.
         /// </summary>
         Task<PagedResult<ClienteModelResponse>> GetClientes(ClienteFilters filters);
 

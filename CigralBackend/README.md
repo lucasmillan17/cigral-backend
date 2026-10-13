@@ -1,4 +1,4 @@
-# CigralBackend - Sistema de Gestion de Inventario y Remitos
+ï»¿# CigralBackend - Sistema de Gestion de Inventario y Remitos
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-blue)
 ![C#](https://img.shields.io/badge/C%23-12.0-green)
@@ -29,14 +29,14 @@ Sistema backend para la gestion de inventario, productos, clientes, proveedores 
 - **Control de Inventario**: Seguimiento de existencias por deposito con validaciones avanzadas
 - **Gestion de Clientes y Proveedores**: Con GLN (Global Location Number)
 - **Remitos**: Entrada (proveedores) y salida (clientes)
-- **Sistema de Excepciones**: Manejo robusto de errores con códigos tipados
-- **Validaciones de Negocio**: Control de lotes vencidos, números de serie únicos, productos unitarios
+- **Sistema de Excepciones**: Manejo robusto de errores con cÃ³digos tipados
+- **Validaciones de Negocio**: Control de lotes vencidos, nÃºmeros de serie Ãºnicos, productos unitarios
 - **Paginacion**: Soporte integrado en todas las consultas
 - **Validaciones**: Data Annotations en todos los modelos
 - **API RESTful**: Endpoints documentados con Swagger
 - **Entity Framework Core**: ORM con SQL Server
 - **Patron Repository**: Abstraccion de acceso a datos
-- **Tests Unitarios**: 75 tests con 100% de cobertura en servicios críticos
+- **Tests Unitarios**: 75 tests con 100% de cobertura en servicios crÃ­ticos
 
 ## Arquitectura
 
@@ -296,18 +296,18 @@ builder.Services.AddScoped<IProductoService, ProductoService>();
 
 ## Estadisticas del Proyecto
 
-### Código de Producción
+### CÃ³digo de ProducciÃ³n
 - **Servicios**: 4 (BarCodeParser, ProductoService, MarcaService, ExistenciaService)
 - **Controladores**: 3 (ProductsController, MarcasController, ExistenciasController)
 - **Excepciones**: 2 (NotFoundException, DomainException)
 - **Middlewares**: 1 (ExceptionHandlingMiddleware)
-- **Códigos de error**: 29
+- **CÃ³digos de error**: 29
 - **Endpoints REST**: 18 (6 productos + 6 marcas + 6 existencias)
 
-### Documentación
+### DocumentaciÃ³n
 - **Archivos**: 7 documentos completos
-- **Páginas**: ~40 páginas de documentación
-- **Ejemplos de código**: 80+
+- **PÃ¡ginas**: ~40 pÃ¡ginas de documentaciÃ³n
+- **Ejemplos de cÃ³digo**: 80+
 
 ## Roadmap
 
@@ -318,12 +318,12 @@ builder.Services.AddScoped<IProductoService, ProductoService>();
 - [x] ExistenciaService CRUD completo con tests
 - [x] BarCodeParser con tests completos
 - [x] Middleware de excepciones global
-- [x] 75 tests unitarios (100% cobertura en servicios críticos)
-- [x] Documentación completa
+- [x] 75 tests unitarios (100% cobertura en servicios crÃ­ticos)
+- [x] DocumentaciÃ³n completa
 
 ### En Progreso ??
 - [ ] Implementar AutoMapper para mapeo de DTOs
-- [ ] Tests de integración con base de datos real
+- [ ] Tests de integraciÃ³n con base de datos real
 - [ ] Tests de controladores
 
 ### Planificado ??

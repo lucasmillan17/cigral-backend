@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+ï»¿using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain.Wrappers;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CigralBackend.Controllers
 {
     /// <summary>
-    /// Controlador para consultar la auditoría de movimientos de stock.
+    /// Controlador para consultar la auditorÃ­a de movimientos de stock.
     /// </summary>
     [Authorize]
     [ApiController]
@@ -23,9 +23,9 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Obtiene movimientos de stock con filtros y paginación.
+        /// Obtiene movimientos de stock con filtros y paginaciÃ³n.
         /// </summary>
-        /// <param name="filters">Filtros de búsqueda</param>
+        /// <param name="filters">Filtros de bÃºsqueda</param>
         /// <returns>Lista paginada de movimientos de stock</returns>
         [HttpGet]
         [ProducesResponseType(typeof(PagedResult<MovimientoStockResponse>), StatusCodes.Status200OK)]

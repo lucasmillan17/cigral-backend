@@ -1,10 +1,10 @@
-using CigralBackend.Domain.Bases;
+ï»¿using CigralBackend.Domain.Bases;
 using System;
 
 namespace CigralBackend.Domain
 {
     /// <summary>
-    /// Registro de auditoría para todos los movimientos de stock.
+    /// Registro de auditorÃ­a para todos los movimientos de stock.
     /// </summary>
     public class MovimientoStock : EntityBase
     {
@@ -27,7 +27,7 @@ namespace CigralBackend.Domain
         public Producto Producto { get; set; }
 
         /// <summary>
-        /// Depósito donde se realizó el movimiento
+        /// DepÃ³sito donde se realizÃ³ el movimiento
         /// </summary>
         public int DepositoId { get; set; }
         public Deposito Deposito { get; set; }
@@ -39,7 +39,7 @@ namespace CigralBackend.Domain
         public Lote? Lote { get; set; }
 
         /// <summary>
-        /// Número de serie si aplica
+        /// NÃºmero de serie si aplica
         /// </summary>
         public string? NumeroSerie { get; set; }
 
@@ -54,7 +54,7 @@ namespace CigralBackend.Domain
         public int StockAnterior { get; set; }
 
         /// <summary>
-        /// Stock nuevo después del movimiento
+        /// Stock nuevo despuÃ©s del movimiento
         /// </summary>
         public int StockNuevo { get; set; }
 
@@ -71,7 +71,7 @@ namespace CigralBackend.Domain
         public RemitoEgreso? RemitoEgreso { get; set; }
 
         /// <summary>
-        /// Usuario que realizó el movimiento (si aplica)
+        /// Usuario que realizÃ³ el movimiento (si aplica)
         /// </summary>
         public string? Usuario { get; set; }
 
@@ -87,12 +87,12 @@ namespace CigralBackend.Domain
     public enum TipoMovimiento
     {
         /// <summary>
-        /// Entrada de mercadería (remito de proveedor)
+        /// Entrada de mercaderÃ­a (remito de proveedor)
         /// </summary>
         Ingreso = 1,
 
         /// <summary>
-        /// Salida de mercadería (remito de cliente)
+        /// Salida de mercaderÃ­a (remito de cliente)
         /// </summary>
         Egreso = 2,
 
@@ -102,12 +102,12 @@ namespace CigralBackend.Domain
         AjustePositivo = 3,
 
         /// <summary>
-        /// Ajuste manual de stock (disminución)
+        /// Ajuste manual de stock (disminuciÃ³n)
         /// </summary>
         AjusteNegativo = 4,
 
         /// <summary>
-        /// Transferencia entre depósitos
+        /// Transferencia entre depÃ³sitos
         /// </summary>
         Transferencia = 5,
     }

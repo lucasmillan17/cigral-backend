@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+ï»¿using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Domain.Bases;
@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace CigralBackend.Application.Services
 {
     /// <summary>
-    /// Servicio para gestión de remitos de ingreso y egreso.
+    /// Servicio para gestiÃ³n de remitos de ingreso y egreso.
     /// </summary>
     public class RemitoService : IRemitoService
     {
@@ -31,16 +31,16 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Registra un remito de ingreso (entrada de mercadería de proveedor).
-        /// Se ejecuta dentro de una transacción para evitar inconsistencias cuando hay muchas operaciones concurrentes.
+        /// Registra un remito de ingreso (entrada de mercaderÃ­a de proveedor).
+        /// Se ejecuta dentro de una transacciÃ³n para evitar inconsistencias cuando hay muchas operaciones concurrentes.
         /// </summary>
         /// <param name="request">Datos del remito de ingreso</param>
-        /// <returns>Información del remito creado</returns>
-        /// <exception cref="NotFoundException">Si proveedor o depósito no existen</exception>
-        /// <exception cref="DomainException">Si hay errores de validación</exception>
+        /// <returns>InformaciÃ³n del remito creado</returns>
+        /// <exception cref="NotFoundException">Si proveedor o depÃ³sito no existen</exception>
+        /// <exception cref="DomainException">Si hay errores de validaciÃ³n</exception>
         public async Task<RemitoResponse> RegistrarIngreso(RemitoRequest request)
         {
-            // Validar que los detalles no estén vacíos
+            // Validar que los detalles no estÃ©n vacÃ­os
             if (request.Detalles == null || !request.Detalles.Any())
             {
                 throw new DomainException(
@@ -56,14 +56,14 @@ namespace CigralBackend.Application.Services
                 throw new NotFoundException(nameof(Proveedor), request.EntidadId);
             }
 
-            // Validar que el depósito exista
+            // Validar que el depÃ³sito exista
             var deposito = await _repository.GetById<Deposito>(request.DepositoId);
             if (deposito == null)
             {
                 throw new NotFoundException(nameof(Deposito), request.DepositoId);
             }
 
-            // Validar número de remito único (si se proporciona)
+            // Validar nÃºmero de remito Ãºnico (si se proporciona)
             if (string.IsNullOrEmpty(request.NumeroRemito))
             {
                 /*var existeNumero = await _repository.First<RemitoIngreso>(
@@ -76,7 +76,7 @@ namespace CigralBackend.Application.Services
                 
             }
 
-            // Iniciar transacción para todo el proceso (cabecera, detalles y movimientos de stock)
+            // Iniciar transacciÃ³n para todo el proceso (cabecera, detalles y movimientos de stock)
             using var transaction = await _repository.BeginTransaction();
             try
             {
@@ -109,7 +109,7 @@ namespace CigralBackend.Application.Services
                             {
                                 CodigoLote = detalle.CodigoLote,
                                 ProductoId = detalle.ProductoId,
-                                FechaVencimiento = detalle.FechaVencimiento // Podríamos agregar esta info al detalle si es necesario
+                                FechaVencimiento = detalle.FechaVencimiento // PodrÃ­amos agregar esta info al detalle si es necesario
                             };
                             lote = await _repository.Add(lote);
                         }
@@ -139,8 +139,8 @@ namespace CigralBackend.Application.Services
                         EsDevolucion: request.EsDevolucion
                     );
 
-                    // Llamamos al servicio de existencias que internamente hará validaciones y guardados.
-                    // Como estamos dentro de la transacción, los cambios se aplicarán de forma atómica.
+                    // Llamamos al servicio de existencias que internamente harÃ¡ validaciones y guardados.
+                    // Como estamos dentro de la transacciÃ³n, los cambios se aplicarÃ¡n de forma atÃ³mica.
                     await _existenciaService.AumentarStock(
                         existenciaRequest,
                         remitoIngresoId: remito.Id,
@@ -172,17 +172,17 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Registra un remito de egreso (salida de mercadería a cliente).
-        /// Se ejecuta dentro de una transacción para evitar inconsistencias cuando hay muchas operaciones concurrentes.
+        /// Registra un remito de egreso (salida de mercaderÃ­a a cliente).
+        /// Se ejecuta dentro de una transacciÃ³n para evitar inconsistencias cuando hay muchas operaciones concurrentes.
         /// </summary>
         /// <param name="request">Datos del remito de egreso</param>
-        /// <returns>Información del remito creado</returns>
-        /// <exception cref="NotFoundException">Si cliente o depósito no existen</exception>
-        /// <exception cref="DomainException">Si hay errores de validación o stock insuficiente</exception>
+        /// <returns>InformaciÃ³n del remito creado</returns>
+        /// <exception cref="NotFoundException">Si cliente o depÃ³sito no existen</exception>
+        /// <exception cref="DomainException">Si hay errores de validaciÃ³n o stock insuficiente</exception>
         public async Task<ResultadoOperacion<RemitoResponse>> RegistrarEgreso(RemitoRequest request)
         {
             var erroresValidacion = new List<ErrorDetalleDto>();
-            // Validar que los detalles no estén vacíos
+            // Validar que los detalles no estÃ©n vacÃ­os
             if (request.Detalles == null || !request.Detalles.Any())
             {
                 throw new DomainException(
@@ -198,14 +198,14 @@ namespace CigralBackend.Application.Services
                 throw new NotFoundException(nameof(Cliente), request.EntidadId);
             }
 
-            // Validar que el depósito exista
+            // Validar que el depÃ³sito exista
             var deposito = await _repository.GetById<Deposito>(request.DepositoId);
             if (deposito == null)
             {
                 throw new NotFoundException(nameof(Deposito), request.DepositoId);
             }
 
-            // Validar número de remito único (si se proporciona)
+            // Validar nÃºmero de remito Ãºnico (si se proporciona)
             if (string.IsNullOrEmpty(request.NumeroRemito))
             {
                
@@ -227,7 +227,7 @@ namespace CigralBackend.Application.Services
                     ));
                 }
 
-                string numeroSerie = detalle.NumeroSerie == "Sin Número de Serie" ? null : detalle.NumeroSerie;
+                string numeroSerie = detalle.NumeroSerie == "Sin NÃºmero de Serie" ? null : detalle.NumeroSerie;
 
                 var stockExistente = await _existenciaService.GetStockDisponible(
                     productoId: detalle.ProductoId,
@@ -248,7 +248,7 @@ namespace CigralBackend.Application.Services
             if(erroresValidacion.Any())
             {
                 return ResultadoOperacion<RemitoResponse>.Fallo(
-                    mensaje: "Errores de validación en los detalles del remito.",
+                    mensaje: "Errores de validaciÃ³n en los detalles del remito.",
                     errores: erroresValidacion
                 );
             }
@@ -342,7 +342,7 @@ namespace CigralBackend.Application.Services
                     throw new NotFoundException(nameof(RemitoIngreso), id);
                 }
 
-                // Validar número de remito único (si se cambia)
+                // Validar nÃºmero de remito Ãºnico (si se cambia)
                 if (!string.IsNullOrEmpty(request.NumeroRemito) && request.NumeroRemito != remito.NumeroRemito)
                 {
                     var existeNumero = await _repository.First<RemitoIngreso>(
@@ -353,7 +353,7 @@ namespace CigralBackend.Application.Services
                     {
                         throw new DomainException(
                             DomainErrorCode.NumeroRemitoDuplicado,
-                            $"El número de remito '{request.NumeroRemito}' ya existe."
+                            $"El nÃºmero de remito '{request.NumeroRemito}' ya existe."
                         );
                     }
                 }
@@ -373,7 +373,7 @@ namespace CigralBackend.Application.Services
                     DepositoId: remito.DepositoId,
                     EntidadId: remito.ProveedorId,
                     Observaciones: remito.Observaciones,
-                    CantidadDetalles: 0, // No calculamos aquí
+                    CantidadDetalles: 0, // No calculamos aquÃ­
                     CantidadTotal: 0
                 );
             }
@@ -385,7 +385,7 @@ namespace CigralBackend.Application.Services
                     throw new NotFoundException(nameof(RemitoEgreso), id);
                 }
 
-                // Validar número de remito único (si se cambia)
+                // Validar nÃºmero de remito Ãºnico (si se cambia)
                 if (!string.IsNullOrEmpty(request.NumeroRemito) && request.NumeroRemito != remito.NumeroRemito)
                 {
                     var existeNumero = await _repository.First<RemitoEgreso>(
@@ -396,7 +396,7 @@ namespace CigralBackend.Application.Services
                     {
                         throw new DomainException(
                             DomainErrorCode.NumeroRemitoDuplicado,
-                            $"El número de remito '{request.NumeroRemito}' ya existe."
+                            $"El nÃºmero de remito '{request.NumeroRemito}' ya existe."
                         );
                     }
                 }
@@ -415,7 +415,7 @@ namespace CigralBackend.Application.Services
                     DepositoId: remito.DepositoId,
                     EntidadId: remito.ClienteId,
                     Observaciones: remito.Observaciones,
-                    CantidadDetalles: 0, // No calculamos aquí
+                    CantidadDetalles: 0, // No calculamos aquÃ­
                     CantidadTotal: 0
                 );
             }
@@ -555,7 +555,7 @@ namespace CigralBackend.Application.Services
             // 3. Validar PRIMERO si existe un remito anterior
             if (ultimoRemito != null && !string.IsNullOrEmpty(ultimoRemito.NumeroRemito))
             {
-                // Forma segura: cortamos por el guion y tomamos la última parte (ej: de "001-ING-045" toma "045")
+                // Forma segura: cortamos por el guion y tomamos la Ãºltima parte (ej: de "001-ING-045" toma "045")
                 var partes = ultimoRemito.NumeroRemito.Split('-');
                 if (partes.Length >= 3)
                 {
@@ -563,8 +563,8 @@ namespace CigralBackend.Application.Services
                 }
             }
 
-            // 4. LA MAGIA: Interpolación de strings (escribe las variables dentro de las llaves)
-            // El :D7 adentro de la llave formatea el número a 7 ceros automáticamente
+            // 4. LA MAGIA: InterpolaciÃ³n de strings (escribe las variables dentro de las llaves)
+            // El :D7 adentro de la llave formatea el nÃºmero a 7 ceros automÃ¡ticamente
             string numeroSiguienteStr = $"{depositoFormateado}-{digitoRemito}-{(ultimoNumero + 1):D7}";
 
             return new SiguienteRemitoResponse(SiguienteNumeroRemito: numeroSiguienteStr);

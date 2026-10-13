@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+ï»¿using CigralBackend.Application.Dtos;
 using CigralBackend.Domain.Wrappers;
 using System.Threading.Tasks;
 
@@ -11,7 +11,7 @@ namespace CigralBackend.Application.Services.Interfaces
     {
         /// <summary>
         /// Aumenta el stock de un producto. Si la existencia no existe, la crea. Si existe, suma la cantidad.
-        /// Registra el movimiento en la auditoría.
+        /// Registra el movimiento en la auditorÃ­a.
         /// </summary>
         /// <param name="r">Datos del movimiento de stock</param>
         /// <param name="remitoIngresoId">ID del remito de ingreso (opcional)</param>
@@ -24,7 +24,7 @@ namespace CigralBackend.Application.Services.Interfaces
 
         /// <summary>
         /// Disminuye el stock de un producto. Valida que haya stock suficiente.
-        /// Registra el movimiento en la auditoría.
+        /// Registra el movimiento en la auditorÃ­a.
         /// </summary>
         /// <param name="r">Datos del movimiento de stock</param>
         /// <param name="remitoEgresoId">ID del remito de egreso (opcional)</param>
@@ -43,24 +43,24 @@ namespace CigralBackend.Application.Services.Interfaces
         Task<ExistenciaModelResponse> GetExistenciaById(int id);
 
         /// <summary>
-        /// Obtiene existencias filtradas con paginación.
-        /// Ahora incluye filtros por fecha de vencimiento y días para vencer.
+        /// Obtiene existencias filtradas con paginaciÃ³n.
+        /// Ahora incluye filtros por fecha de vencimiento y dÃ­as para vencer.
         /// </summary>
         /// <param name="filters">Filtros a aplicar</param>
         /// <returns>Resultado paginado de existencias</returns>
         Task<PagedResult<ExistenciaModelResponse>> GetExistencias(ExistenciaFilters filters);
 
         /// <summary>
-        /// Obtiene dashboard de productos próximos a vencer agrupados por rangos.
+        /// Obtiene dashboard de productos prÃ³ximos a vencer agrupados por rangos.
         /// </summary>
-        /// <returns>Dashboard con estadísticas de vencimientos</returns>
+        /// <returns>Dashboard con estadÃ­sticas de vencimientos</returns>
         Task<DashboardVencimientosResponse> GetDashboardVencimientos();
 
         /// <summary>
-        /// Obtiene productos próximos a vencer según filtros específicos.
+        /// Obtiene productos prÃ³ximos a vencer segÃºn filtros especÃ­ficos.
         /// </summary>
         /// <param name="filters">Filtros de vencimiento</param>
-        /// <returns>Lista de productos próximos a vencer</returns>
+        /// <returns>Lista de productos prÃ³ximos a vencer</returns>
         Task<List<ProductoProximoVencerDto>> GetProductosProximosVencer(VencimientoFilters filters);
 
         /// <summary>

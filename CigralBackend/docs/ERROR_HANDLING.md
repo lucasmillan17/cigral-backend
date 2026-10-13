@@ -1,11 +1,11 @@
-# Sistema de Manejo de Errores de Dominio - CigralBackend
+Ôªø# Sistema de Manejo de Errores de Dominio - CigralBackend
 
-Este documento describe los `DomainErrorCode` disponibles, su significado y cÛmo deben ser manejados por el cliente (frontend).
+Este documento describe los `DomainErrorCode` disponibles, su significado y c√≥mo deben ser manejados por el cliente (frontend).
 
 Resumen:
-- Los cÛdigos est·n definidos en `CigralBackend.Domain/Enums/DomainErrorCode.cs` como un `enum` con valores numÈricos.
+- Los c√≥digos est√°n definidos en `CigralBackend.Domain/Enums/DomainErrorCode.cs` como un `enum` con valores num√©ricos.
 - Las excepciones de negocio lanzan `DomainException` con una instancia de `DomainErrorCode` y un mensaje descriptivo.
-- Se recomienda un middleware global que convierta `DomainException` en respuestas HTTP 400 con el `code` y `codeValue` para que el frontend los maneje f·cilmente.
+- Se recomienda un middleware global que convierta `DomainException` en respuestas HTTP 400 con el `code` y `codeValue` para que el frontend los maneje f√°cilmente.
 
 Formato de respuesta recomendado por el middleware para `DomainException`:
 
@@ -18,91 +18,91 @@ Formato de respuesta recomendado por el middleware para `DomainException`:
 }
 ```
 
-Lista completa y explicaciÛn de todos los `DomainErrorCode` actuales
+Lista completa y explicaci√≥n de todos los `DomainErrorCode` actuales
 
 - 1000 - Errores Generales
-  - `UnknownError` (1000): Error no identificado. Usar cuando no hay detalle especÌfico.
-  - `NetworkError` (1001): Error de conexiÛn o recursos de red.
+  - `UnknownError` (1000): Error no identificado. Usar cuando no hay detalle espec√≠fico.
+  - `NetworkError` (1001): Error de conexi√≥n o recursos de red.
 
 - 2000 - Productos / Marcas
   - `ProductoNoExiste` (2000): El producto solicitado no existe.
   - `GtinDuplicado` (2001): El GTIN proporcionado ya existe en otro producto.
-  - `MarcaNoValida` (2002): La marca indicada no existe o no es v·lida.
-  - `NombreProductoDuplicado` (2003): El nombre del producto ya est· en uso.
+  - `MarcaNoValida` (2002): La marca indicada no existe o no es v√°lida.
+  - `NombreProductoDuplicado` (2003): El nombre del producto ya est√° en uso.
   - `MarcaDuplicada` (2004): Existe otra marca con el mismo identificador/nombre.
   - `MarcaTieneProductos` (2005): No se puede eliminar la marca porque tiene productos asociados.
 
 - 3000 - Stock / Inventario
-  - `StockInsuficiente` (3000): No hay suficiente stock para completar la operaciÛn.
-  - `LoteVencido` (3001): El lote est· vencido y no puede usarse.
-  - `DepositoNoEncontrado` (3002): El depÛsito indicado no existe.
-  - `SerieDuplicada` (3003): El n˙mero de serie ya existe para ese producto.
+  - `StockInsuficiente` (3000): No hay suficiente stock para completar la operaci√≥n.
+  - `LoteVencido` (3001): El lote est√° vencido y no puede usarse.
+  - `DepositoNoEncontrado` (3002): El dep√≥sito indicado no existe.
+  - `SerieDuplicada` (3003): El n√∫mero de serie ya existe para ese producto.
   - `LoteNoEncontrado` (3004): El lote indicado no existe.
-  - `ExistenciaNoEncontrada` (3005): No existe registro de existencia para el producto/depÛsito indicado.
+  - `ExistenciaNoEncontrada` (3005): No existe registro de existencia para el producto/dep√≥sito indicado.
   - `ProductoUnitarioCantidadInvalida` (3006): Para productos unitarios la cantidad debe ser 1.
-  - `CodigoDepositoDuplicado` (3007): El cÛdigo del depÛsito ya existe.
+  - `CodigoDepositoDuplicado` (3007): El c√≥digo del dep√≥sito ya existe.
 
 - 4000 - Clientes
   - `ClienteNoExiste` (4000): El cliente no existe.
-  - `GlnClienteDuplicado` (4001): El GLN del cliente ya est· en uso.
-  - `CuitClienteDuplicado` (4002): El CUIT del cliente ya est· en uso.
+  - `GlnClienteDuplicado` (4001): El GLN del cliente ya est√° en uso.
+  - `CuitClienteDuplicado` (4002): El CUIT del cliente ya est√° en uso.
 
 - 5000 - Proveedores
   - `ProveedorNoExiste` (5000): El proveedor no existe.
-  - `GlnProveedorDuplicado` (5001): El GLN del proveedor ya est· en uso.
-  - `CuitProveedorDuplicado` (5002): El CUIT del proveedor ya est· en uso.
+  - `GlnProveedorDuplicado` (5001): El GLN del proveedor ya est√° en uso.
+  - `CuitProveedorDuplicado` (5002): El CUIT del proveedor ya est√° en uso.
 
 - 6000 - Remitos / Cantidades
   - `RemitoNoExiste` (6000): El remito no existe.
-  - `NumeroRemitoDuplicado` (6001): El n˙mero de remito ya est· en uso.
+  - `NumeroRemitoDuplicado` (6001): El n√∫mero de remito ya est√° en uso.
   - `RemitoSinDetalles` (6002): El remito no contiene detalles obligatorios.
-  - `CantidadInvalida` (6003): La cantidad indicada es inv·lida (ej. <= 0).
+  - `CantidadInvalida` (6003): La cantidad indicada es inv√°lida (ej. <= 0).
 
-- 7000 - AutenticaciÛn y Usuarios
-  - `CredencialesInvalidas` (7000): Usuario o contraseÒa incorrectos.
-  - `UsernameDuplicado` (7001): El nombre de usuario ya existe. (Se corrigiÛ el typo anterior `UsernameDeplicado`)
-  - `UsuarioInactivo` (7002): El usuario est· inactivo y no puede autenticarse.
-  - `TokenInvalido` (7003): Token JWT inv·lido o expirado.
+- 7000 - Autenticaci√≥n y Usuarios
+  - `CredencialesInvalidas` (7000): Usuario o contrase√±a incorrectos.
+  - `UsernameDuplicado` (7001): El nombre de usuario ya existe. (Se corrigi√≥ el typo anterior `UsernameDeplicado`)
+  - `UsuarioInactivo` (7002): El usuario est√° inactivo y no puede autenticarse.
+  - `TokenInvalido` (7003): Token JWT inv√°lido o expirado.
   - `PermisosDenegados` (7004): Se requieren permisos de administrador o similares.
   - `UsuarioNoExiste` (7005): El usuario no fue encontrado.
-  - `ContrasenaDuplicada` (7006): La nueva contraseÒa es igual a la anterior o no cumple la regla solicitada.
+  - `ContrasenaDuplicada` (7006): La nueva contrase√±a es igual a la anterior o no cumple la regla solicitada.
 
 Notas importantes para el frontend
 
-1. Usar `codeValue` (entero) cuando se necesite comparaciones r·pidas o mÈtricas, y `code` (string) para reglas de negocio legibles.
-2. Nunca parsear mensajes libres (`message`) para control de flujo; usar `code`/`codeValue` para lÛgica.
+1. Usar `codeValue` (entero) cuando se necesite comparaciones r√°pidas o m√©tricas, y `code` (string) para reglas de negocio legibles.
+2. Nunca parsear mensajes libres (`message`) para control de flujo; usar `code`/`codeValue` para l√≥gica.
 3. Implementar un mapeo en el frontend que traduzca `DomainErrorCode` a mensajes de UI y acciones (por ejemplo: redirigir al login si `TokenInvalido`).
-4. Algunos cÛdigos se pueden mapear a estados HTTP especiales en el middleware:
+4. Algunos c√≥digos se pueden mapear a estados HTTP especiales en el middleware:
    - `NotFoundException` -> 404 (no incluye `DomainErrorCode`, sino entidad + key)
    - `DomainException` -> 400 (incluye `code` y `codeValue`)
    - Errores infraestructura (p.ej. `UnknownError`) -> 500
 
-Ejemplos de manejo en frontend (pseudocÛdigo)
+Ejemplos de manejo en frontend (pseudoc√≥digo)
 
 - Caso: registrar usuario -> recibir `UsernameDuplicado`
   ```javascript
   if (response.code === 'UsernameDuplicado') {
-    showError("El nombre de usuario ya est· en uso.");
+    showError("El nombre de usuario ya est√° en uso.");
   }
   ```
 
-- Caso: cambiar contraseÒa -> recibir `ContrasenaDuplicada`
+- Caso: cambiar contrase√±a -> recibir `ContrasenaDuplicada`
   ```javascript
   if (response.codeValue === 7006) {
-    showError("La nueva contraseÒa no puede ser igual a la anterior.");
+    showError("La nueva contrase√±a no puede ser igual a la anterior.");
   }
   ```
 
 Cambios realizados en el repositorio
 
-- Se corrigiÛ el `enum` en `CigralBackend.Domain/Enums/DomainErrorCode.cs`: cambio de `UsernameDeplicado` a `UsernameDuplicado` y se agregÛ `ContrasenaDuplicada`.
-- Se actualizÛ `AuthService` (`CigralBack.Api/Services/AuthService.cs`) para usar `UsernameDuplicado` y lanzar `ContrasenaDuplicada` cuando corresponda.
-- Se actualizÛ esta documentaciÛn para listar todos los cÛdigos y sus significados.
+- Se corrigi√≥ el `enum` en `CigralBackend.Domain/Enums/DomainErrorCode.cs`: cambio de `UsernameDeplicado` a `UsernameDuplicado` y se agreg√≥ `ContrasenaDuplicada`.
+- Se actualiz√≥ `AuthService` (`CigralBack.Api/Services/AuthService.cs`) para usar `UsernameDuplicado` y lanzar `ContrasenaDuplicada` cuando corresponda.
+- Se actualiz√≥ esta documentaci√≥n para listar todos los c√≥digos y sus significados.
 
-RecomendaciÛn final
+Recomendaci√≥n final
 
-AÒadir/poner en uso un middleware global de manejo de excepciones que traduzca `DomainException` a una respuesta JSON estandarizada (ver ejemplo al inicio). De este modo el frontend tendr· un contrato claro y estable para manejar errores.
+A√±adir/poner en uso un middleware global de manejo de excepciones que traduzca `DomainException` a una respuesta JSON estandarizada (ver ejemplo al inicio). De este modo el frontend tendr√° un contrato claro y estable para manejar errores.
 
 Si quieres, puedo:
 - Agregar el middleware de ejemplo al proyecto y registrar su uso en `Program.cs`.
-- Generar un archivo JSON con la lista completa de `DomainErrorCode` para que el equipo de frontend lo consuma autom·ticamente.
+- Generar un archivo JSON con la lista completa de `DomainErrorCode` para que el equipo de frontend lo consuma autom√°ticamente.

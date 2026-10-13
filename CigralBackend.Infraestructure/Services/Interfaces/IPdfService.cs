@@ -1,11 +1,11 @@
-using System.Threading.Tasks;
+Ôªøusing System.Threading.Tasks;
 using CigralBackend.Infraestructure.Dtos;
 
 namespace CigralBackend.Infraestructure.Services
 {
     /// <summary>
-    /// Interfaz para servicios de generaciÛn de PDFs.
-    /// La implementaciÛn est· en Infrastructure con QuestPDF.
+    /// Interfaz para servicios de generaci√≥n de PDFs.
+    /// La implementaci√≥n est√° en Infrastructure con QuestPDF.
     /// </summary>
     public interface IPdfService
     {

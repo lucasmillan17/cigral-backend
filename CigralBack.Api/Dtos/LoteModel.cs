@@ -1,11 +1,11 @@
-using System.ComponentModel.DataAnnotations;
+ï»¿using System.ComponentModel.DataAnnotations;
 
 namespace CigralBackend.Application.Dtos
 {
     public record LoteModelRequest
     (
-        [Required(ErrorMessage = "El código de lote es obligatorio")]
-        [MaxLength(50, ErrorMessage = "El código de lote no puede superar los 50 caracteres")]
+        [Required(ErrorMessage = "El cÃ³digo de lote es obligatorio")]
+        [MaxLength(50, ErrorMessage = "El cÃ³digo de lote no puede superar los 50 caracteres")]
         string CodigoLote,
         [Required(ErrorMessage = "La fecha de vencimiento es obligatoria")]
         DateTime FechaVencimiento,

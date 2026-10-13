@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+ï»¿using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace CigralBackend.Application.Services
 {
     /// <summary>
-    /// Servicio de aplicación para operaciones de depósitos.
+    /// Servicio de aplicaciÃ³n para operaciones de depÃ³sitos.
     /// </summary>
     public class DepositoService : IDepositoService
     {
@@ -23,17 +23,17 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Crea un nuevo depósito.
+        /// Crea un nuevo depÃ³sito.
         /// </summary>
         public async Task<DepositoModelResponse> CreateDeposito(DepositoModelRequest request)
         {
-            // Validar código único
+            // Validar cÃ³digo Ãºnico
             var existeCodigo = await _repository.First<Deposito>(d => d.Codigo == request.Codigo);
             if (existeCodigo != null)
             {
                 throw new DomainException(
                     DomainErrorCode.CodigoDepositoDuplicado,
-                    $"El código '{request.Codigo}' ya existe."
+                    $"El cÃ³digo '{request.Codigo}' ya existe."
                 );
             }
 
@@ -55,7 +55,7 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Obtiene un depósito por su ID.
+        /// Obtiene un depÃ³sito por su ID.
         /// </summary>
         public async Task<DepositoModelResponse> GetDepositoById(int id)
         {
@@ -75,7 +75,7 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Obtiene depósitos filtrados con paginación.
+        /// Obtiene depÃ³sitos filtrados con paginaciÃ³n.
         /// </summary>
         public async Task<PagedResult<DepositoModelResponse>> GetDepositos(DepositoFilters filters)
         {
@@ -105,7 +105,7 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Actualiza un depósito existente.
+        /// Actualiza un depÃ³sito existente.
         /// </summary>
         public async Task<DepositoModelResponse> UpdateDeposito(int id, DepositoModelRequest request)
         {
@@ -115,7 +115,7 @@ namespace CigralBackend.Application.Services
                 throw new NotFoundException(nameof(Deposito), id);
             }
 
-            // Validar código único (si cambió)
+            // Validar cÃ³digo Ãºnico (si cambiÃ³)
             if (request.Codigo != deposito.Codigo)
             {
                 var existeCodigo = await _repository.First<Deposito>(d => d.Codigo == request.Codigo && d.Id != id);
@@ -123,7 +123,7 @@ namespace CigralBackend.Application.Services
                 {
                     throw new DomainException(
                         DomainErrorCode.CodigoDepositoDuplicado,
-                        $"El código '{request.Codigo}' ya existe en otro depósito."
+                        $"El cÃ³digo '{request.Codigo}' ya existe en otro depÃ³sito."
                     );
                 }
             }
@@ -143,7 +143,7 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Elimina un depósito.
+        /// Elimina un depÃ³sito.
         /// </summary>
         public async Task DeleteDeposito(int id)
         {

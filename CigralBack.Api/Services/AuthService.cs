@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+Ôªøusing CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 namespace CigralBackend.Application.Services
 {
     /// <summary>
-    /// Servicio de autenticaciÛn con ASP.NET Core Identity y JWT.
+    /// Servicio de autenticaci√≥n con ASP.NET Core Identity y JWT.
     /// </summary>
     public class AuthService : IAuthService
     {
@@ -46,18 +46,18 @@ namespace CigralBackend.Application.Services
             {
                 throw new DomainException(
                     DomainErrorCode.CredencialesInvalidas,
-                    "Usuario o contraseÒa incorrectos."
+                    "Usuario o contrase√±a incorrectos."
                 );
             }
 
-            // Verificar contraseÒa con Identity
+            // Verificar contrase√±a con Identity
             var result = await _signInManager.CheckPasswordSignInAsync(usuario, request.Password, lockoutOnFailure: true);
 
             if (result.IsLockedOut)
             {
                 throw new DomainException(
                     DomainErrorCode.UsuarioBloqueado,
-                    "Usuario bloqueado por demasiados intentos fallidos. Intent· de nuevo en unos minutos."
+                    "Usuario bloqueado por demasiados intentos fallidos. Intent√° de nuevo en unos minutos."
                 );
             }
 
@@ -65,20 +65,20 @@ namespace CigralBackend.Application.Services
             {
                 throw new DomainException(
                     DomainErrorCode.CredencialesInvalidas,
-                    "Usuario o contraseÒa incorrectos."
+                    "Usuario o contrase√±a incorrectos."
                 );
             }
 
-            // Verificar que el usuario estÈ activo (usando EmailConfirmed como flag activo)
+            // Verificar que el usuario est√© activo (usando EmailConfirmed como flag activo)
             if (!usuario.EmailConfirmed)
             {
                 throw new DomainException(
                     DomainErrorCode.UsuarioInactivo,
-                    "El usuario est· inactivo. Contacte al administrador."
+                    "El usuario est√° inactivo. Contacte al administrador."
                 );
             }
 
-            // Actualizar ˙ltimo login
+            // Actualizar √∫ltimo login
             usuario.UltimoLogin = DateTime.Now;
             await _userManager.UpdateAsync(usuario);
 
@@ -131,7 +131,7 @@ namespace CigralBackend.Application.Services
                 FechaCreacion = DateTime.Now
             };
 
-            // Crear usuario con Identity (hashea la contraseÒa autom·ticamente)
+            // Crear usuario con Identity (hashea la contrase√±a autom√°ticamente)
             var result = await _userManager.CreateAsync(usuario, request.Password);
 
             if (!result.Succeeded)
@@ -165,7 +165,7 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Cambia la contraseÒa del usuario. Solo comprueba que la nueva no sea igual a la actual.
+        /// Cambia la contrase√±a del usuario. Solo comprueba que la nueva no sea igual a la actual.
         /// </summary>
         public async Task ChangePassword(string username, string currentPassword, string newPassword)
         {
@@ -178,33 +178,33 @@ namespace CigralBackend.Application.Services
                 );
             }
 
-            // Verificar que la contraseÒa actual sea correcta
+            // Verificar que la contrase√±a actual sea correcta
             var checkCurrent = await _signInManager.CheckPasswordSignInAsync(usuario, currentPassword, lockoutOnFailure: false);
             if (!checkCurrent.Succeeded)
             {
                 throw new DomainException(
                     DomainErrorCode.CredencialesInvalidas,
-                    "ContraseÒa actual incorrecta."
+                    "Contrase√±a actual incorrecta."
                 );
             }
 
-            // ComprobaciÛn solicitada: nueva contraseÒa no puede ser igual a la actual
+            // Comprobaci√≥n solicitada: nueva contrase√±a no puede ser igual a la actual
             if (currentPassword == newPassword)
             {
                 throw new DomainException(
                     DomainErrorCode.ContrasenaDuplicada,
-                    "La nueva contraseÒa no puede ser igual a la actual."
+                    "La nueva contrase√±a no puede ser igual a la actual."
                 );
             }
 
-            // Usar UserManager para cambiar la contraseÒa (verificando el hash y actualizando)
+            // Usar UserManager para cambiar la contrase√±a (verificando el hash y actualizando)
             var result = await _userManager.ChangePasswordAsync(usuario, currentPassword, newPassword);
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new DomainException(
                     DomainErrorCode.UnknownError,
-                    $"Error al cambiar la contraseÒa: {errors}"
+                    $"Error al cambiar la contrase√±a: {errors}"
                 );
             }
         }

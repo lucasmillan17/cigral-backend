@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+﻿using CigralBackend.Application.Dtos;
 using CigralBackend.Domain.Wrappers;
 using System.Threading.Tasks;
 
@@ -20,7 +20,7 @@ namespace CigralBackend.Application.Services.Interfaces
         Task<ProveedorModelResponse> GetProveedorById(int id);
 
         /// <summary>
-        /// Obtiene proveedores filtrados con paginaci�n.
+        /// Obtiene proveedores filtrados con paginación.
         /// </summary>
         Task<PagedResult<ProveedorModelResponse>> GetProveedores(ProveedorFilters filters);
 

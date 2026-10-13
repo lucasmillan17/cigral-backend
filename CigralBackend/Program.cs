@@ -1,4 +1,4 @@
-using CigralBackend.Application.Services;
+ï»¿using CigralBackend.Application.Services;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Infraestructure.Database;
@@ -38,18 +38,18 @@ namespace CigralBackend
             // Configurar Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
             {
-                // Configuración de contraseñas
+                // ConfiguraciÃ³n de contraseÃ±as
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
                 options.Password.RequireUppercase = true;
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequiredLength = 6;
 
-                // Configuración de usuarios
+                // ConfiguraciÃ³n de usuarios
                 options.User.RequireUniqueEmail = false;
                 options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
 
-                // Configuración de lockout
+                // ConfiguraciÃ³n de lockout
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.AllowedForNewUsers = true;
@@ -84,16 +84,16 @@ namespace CigralBackend
 
             builder.Services.AddAuthorization();
 
-            // IP real del cliente detrás del proxy de Easypanel (Traefik), necesaria para el límite por IP.
+            // IP real del cliente detrÃ¡s del proxy de Easypanel (Traefik), necesaria para el lÃ­mite por IP.
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-                // El contenedor solo es accesible a través del proxy, así que se confía en él.
+                // El contenedor solo es accesible a travÃ©s del proxy, asÃ­ que se confÃ­a en Ã©l.
                 options.KnownNetworks.Clear();
                 options.KnownProxies.Clear();
             });
 
-            // Límite de intentos de login por IP (protección contra fuerza bruta).
+            // LÃ­mite de intentos de login por IP (protecciÃ³n contra fuerza bruta).
             builder.Services.AddRateLimiter(options =>
             {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -215,13 +215,13 @@ namespace CigralBackend
                 {
                     var context = services.GetRequiredService<CigralBackendContext>();
 
-                    // 1. Migrar la base de datos (ya lo tenías)
+                    // 1. Migrar la base de datos (ya lo tenÃ­as)
                     context.Database.Migrate();
 
-                    // 2. INICIO NUEVO CÓDIGO: Crear Admin si no existe
+                    // 2. INICIO NUEVO CÃ“DIGO: Crear Admin si no existe
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-                    // Verificamos si la tabla de usuarios está vacía
+                    // Verificamos si la tabla de usuarios estÃ¡ vacÃ­a
                     if (!context.Users.Any())
                     {
                         var adminUser = new ApplicationUser
@@ -232,16 +232,16 @@ namespace CigralBackend
                             EmailConfirmed = true, // Usar como flag "Activo"
                             EsAdmin = true,
                             FechaCreacion = DateTime.Now
-                            // Agrega aquí otros campos obligatorios de tu entidad ApplicationUser si los tienes
+                            // Agrega aquÃ­ otros campos obligatorios de tu entidad ApplicationUser si los tienes
                         };
 
-                        // Creamos el usuario con la contraseña que tú elijas
-                        // ¡IMPORTANTE! La contraseña debe cumplir tus reglas (mayúscula, minúscula, número, no alfanumérico)
-                        var result = await userManager.CreateAsync(adminUser, "b6@$1[E3>8£{");
+                        // Creamos el usuario con la contraseÃ±a que tÃº elijas
+                        // Â¡IMPORTANTE! La contraseÃ±a debe cumplir tus reglas (mayÃºscula, minÃºscula, nÃºmero, no alfanumÃ©rico)
+                        var result = await userManager.CreateAsync(adminUser, "b6@$1[E3>8Â£{");
 
                         if (result.Succeeded)
                         {
-                            // Opcional: Si usas roles, aquí podrías asignarle el rol de Admin
+                            // Opcional: Si usas roles, aquÃ­ podrÃ­as asignarle el rol de Admin
                             // await userManager.AddToRoleAsync(adminUser, "Admin");
                             var logger = services.GetRequiredService<ILogger<Program>>();
                             logger.LogInformation("Usuario Admin creado exitosamente.");
@@ -252,12 +252,12 @@ namespace CigralBackend
                             logger.LogError("Error al crear el usuario Admin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
                         }
                     }
-                    // FIN NUEVO CÓDIGO
+                    // FIN NUEVO CÃ“DIGO
                 }
                 catch (Exception ex)
                 {
                     var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "Ocurrió un error durante la migración o el seeding.");
+                    logger.LogError(ex, "OcurriÃ³ un error durante la migraciÃ³n o el seeding.");
                 }
             }
 

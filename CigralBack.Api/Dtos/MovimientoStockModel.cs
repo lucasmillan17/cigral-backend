@@ -1,4 +1,4 @@
-using CigralBackend.Domain;
+Ôªøusing CigralBackend.Domain;
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -18,15 +18,15 @@ namespace CigralBackend.Application.Dtos
         string? ComprobanteAsociado,
         DateTime? FechaDesde,
         DateTime? FechaHasta,
-        [Range(1, int.MaxValue, ErrorMessage = "La p·gina debe ser mayor a 0")]
+        [Range(1, int.MaxValue, ErrorMessage = "La p√°gina debe ser mayor a 0")]
         int PageNumber = 1,
-        [Range(1, 100, ErrorMessage = "El tamaÒo de p·gina no puede superar los 100 items")]
+        [Range(1, 100, ErrorMessage = "El tama√±o de p√°gina no puede superar los 100 items")]
         int PageSize = 10,
         bool EsDevolucion = false // Para filtrar solo movimientos que sean devoluciones (si es true, se pueden mostrar en rojo en la grilla, etc.)
     );
 
     /// <summary>
-    /// Respuesta con informaciÛn del movimiento de stock.
+    /// Respuesta con informaci√≥n del movimiento de stock.
     /// </summary>
     public record MovimientoStockResponse
     (

@@ -1,4 +1,4 @@
-using CigralBackend.Domain.Bases;
+锘縰sing CigralBackend.Domain.Bases;
 using CigralBackend.Domain.Wrappers;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace CigralBackend.Infraestructure.Database.Interfaces
 {
     /// <summary>
-    /// Interfaz gen閞ica para el repositorio que proporciona operaciones CRUD y consultas con paginaci髇.
+    /// Interfaz gen茅rica para el repositorio que proporciona operaciones CRUD y consultas con paginaci贸n.
     /// </summary>
     public interface IRepository
     {
@@ -35,11 +35,11 @@ namespace CigralBackend.Infraestructure.Database.Interfaces
         Task<T> Delete<T>(T entity) where T : EntityBase;
 
         /// <summary>
-        /// Obtiene una entidad por su identificador 鷑ico.
+        /// Obtiene una entidad por su identificador 煤nico.
         /// </summary>
         /// <typeparam name="T">Tipo de entidad que hereda de EntityBase</typeparam>
-        /// <param name="id">El identificador 鷑ico de la entidad</param>
-        /// <param name="include">Propiedades de navegaci髇 a incluir (eager loading)</param>
+        /// <param name="id">El identificador 煤nico de la entidad</param>
+        /// <param name="include">Propiedades de navegaci贸n a incluir (eager loading)</param>
         /// <returns>La entidad encontrada o null si no existe</returns>
         Task<T?> GetById<T>(int id, params string[] include) where T : EntityBase;
 
@@ -47,37 +47,37 @@ namespace CigralBackend.Infraestructure.Database.Interfaces
         /// Obtiene la primera entidad que cumple con el predicado especificado.
         /// </summary>
         /// <typeparam name="T">Tipo de entidad que hereda de EntityBase</typeparam>
-        /// <param name="predicate">Expresi髇 lambda que define el criterio de b鷖queda</param>
-        /// <param name="include">Propiedades de navegaci髇 a incluir (eager loading)</param>
-        /// <returns>La primera entidad que cumple la condici髇 o null si no existe</returns>
+        /// <param name="predicate">Expresi贸n lambda que define el criterio de b煤squeda</param>
+        /// <param name="include">Propiedades de navegaci贸n a incluir (eager loading)</param>
+        /// <returns>La primera entidad que cumple la condici贸n o null si no existe</returns>
         Task<T?> First<T>(Expression<Func<T, bool>> predicate, params string[] include) where T : EntityBase;
 
         /// <summary>
-        /// Obtiene todas las entidades con soporte de paginaci髇.
+        /// Obtiene todas las entidades con soporte de paginaci贸n.
         /// </summary>
         /// <typeparam name="T">Tipo de entidad que hereda de EntityBase</typeparam>
-        /// <param name="pageNumber">N鷐ero de p醙ina (inicia en 1)</param>
-        /// <param name="pageSize">Cantidad de elementos por p醙ina</param>
-        /// <param name="include">Propiedades de navegaci髇 a incluir (eager loading)</param>
-        /// <returns>Resultado paginado con los elementos y metadata de paginaci髇</returns>
+        /// <param name="pageNumber">N煤mero de p谩gina (inicia en 1)</param>
+        /// <param name="pageSize">Cantidad de elementos por p谩gina</param>
+        /// <param name="include">Propiedades de navegaci贸n a incluir (eager loading)</param>
+        /// <returns>Resultado paginado con los elementos y metadata de paginaci贸n</returns>
         Task<PagedResult<T>> GetAll<T>(int pageNumber = 1, int pageSize = 10, params string[] include) where T : EntityBase;
 
         /// <summary>
-        /// Obtiene entidades filtradas con soporte de paginaci髇.
+        /// Obtiene entidades filtradas con soporte de paginaci贸n.
         /// </summary>
         /// <typeparam name="T">Tipo de entidad que hereda de EntityBase</typeparam>
-        /// <param name="predicate">Expresi髇 lambda que define el criterio de filtrado</param>
-        /// <param name="pageNumber">N鷐ero de p醙ina (inicia en 1)</param>
-        /// <param name="pageSize">Cantidad de elementos por p醙ina</param>
-        /// <param name="include">Propiedades de navegaci髇 a incluir (eager loading)</param>
-        /// <returns>Resultado paginado con los elementos filtrados y metadata de paginaci髇</returns>
+        /// <param name="predicate">Expresi贸n lambda que define el criterio de filtrado</param>
+        /// <param name="pageNumber">N煤mero de p谩gina (inicia en 1)</param>
+        /// <param name="pageSize">Cantidad de elementos por p谩gina</param>
+        /// <param name="include">Propiedades de navegaci贸n a incluir (eager loading)</param>
+        /// <returns>Resultado paginado con los elementos filtrados y metadata de paginaci贸n</returns>
         Task<PagedResult<T>> GetFiltered<T>(Expression<Func<T, bool>> predicate, int pageNumber = 1, int pageSize = 10, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, params string[] include) where T : EntityBase;
 
         /// <summary>
-        /// Inicia una transacci髇 en la base de datos (Entity Framework IDbContextTransaction).
-        /// El caller debe hacer CommitAsync o RollbackAsync seg鷑 corresponda.
+        /// Inicia una transacci贸n en la base de datos (Entity Framework IDbContextTransaction).
+        /// El caller debe hacer CommitAsync o RollbackAsync seg煤n corresponda.
         /// </summary>
-        /// <returns>IDbContextTransaction para controlar la transacci髇</returns>
+        /// <returns>IDbContextTransaction para controlar la transacci贸n</returns>
         Task<IDbContextTransaction> BeginTransaction();
         Task<T?> Last<T>(Expression<Func<T, bool>> predicate, params string[] include) where T : EntityBase;
         bool HasActiveTransaction();

@@ -1,4 +1,4 @@
-using CigralBackend.Domain;
+ï»¿using CigralBackend.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -31,8 +31,8 @@ namespace CigralBackend.Infraestructure.Database
 
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
-            // Todas las columnas de texto como citext: las búsquedas (Contains), comparaciones e
-            // índices únicos siguen sin distinguir mayúsculas, igual que en SQL Server.
+            // Todas las columnas de texto como citext: las bÃºsquedas (Contains), comparaciones e
+            // Ã­ndices Ãºnicos siguen sin distinguir mayÃºsculas, igual que en SQL Server.
             configurationBuilder.Properties<string>().HaveColumnType("citext");
         }
 
@@ -40,10 +40,10 @@ namespace CigralBackend.Infraestructure.Database
         {
             base.OnModelCreating(modelBuilder);
 
-            // citext: texto que no distingue mayúsculas, como el collation por defecto de SQL Server.
+            // citext: texto que no distingue mayÃºsculas, como el collation por defecto de SQL Server.
             modelBuilder.HasPostgresExtension("citext");
 
-            // Configuración de Cliente
+            // ConfiguraciÃ³n de Cliente
             modelBuilder.Entity<Cliente>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -61,7 +61,7 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasQueryFilter(c => c.Activo);
             });
 
-            // Configuración de Proveedor
+            // ConfiguraciÃ³n de Proveedor
             modelBuilder.Entity<Proveedor>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -79,7 +79,7 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasQueryFilter(c => c.Activo);
             });
 
-            // Configuración de Producto
+            // ConfiguraciÃ³n de Producto
             modelBuilder.Entity<Producto>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -102,7 +102,7 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasQueryFilter(c => c.Activo);
             });
 
-            //Configuración de Marca
+            //ConfiguraciÃ³n de Marca
             modelBuilder.Entity<Marca>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -111,7 +111,7 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasQueryFilter(c => c.Activo);
             });
 
-            // Configuración de Lote
+            // ConfiguraciÃ³n de Lote
             modelBuilder.Entity<Lote>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -126,7 +126,7 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasQueryFilter(c => c.Activo);
             });
 
-            // Configuración de Deposito
+            // ConfiguraciÃ³n de Deposito
             modelBuilder.Entity<Deposito>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -136,7 +136,7 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasQueryFilter(c => c.Activo);
             });
 
-            // Configuración de Existencia
+            // ConfiguraciÃ³n de Existencia
             modelBuilder.Entity<Existencia>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -155,7 +155,7 @@ namespace CigralBackend.Infraestructure.Database
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Configuración de DetalleRemito
+            // ConfiguraciÃ³n de DetalleRemito
             modelBuilder.Entity<DetalleRemito>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -170,7 +170,7 @@ namespace CigralBackend.Infraestructure.Database
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Configuración de RemitoEgreso
+            // ConfiguraciÃ³n de RemitoEgreso
             modelBuilder.Entity<RemitoEgreso>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -192,7 +192,7 @@ namespace CigralBackend.Infraestructure.Database
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Configuración de RemitoIngreso
+            // ConfiguraciÃ³n de RemitoIngreso
             modelBuilder.Entity<RemitoIngreso>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -214,7 +214,7 @@ namespace CigralBackend.Infraestructure.Database
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Configuración de MovimientoStock
+            // ConfiguraciÃ³n de MovimientoStock
             modelBuilder.Entity<MovimientoStock>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -249,7 +249,7 @@ namespace CigralBackend.Infraestructure.Database
                       .HasForeignKey(e => e.RemitoEgresoId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Índices para consultas rápidas
+                // Ãndices para consultas rÃ¡pidas
                 entity.HasIndex(e => e.FechaMovimiento);
                 entity.HasIndex(e => new { e.ProductoId, e.DepositoId });
                 entity.HasIndex(e => e.Tipo);
@@ -298,14 +298,14 @@ namespace CigralBackend.Infraestructure.Database
 
             foreach (var entry in entradasModificadas)
             {
-                // Evitamos auditar la tabla de auditoría para no crear un bucle infinito
+                // Evitamos auditar la tabla de auditorÃ­a para no crear un bucle infinito
                 if (entry.Entity is RegistroAuditoria)
                     continue;
 
                 var nombreEntidad = entry.Entity.GetType().Name;
                 var pk = entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey())?.CurrentValue?.ToString();
 
-                // Si es una actualización, buscamos campo por campo cuáles cambiaron
+                // Si es una actualizaciÃ³n, buscamos campo por campo cuÃ¡les cambiaron
                 if (entry.State == EntityState.Modified)
                 {
                     foreach (var property in entry.OriginalValues.Properties)
@@ -313,7 +313,7 @@ namespace CigralBackend.Infraestructure.Database
                         var valorAnterior = entry.OriginalValues[property]?.ToString();
                         var valorActual = entry.CurrentValues[property]?.ToString();
 
-                        // Solo guardamos si el valor realmente cambió
+                        // Solo guardamos si el valor realmente cambiÃ³
                         if (valorAnterior != valorActual)
                         {
                             entradasAuditoria.Add(new RegistroAuditoria
@@ -321,7 +321,7 @@ namespace CigralBackend.Infraestructure.Database
                                 Entidad = nombreEntidad,
                                 EntidadId = pk,
                                 Accion = "Update",
-                                Campo = property.Name, // Aquí usamos el campo genérico
+                                Campo = property.Name, // AquÃ­ usamos el campo genÃ©rico
                                 ValorAnterior = valorAnterior, // Lo que antes era stockAnterior
                                 ValorActual = valorActual,     // Lo que antes era stockPosterior
                                 Fecha = DateTime.UtcNow,
@@ -332,11 +332,11 @@ namespace CigralBackend.Infraestructure.Database
                 }
                 else if (entry.State == EntityState.Added)
                 {
-                    // Lógica opcional para guardar inserciones
+                    // LÃ³gica opcional para guardar inserciones
                     entradasAuditoria.Add(new RegistroAuditoria
                     {
                         Entidad = nombreEntidad,
-                        EntidadId = "Nuevo", // El ID real se genera después del SaveChanges
+                        EntidadId = "Nuevo", // El ID real se genera despuÃ©s del SaveChanges
                         Accion = "Insert",
                         Campo = "Todos",
                         ValorAnterior = null,
@@ -347,7 +347,7 @@ namespace CigralBackend.Infraestructure.Database
                 }
             }
 
-            // Guardamos las auditorías en el contexto antes de hacer el commit final
+            // Guardamos las auditorÃ­as en el contexto antes de hacer el commit final
             if (entradasAuditoria.Any())
             {
                 Auditorias.AddRange(entradasAuditoria);

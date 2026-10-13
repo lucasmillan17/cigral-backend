@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+ï»¿using CigralBackend.Application.Dtos;
 using CigralBackend.Domain.Wrappers;
 using System.Threading.Tasks;
 
@@ -10,17 +10,17 @@ namespace CigralBackend.Application.Services.Interfaces
     public interface IRemitoService
     {
         /// <summary>
-        /// Registra un remito de ingreso (entrada de mercadería de proveedor).
+        /// Registra un remito de ingreso (entrada de mercaderÃ­a de proveedor).
         /// </summary>
         /// <param name="request">Datos del remito de ingreso</param>
-        /// <returns>Información del remito creado</returns>
+        /// <returns>InformaciÃ³n del remito creado</returns>
         Task<RemitoResponse> RegistrarIngreso(RemitoRequest request);
 
         /// <summary>
-        /// Registra un remito de egreso (salida de mercadería a cliente).
+        /// Registra un remito de egreso (salida de mercaderÃ­a a cliente).
         /// </summary>
         /// <param name="request">Datos del remito de egreso</param>
-        /// <returns>Información del remito creado</returns>
+        /// <returns>InformaciÃ³n del remito creado</returns>
         Task<ResultadoOperacion<RemitoResponse>> RegistrarEgreso(RemitoRequest request);
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace CigralBackend.Application.Services.Interfaces
         /// <param name="id">ID del remito</param>
         /// <param name="request">Datos a actualizar</param>
         /// <param name="esIngreso">True si es remito de ingreso, False si es de egreso</param>
-        /// <returns>Información del remito actualizado</returns>
+        /// <returns>InformaciÃ³n del remito actualizado</returns>
         Task<RemitoResponse> UpdateRemito(int id, UpdateRemitoRequest request, bool esIngreso);
         Task<PagedResult<RemitoResponseGet>> GetRemitosEgreso(RemitoFilters filters);
         Task<PagedResult<RemitoResponseGet>> GetRemitosIngreso(RemitoFilters filters);

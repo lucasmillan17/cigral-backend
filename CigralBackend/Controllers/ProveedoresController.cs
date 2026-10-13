@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+Ôªøusing CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain.Wrappers;
 using Microsoft.AspNetCore.Authorization;
@@ -23,9 +23,9 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Obtiene proveedores con filtros y paginaciÛn.
+        /// Obtiene proveedores con filtros y paginaci√≥n.
         /// </summary>
-        /// <param name="filters">Filtros de b˙squeda</param>
+        /// <param name="filters">Filtros de b√∫squeda</param>
         /// <returns>Lista paginada de proveedores</returns>
         [HttpGet]
         [ProducesResponseType(typeof(PagedResult<ProveedorModelResponse>), StatusCodes.Status200OK)]
@@ -98,7 +98,7 @@ namespace CigralBackend.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("El archivo es inv·lido o est· vacÌo.");
+                return BadRequest("El archivo es inv√°lido o est√° vac√≠o.");
             }
 
             try

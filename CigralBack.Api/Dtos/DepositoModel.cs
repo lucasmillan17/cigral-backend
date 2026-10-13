@@ -1,9 +1,9 @@
-using System.ComponentModel.DataAnnotations;
+锘縰sing System.ComponentModel.DataAnnotations;
 
 namespace CigralBackend.Application.Dtos
 {
     /// <summary>
-    /// Request para crear o actualizar un dep髎ito.
+    /// Request para crear o actualizar un dep贸sito.
     /// </summary>
     public record DepositoModelRequest
     (
@@ -11,15 +11,15 @@ namespace CigralBackend.Application.Dtos
         [MaxLength(100, ErrorMessage = "El nombre no puede superar los 100 caracteres")]
         string Nombre,
 
-        [Required(ErrorMessage = "El c骴igo es obligatorio")]
-        [MaxLength(20, ErrorMessage = "El c骴igo no puede superar los 20 caracteres")]
+        [Required(ErrorMessage = "El c贸digo es obligatorio")]
+        [MaxLength(20, ErrorMessage = "El c贸digo no puede superar los 20 caracteres")]
         string Codigo,
 
         bool Activo = true
     );
 
     /// <summary>
-    /// Respuesta con informaci髇 del dep髎ito.
+    /// Respuesta con informaci贸n del dep贸sito.
     /// </summary>
     public record DepositoModelResponse
     (
@@ -30,16 +30,16 @@ namespace CigralBackend.Application.Dtos
     );
 
     /// <summary>
-    /// Filtros para buscar dep髎itos.
+    /// Filtros para buscar dep贸sitos.
     /// </summary>
     public record DepositoFilters
     (
         string? Nombre,
         string? Codigo,
         bool? Activo,
-        [Range(1, int.MaxValue, ErrorMessage = "La p醙ina debe ser mayor a 0")]
+        [Range(1, int.MaxValue, ErrorMessage = "La p谩gina debe ser mayor a 0")]
         int PageNumber = 1,
-        [Range(1, 100, ErrorMessage = "El tama駉 de p醙ina no puede superar los 100 items")]
+        [Range(1, 100, ErrorMessage = "El tama帽o de p谩gina no puede superar los 100 items")]
         int PageSize = 10
     );
 }

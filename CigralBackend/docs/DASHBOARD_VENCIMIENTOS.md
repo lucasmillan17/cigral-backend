@@ -1,21 +1,21 @@
-# ? Dashboard de Vencimientos - Implementación Completa
+ï»¿# ? Dashboard de Vencimientos - ImplementaciÃ³n Completa
 
 ## ?? SISTEMA DE ALERTAS DE VENCIMIENTO IMPLEMENTADO
 
-**Sistema completo para monitorear productos próximos a vencer con dashboard tipo semáforo**
+**Sistema completo para monitorear productos prÃ³ximos a vencer con dashboard tipo semÃ¡foro**
 
 ---
 
 ## ?? Funcionalidades Implementadas
 
 ### 1. **Dashboard de Vencimientos** ??
-Endpoint especializado para mostrar un semáforo visual en el frontend.
+Endpoint especializado para mostrar un semÃ¡foro visual en el frontend.
 
 ### 2. **Filtros de Vencimiento en Existencias** ??
-Ampliación del endpoint de existencias con filtros de fecha de vencimiento.
+AmpliaciÃ³n del endpoint de existencias con filtros de fecha de vencimiento.
 
 ### 3. **Query Personalizada** ??
-Endpoint para consultas específicas de productos próximos a vencer.
+Endpoint para consultas especÃ­ficas de productos prÃ³ximos a vencer.
 
 ---
 
@@ -23,7 +23,7 @@ Endpoint para consultas específicas de productos próximos a vencer.
 
 ### 1. GET `/api/existencias/dashboard/vencimientos`
 
-**Dashboard principal con estadísticas agrupadas por rangos.**
+**Dashboard principal con estadÃ­sticas agrupadas por rangos.**
 
 **Response:**
 ```json
@@ -34,7 +34,7 @@ Endpoint para consultas específicas de productos próximos a vencer.
   "cantidadTotalProximaVencer": 2340,
   "rangos": [
     {
-      "rango": "0-30 días",
+      "rango": "0-30 dÃ­as",
       "diasMinimo": 0,
       "diasMaximo": 30,
       "totalProductos": 12,
@@ -47,7 +47,7 @@ Endpoint para consultas específicas de productos próximos a vencer.
           "productoNombre": "Paracetamol 500mg",
           "productoGtin": "7790123456789",
           "depositoId": 1,
-          "depositoNombre": "Depósito Central",
+          "depositoNombre": "DepÃ³sito Central",
           "loteId": 23,
           "codigoLote": "LOTE-2024-A",
           "numeroSerie": null,
@@ -58,7 +58,7 @@ Endpoint para consultas específicas de productos próximos a vencer.
       ]
     },
     {
-      "rango": "31-60 días",
+      "rango": "31-60 dÃ­as",
       "diasMinimo": 31,
       "diasMaximo": 60,
       "totalProductos": 25,
@@ -67,7 +67,7 @@ Endpoint para consultas específicas de productos próximos a vencer.
       "items": [...]
     },
     {
-      "rango": "61-90 días",
+      "rango": "61-90 dÃ­as",
       "diasMinimo": 61,
       "diasMaximo": 90,
       "totalProductos": 35,
@@ -76,7 +76,7 @@ Endpoint para consultas específicas de productos próximos a vencer.
       "items": [...]
     },
     {
-      "rango": "91-120 días",
+      "rango": "91-120 dÃ­as",
       "diasMinimo": 91,
       "diasMaximo": 120,
       "totalProductos": 42,
@@ -95,7 +95,7 @@ const DashboardVencimientos = () => {
   
   return (
     <div className="dashboard">
-      <h2>Productos Próximos a Vencer</h2>
+      <h2>Productos PrÃ³ximos a Vencer</h2>
       <div className="stats">
         <div>Total Productos: {data.totalProductosProximosVencer}</div>
         <div>Total Lotes: {data.totalLotesProximosVencer}</div>
@@ -118,7 +118,7 @@ const DashboardVencimientos = () => {
 };
 
 function getSemaforoColor(dias) {
-  if (dias <= 30) return 'rojo'; // Crítico
+  if (dias <= 30) return 'rojo'; // CrÃ­tico
   if (dias <= 90) return 'amarillo'; // Alerta
   return 'verde'; // OK
 }
@@ -128,18 +128,18 @@ function getSemaforoColor(dias) {
 
 ### 2. GET `/api/existencias/proximos-vencer`
 
-**Query personalizada de productos próximos a vencer.**
+**Query personalizada de productos prÃ³ximos a vencer.**
 
-**Parámetros:**
-- `diasDesde` (int, opcional): Días desde hoy (ej: 0 = hoy)
-- `diasHasta` (int, opcional): Días hasta (ej: 90 = 3 meses)
-- `depositoId` (int, opcional): Filtrar por depósito
+**ParÃ¡metros:**
+- `diasDesde` (int, opcional): DÃ­as desde hoy (ej: 0 = hoy)
+- `diasHasta` (int, opcional): DÃ­as hasta (ej: 90 = 3 meses)
+- `depositoId` (int, opcional): Filtrar por depÃ³sito
 - `productoId` (int, opcional): Filtrar por producto
 - `incluirVencidos` (bool, default: false): Incluir productos ya vencidos
 
 **Ejemplos:**
 
-#### Productos críticos (próximos 30 días)
+#### Productos crÃ­ticos (prÃ³ximos 30 dÃ­as)
 ```http
 GET /api/existencias/proximos-vencer?diasDesde=0&diasHasta=30
 ```
@@ -153,7 +153,7 @@ GET /api/existencias/proximos-vencer?diasDesde=0&diasHasta=30
     "productoNombre": "Paracetamol 500mg",
     "productoGtin": "7790123456789",
     "depositoId": 1,
-    "depositoNombre": "Depósito Central",
+    "depositoNombre": "DepÃ³sito Central",
     "loteId": 23,
     "codigoLote": "LOTE-2024-A",
     "numeroSerie": null,
@@ -174,7 +174,7 @@ GET /api/existencias/proximos-vencer?diasDesde=30&diasHasta=90
 GET /api/existencias/proximos-vencer?diasDesde=-365&diasHasta=-1&incluirVencidos=true
 ```
 
-#### Por depósito específico
+#### Por depÃ³sito especÃ­fico
 ```http
 GET /api/existencias/proximos-vencer?diasDesde=0&diasHasta=60&depositoId=1
 ```
@@ -185,20 +185,20 @@ GET /api/existencias/proximos-vencer?diasDesde=0&diasHasta=60&depositoId=1
 
 **Endpoint existente con NUEVOS filtros de vencimiento.**
 
-**Nuevos Parámetros:**
+**Nuevos ParÃ¡metros:**
 - `fechaVencimientoDesde` (DateTime, opcional)
 - `fechaVencimientoHasta` (DateTime, opcional)
-- `diasParaVencer` (int, opcional): Productos que vencen en X días
+- `diasParaVencer` (int, opcional): Productos que vencen en X dÃ­as
 - `soloConVencimiento` (bool, opcional): true = solo con vencimiento, false = solo sin vencimiento
 
 **Ejemplos:**
 
-#### Productos que vencen en los próximos 90 días
+#### Productos que vencen en los prÃ³ximos 90 dÃ­as
 ```http
 GET /api/existencias?diasParaVencer=90
 ```
 
-#### Productos que vencen entre fechas específicas
+#### Productos que vencen entre fechas especÃ­ficas
 ```http
 GET /api/existencias?fechaVencimientoDesde=2025-01-01&fechaVencimientoHasta=2025-03-31
 ```
@@ -231,7 +231,7 @@ public record ProductoProximoVencerDto
     string? CodigoLote,
     string? NumeroSerie,
     DateTime FechaVencimiento,
-    int DiasParaVencer,      // Calculado automáticamente
+    int DiasParaVencer,      // Calculado automÃ¡ticamente
     int Cantidad
 );
 ```
@@ -240,11 +240,11 @@ public record ProductoProximoVencerDto
 ```csharp
 public record VencimientoStats
 (
-    string Rango,           // "0-30 días", "31-90 días", etc.
+    string Rango,           // "0-30 dÃ­as", "31-90 dÃ­as", etc.
     int DiasMinimo,
     int DiasMaximo,
-    int TotalProductos,     // Cantidad de productos ÚNICOS
-    int TotalLotes,         // Cantidad de lotes ÚNICOS
+    int TotalProductos,     // Cantidad de productos ÃšNICOS
+    int TotalLotes,         // Cantidad de lotes ÃšNICOS
     int CantidadTotal,      // SUMA de todas las cantidades
     List<ProductoProximoVencerDto> Items
 );
@@ -278,14 +278,14 @@ public record VencimientoFilters
 
 ## ?? Rangos del Dashboard
 
-| Rango | Días | Color Sugerido | Prioridad |
+| Rango | DÃ­as | Color Sugerido | Prioridad |
 |-------|------|----------------|-----------|
-| **Vencidos** | < 0 | ?? Rojo oscuro | CRÍTICO |
-| **0-30 días** | 0-30 | ?? Rojo | URGENTE |
-| **31-60 días** | 31-60 | ?? Naranja | ALTA |
-| **61-90 días** | 61-90 | ?? Amarillo | MEDIA |
-| **91-120 días** | 91-120 | ?? Azul | BAJA |
-| **121-180 días** | 121-180 | ?? Verde | NORMAL |
+| **Vencidos** | < 0 | ?? Rojo oscuro | CRÃTICO |
+| **0-30 dÃ­as** | 0-30 | ?? Rojo | URGENTE |
+| **31-60 dÃ­as** | 31-60 | ?? Naranja | ALTA |
+| **61-90 dÃ­as** | 61-90 | ?? Amarillo | MEDIA |
+| **91-120 dÃ­as** | 91-120 | ?? Azul | BAJA |
+| **121-180 dÃ­as** | 121-180 | ?? Verde | NORMAL |
 
 ---
 
@@ -296,17 +296,17 @@ public record VencimientoFilters
 **Frontend muestra:**
 ```
 ???????????????????????????????????????????
-?  ?? PRODUCTOS PRÓXIMOS A VENCER         ?
+?  ?? PRODUCTOS PRÃ“XIMOS A VENCER         ?
 ???????????????????????????????????????????
 ?  Total: 156 productos | 45 lotes        ?
 ?  Cantidad: 2,340 unidades               ?
 ???????????????????????????????????????????
 ?                                         ?
-?  ?? 0-30 DÍAS        12 prod   345 un  ?
-?  ?? 31-60 DÍAS       25 prod   580 un  ?
-?  ?? 61-90 DÍAS       35 prod   820 un  ?
-?  ?? 91-120 DÍAS      42 prod 1,020 un  ?
-?  ?? 121-180 DÍAS     42 prod   595 un  ?
+?  ?? 0-30 DÃAS        12 prod   345 un  ?
+?  ?? 31-60 DÃAS       25 prod   580 un  ?
+?  ?? 61-90 DÃAS       35 prod   820 un  ?
+?  ?? 91-120 DÃAS      42 prod 1,020 un  ?
+?  ?? 121-180 DÃAS     42 prod   595 un  ?
 ?                                         ?
 ?  [Ver Detalles] [Exportar PDF]         ?
 ???????????????????????????????????????????
@@ -317,15 +317,15 @@ public record VencimientoFilters
 fetch('/api/existencias/dashboard/vencimientos')
   .then(res => res.json())
   .then(data => {
-    // Renderizar semáforo
+    // Renderizar semÃ¡foro
   });
 ```
 
 ---
 
-### Caso 2: Alerta Automática
+### Caso 2: Alerta AutomÃ¡tica
 
-**Backend envía emails automáticos:**
+**Backend envÃ­a emails automÃ¡ticos:**
 ```csharp
 // Tarea programada diaria
 var productosUrgentes = await _existenciaService.GetProductosProximosVencer(
@@ -336,7 +336,7 @@ if (productosUrgentes.Count > 0)
 {
     await _emailService.EnviarAlerta(
         destinatario: "admin@cigral.com",
-        asunto: $"ALERTA: {productosUrgentes.Count} productos vencen en 30 días",
+        asunto: $"ALERTA: {productosUrgentes.Count} productos vencen en 30 dÃ­as",
         productos: productosUrgentes
     );
 }
@@ -357,14 +357,14 @@ GET /api/existencias/proximos-vencer?diasDesde=-365&diasHasta=-1&incluirVencidos
 ?  ?? PRODUCTOS VENCIDOS                  ?
 ???????????????????????????????????????????
 ?  - Paracetamol 500mg (LOTE-A)          ?
-?    Vencido hace: 15 días                ?
+?    Vencido hace: 15 dÃ­as                ?
 ?    Cantidad: 50 unidades                ?
-?    Depósito: Central                    ?
+?    DepÃ³sito: Central                    ?
 ?                                         ?
 ?  - Ibuprofeno 400mg (LOTE-B)           ?
-?    Vencido hace: 3 días                 ?
+?    Vencido hace: 3 dÃ­as                 ?
 ?    Cantidad: 30 unidades                ?
-?    Depósito: Sucursal 1                 ?
+?    DepÃ³sito: Sucursal 1                 ?
 ???????????????????????????????????????????
 ```
 
@@ -372,21 +372,21 @@ GET /api/existencias/proximos-vencer?diasDesde=-365&diasHasta=-1&incluirVencidos
 
 ### Caso 4: Filtros Combinados
 
-**Productos del depósito 1 que vencen en 60 días:**
+**Productos del depÃ³sito 1 que vencen en 60 dÃ­as:**
 ```http
 GET /api/existencias?depositoId=1&diasParaVencer=60
 ```
 
-**Productos específicos próximos a vencer:**
+**Productos especÃ­ficos prÃ³ximos a vencer:**
 ```http
 GET /api/existencias/proximos-vencer?productoId=5&diasDesde=0&diasHasta=90
 ```
 
 ---
 
-## ?? Lógica de Cálculo
+## ?? LÃ³gica de CÃ¡lculo
 
-### Días para Vencer
+### DÃ­as para Vencer
 ```csharp
 var hoy = DateTime.Now.Date;
 var fechaVencimiento = lote.FechaVencimiento;
@@ -398,12 +398,12 @@ var diasParaVencer = (int)(fechaVencimiento.Date - hoy).TotalDays;
 // Vence: 2025-01-20 ? diasParaVencer = -4 (vencido)
 ```
 
-### Agrupación por Rangos
+### AgrupaciÃ³n por Rangos
 ```csharp
 var rangos = new[]
 {
-    new { Nombre = "0-30 días", Min = 0, Max = 30 },
-    new { Nombre = "31-60 días", Min = 31, Max = 60 },
+    new { Nombre = "0-30 dÃ­as", Min = 0, Max = 30 },
+    new { Nombre = "31-60 dÃ­as", Min = 31, Max = 60 },
     // ...
 };
 
@@ -415,19 +415,19 @@ var itemsEnRango = productosProximosVencer
 
 ---
 
-## ?? Priorización de Vencimiento
+## ?? PriorizaciÃ³n de Vencimiento
 
 ### Sistema de Prioridades
 
 ```csharp
 public enum PrioridadVencimiento
 {
-    Vencido,    // < 0 días
-    Critica,    // 0-30 días
-    Alta,       // 31-60 días
-    Media,      // 61-90 días
-    Baja,       // 91-120 días
-    Normal      // > 120 días
+    Vencido,    // < 0 dÃ­as
+    Critica,    // 0-30 dÃ­as
+    Alta,       // 31-60 dÃ­as
+    Media,      // 61-90 dÃ­as
+    Baja,       // 91-120 dÃ­as
+    Normal      // > 120 dÃ­as
 }
 
 // Calcular prioridad
@@ -501,11 +501,11 @@ const NotificacionesVencimiento = () => {
   
   return (
     <div className="notificaciones">
-      <h3>?? Productos Críticos ({data.length})</h3>
+      <h3>?? Productos CrÃ­ticos ({data.length})</h3>
       {data.map(producto => (
         <div key={producto.existenciaId} className="alerta">
           <strong>{producto.productoNombre}</strong>
-          <span>Vence en {producto.diasParaVencer} días</span>
+          <span>Vence en {producto.diasParaVencer} dÃ­as</span>
           <span>Cantidad: {producto.cantidad}</span>
         </div>
       ))}
@@ -519,33 +519,33 @@ const NotificacionesVencimiento = () => {
 ## ? Ventajas del Sistema
 
 ### Para el Negocio
-? **Prevenir pérdidas** - Detectar productos antes del vencimiento
-? **Optimizar rotación** - Vender primero lo que vence antes
+? **Prevenir pÃ©rdidas** - Detectar productos antes del vencimiento
+? **Optimizar rotaciÃ³n** - Vender primero lo que vence antes
 ? **Reducir desperdicio** - Planificar promociones o descuentos
 ? **Cumplir normativas** - No vender productos vencidos
 
 ### Para el Usuario
-? **Dashboard visual** - Semáforo intuitivo
-? **Alertas automáticas** - Notificaciones proactivas
+? **Dashboard visual** - SemÃ¡foro intuitivo
+? **Alertas automÃ¡ticas** - Notificaciones proactivas
 ? **Filtros flexibles** - Consultas personalizadas
-? **Datos completos** - Producto, lote, depósito, cantidad
+? **Datos completos** - Producto, lote, depÃ³sito, cantidad
 
-### Técnico
-? **Performance** - Cálculo en servidor, no en frontend
+### TÃ©cnico
+? **Performance** - CÃ¡lculo en servidor, no en frontend
 ? **Escalable** - Funciona con miles de productos
-? **Flexible** - Múltiples endpoints para diferentes casos
+? **Flexible** - MÃºltiples endpoints para diferentes casos
 ? **Documentado** - Swagger con ejemplos
 
 ---
 
-## ?? Próximas Mejoras (Opcionales)
+## ?? PrÃ³ximas Mejoras (Opcionales)
 
 ### Funcionalidades Futuras
 - [ ] **Exportar a Excel/PDF** - Reportes de vencimientos
-- [ ] **Emails automáticos** - Alertas programadas
-- [ ] **Gráficos** - Visualización con Chart.js
+- [ ] **Emails automÃ¡ticos** - Alertas programadas
+- [ ] **GrÃ¡ficos** - VisualizaciÃ³n con Chart.js
 - [ ] **Historial** - Tracking de productos vencidos
-- [ ] **Configuración** - Rangos personalizables por usuario
+- [ ] **ConfiguraciÃ³n** - Rangos personalizables por usuario
 - [ ] **Push Notifications** - Alertas en tiempo real
 
 ---
@@ -562,14 +562,14 @@ const NotificacionesVencimiento = () => {
 ?  ? DTOs:              4 nuevos           ?
 ?  ? Endpoints:         3 (1 nuevo, 2 mod) ?
 ?  ? Rangos:            6 rangos           ?
-?  ? Compilación:       EXITOSA            ?
-?  ? Documentación:     Completa           ?
+?  ? CompilaciÃ³n:       EXITOSA            ?
+?  ? DocumentaciÃ³n:     Completa           ?
 ?                                            ?
 ??????????????????????????????????????????????
 ```
 
 ---
 
-**¡Sistema de control de vencimientos listo para producción!** ??
+**Â¡Sistema de control de vencimientos listo para producciÃ³n!** ??
 
 **Ideal para:** Farmacias, alimentos, productos perecederos, cualquier negocio con productos que vencen.

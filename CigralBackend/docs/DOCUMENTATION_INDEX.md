@@ -1,4 +1,4 @@
-# Documentacion CigralBackend v1.0 - Estructura Final
+﻿# Documentacion CigralBackend v1.0 - Estructura Final
 
 ## Archivos de Documentacion (6 esenciales)
 
@@ -93,7 +93,7 @@
 
 ### Antes
 ```markdown
-# ?? Documentaci�n CigralBackend
+# ?? Documentación CigralBackend
 ? CRUD completo
 ? Dashboard de vencimientos
 ```

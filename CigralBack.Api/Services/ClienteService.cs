@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+ï»¿using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace CigralBackend.Application.Services
 {
     /// <summary>
-    /// Servicio de aplicación para operaciones de clientes.
+    /// Servicio de aplicaciÃ³n para operaciones de clientes.
     /// </summary>
     public class ClienteService : IClienteService
     {
@@ -31,7 +31,7 @@ namespace CigralBackend.Application.Services
         /// </summary>
         public async Task<ClienteModelResponse> CreateCliente(ClienteModelRequest request)
         {
-            // Validar GLN único (solo si se proporciona)
+            // Validar GLN Ãºnico (solo si se proporciona)
             if (!string.IsNullOrEmpty(request.GLN))
             {
                 var existeGLN = await _repository.First<Cliente>(c => c.GLN == request.GLN);
@@ -44,7 +44,7 @@ namespace CigralBackend.Application.Services
                 }
             }
 
-            // Validar CUIT único (si se proporciona)
+            // Validar CUIT Ãºnico (si se proporciona)
             if (!string.IsNullOrEmpty(request.Cuit))
             {
                 var existeCuit = await _repository.First<Cliente>(c => c.Cuit == request.Cuit);
@@ -104,7 +104,7 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Obtiene clientes filtrados con paginación.
+        /// Obtiene clientes filtrados con paginaciÃ³n.
         /// </summary>
         public async Task<PagedResult<ClienteModelResponse>> GetClientes(ClienteFilters filters)
         {
@@ -147,7 +147,7 @@ namespace CigralBackend.Application.Services
                 throw new NotFoundException(nameof(Cliente), id);
             }
 
-            // Validar GLN único (si se proporciona y si cambió)
+            // Validar GLN Ãºnico (si se proporciona y si cambiÃ³)
             if (!string.IsNullOrEmpty(request.GLN) && request.GLN != cliente.GLN)
             {
                 var existeGLN = await _repository.First<Cliente>(c => c.GLN == request.GLN && c.Id != id);
@@ -160,7 +160,7 @@ namespace CigralBackend.Application.Services
                 }
             }
 
-            // Validar CUIT único (si cambió y se proporciona)
+            // Validar CUIT Ãºnico (si cambiÃ³ y se proporciona)
             if (!string.IsNullOrEmpty(request.Cuit) && request.Cuit != cliente.Cuit)
             {
                 var existeCuit = await _repository.First<Cliente>(c => c.Cuit == request.Cuit && c.Id != id);
@@ -244,7 +244,7 @@ namespace CigralBackend.Application.Services
             // 1. Delegar a Infraestructura la lectura del CSV
             var records = _parserService.ParsearClientes(fileStream);
 
-            // 2. Aplicar lógica de negocio y mapeo a Dominio
+            // 2. Aplicar lÃ³gica de negocio y mapeo a Dominio
             foreach (var record in records)
             {
                 var cuitLimpio = record.Cuit?.Replace("-", "").Replace(" ", "") ?? "";
