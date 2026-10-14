@@ -217,7 +217,7 @@ namespace CigralBackend.Application.Services
                     var producto = await _productoService.GetProductoById(detalle.ProductoId); 
                     erroresValidacion.Add(new ErrorDetalleDto(
                         Orden: request.Detalles.IndexOf(detalle),
-                        Mensaje: $"La cantidad para el producto {producto.Nombre}, Lote: {detalle.CodigoLote.ToUpper()}, debe ser mayor a cero."
+                        Mensaje: $"La cantidad para el producto {producto.Nombre}, Lote: {detalle.CodigoLote?.ToUpper() ?? "sin lote"}, debe ser mayor a cero."
                     ));
                 }
 
@@ -234,7 +234,7 @@ namespace CigralBackend.Application.Services
                     var producto = await _productoService.GetProductoById(detalle.ProductoId);
                     erroresValidacion.Add(new ErrorDetalleDto(
                         Orden: request.Detalles.IndexOf(detalle),
-                        Mensaje: $"Stock insuficiente para el producto {producto.Nombre}, Lote: {detalle.CodigoLote.ToUpper()}. Disponible: {stockExistente}, Solicitado: {detalle.Cantidad}."
+                        Mensaje: $"Stock insuficiente para el producto {producto.Nombre}, Lote: {detalle.CodigoLote?.ToUpper() ?? "sin lote"}. Disponible: {stockExistente}, Solicitado: {detalle.Cantidad}."
                     ));
                 }
             }

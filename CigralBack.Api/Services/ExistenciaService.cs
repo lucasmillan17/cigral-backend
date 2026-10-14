@@ -416,7 +416,7 @@ namespace CigralBackend.Application.Services
 
         /// <summary>
         /// Aplica varios movimientos sin remito en una sola transacción: se guardan todos o ninguno.
-        /// Si una línea falla, devuelve su número de orden (1 = primera) y el motivo.
+        /// Si una línea falla, devuelve su índice (0 = primera, igual que el remito de egreso) y el motivo.
         /// </summary>
         public async Task<ResultadoOperacion<List<ExistenciaModelResponse>>> AplicarMovimientos(
             List<ExistenciaModelRequest> movimientos,
@@ -438,7 +438,7 @@ namespace CigralBackend.Application.Services
                     await transaction.RollbackAsync();
                     return ResultadoOperacion<List<ExistenciaModelResponse>>.Fallo(
                         "No se guardó ningún movimiento porque una línea tiene un problema.",
-                        new List<ErrorDetalleDto> { new ErrorDetalleDto(i + 1, ex.Message) }
+                        new List<ErrorDetalleDto> { new ErrorDetalleDto(i, ex.Message) }
                     );
                 }
             }
