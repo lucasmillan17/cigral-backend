@@ -1,4 +1,5 @@
 ﻿using CigralBackend.Infraestructure.Database.Interfaces;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
@@ -53,7 +54,7 @@ namespace CigralBackend.Application.Services
         /// <returns>Lista de marcas que coinciden</returns>
         public async Task<List<MarcaResponse>> GetMarcasByNombre(string nombre)
         {
-            var marcas = await _repository.GetFiltered<Marca>(m => m.Nombre.Contains(nombre), 1, 50);
+            var marcas = await _repository.GetFiltered<Marca>(m => Busqueda.Coincide(m.Nombre, nombre), 1, 50);
             return marcas.Items.Select(p => ResponseGenerator(p)).ToList();
         }
 

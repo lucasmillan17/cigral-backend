@@ -4,6 +4,7 @@ using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using System.Linq;
 using System.Threading.Tasks;
@@ -81,8 +82,8 @@ namespace CigralBackend.Application.Services
         {
             var resultado = await _repository.GetFiltered<Deposito>(
                 predicate: d =>
-                    (string.IsNullOrEmpty(filters.Nombre) || d.Nombre.Contains(filters.Nombre)) &&
-                    (string.IsNullOrEmpty(filters.Codigo) || d.Codigo.Contains(filters.Codigo)) &&
+                    (string.IsNullOrEmpty(filters.Nombre) || Busqueda.Coincide(d.Nombre, filters.Nombre)) &&
+                    (string.IsNullOrEmpty(filters.Codigo) || Busqueda.Coincide(d.Codigo, filters.Codigo)) &&
                     (!filters.Activo.HasValue || d.Activo == filters.Activo.Value),
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize

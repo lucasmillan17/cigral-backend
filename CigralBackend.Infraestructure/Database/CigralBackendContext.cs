@@ -43,6 +43,11 @@ namespace CigralBackend.Infraestructure.Database
             // citext: texto que no distingue mayúsculas, como el collation por defecto de SQL Server.
             modelBuilder.HasPostgresExtension("citext");
 
+            // Búsqueda por palabras sin acentos (Busqueda.Coincide -> función SQL coincide_busqueda).
+            modelBuilder.HasPostgresExtension("unaccent");
+            modelBuilder.HasDbFunction(typeof(Busqueda).GetMethod(nameof(Busqueda.Coincide))!)
+                .HasName("coincide_busqueda");
+
             // Configuración de Cliente
             modelBuilder.Entity<Cliente>(entity =>
             {

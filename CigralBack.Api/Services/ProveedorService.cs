@@ -4,6 +4,7 @@ using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using CigralBackend.Infraestructure.Services.Interfaces;
 using System.Linq;
@@ -144,9 +145,9 @@ namespace CigralBackend.Application.Services
         {
             var resultado = await _repository.GetFiltered<Proveedor>(
                 predicate: p =>
-                    (string.IsNullOrEmpty(filters.RazonSocial) || p.RazonSocial.Contains(filters.RazonSocial)) &&
-                    (string.IsNullOrEmpty(filters.GLN) || p.GLN.Contains(filters.GLN)) &&
-                    (string.IsNullOrEmpty(filters.Cuit) || p.Cuit.Contains(filters.Cuit)),
+                    (string.IsNullOrEmpty(filters.RazonSocial) || Busqueda.Coincide(p.RazonSocial, filters.RazonSocial)) &&
+                    (string.IsNullOrEmpty(filters.GLN) || Busqueda.Coincide(p.GLN, filters.GLN)) &&
+                    (string.IsNullOrEmpty(filters.Cuit) || Busqueda.Coincide(p.Cuit, filters.Cuit)),
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize
             );

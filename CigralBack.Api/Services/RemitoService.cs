@@ -5,6 +5,7 @@ using CigralBackend.Domain.Bases;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -449,7 +450,7 @@ namespace CigralBackend.Application.Services
                     (!filters.FechaHasta.HasValue || e.Fecha.Date <= filters.FechaHasta.Value) &&
 
                     (string.IsNullOrEmpty(filters.NumeroRemito) ||
-                        (e.NumeroRemito != null && e.NumeroRemito.Contains(filters.NumeroRemito))),
+                        (e.NumeroRemito != null && Busqueda.Coincide(e.NumeroRemito, filters.NumeroRemito))),
 
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
@@ -497,7 +498,7 @@ namespace CigralBackend.Application.Services
                     (!filters.FechaHasta.HasValue || e.Fecha.Date <= filters.FechaHasta.Value) &&
 
                     (string.IsNullOrEmpty(filters.NumeroRemito) ||
-                        (e.NumeroRemito != null && e.NumeroRemito.Contains(filters.NumeroRemito))),
+                        (e.NumeroRemito != null && Busqueda.Coincide(e.NumeroRemito, filters.NumeroRemito))),
 
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,

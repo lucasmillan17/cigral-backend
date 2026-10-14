@@ -4,6 +4,7 @@ using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -514,13 +515,13 @@ namespace CigralBackend.Application.Services
                     (!filters.LoteId.HasValue || e.LoteId == filters.LoteId.Value) &&
 
                     (string.IsNullOrEmpty(filters.NumSerie) ||
-                        (e.NumSerie != null && e.NumSerie.Contains(filters.NumSerie))) &&
+                        (e.NumSerie != null && Busqueda.Coincide(e.NumSerie, filters.NumSerie))) &&
 
                     (string.IsNullOrEmpty(filters.CodigoLote) ||
-                        (e.Lote != null && e.Lote.CodigoLote.Contains(filters.CodigoLote))) &&
+                        (e.Lote != null && Busqueda.Coincide(e.Lote.CodigoLote, filters.CodigoLote))) &&
 
                     (string.IsNullOrEmpty(filters.NombreProducto) ||
-                        (e.Producto != null && e.Producto.Nombre.Contains(filters.NombreProducto))) &&
+                        (e.Producto != null && Busqueda.Coincide(e.Producto.Nombre, filters.NombreProducto))) &&
 
                     // --- FILTROS DE FECHAS (Agrupados correctamente) ---
 

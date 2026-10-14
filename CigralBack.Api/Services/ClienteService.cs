@@ -4,6 +4,7 @@ using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using CigralBackend.Infraestructure.Services.Interfaces;
 using System.Linq;
@@ -110,9 +111,9 @@ namespace CigralBackend.Application.Services
         {
             var resultado = await _repository.GetFiltered<Cliente>(
                 predicate: c =>
-                    (string.IsNullOrEmpty(filters.RazonSocial) || c.RazonSocial.Contains(filters.RazonSocial)) &&
-                    (string.IsNullOrEmpty(filters.GLN) || c.GLN.Contains(filters.GLN)) &&
-                    (string.IsNullOrEmpty(filters.Cuit) || c.Cuit.Contains(filters.Cuit)),
+                    (string.IsNullOrEmpty(filters.RazonSocial) || Busqueda.Coincide(c.RazonSocial, filters.RazonSocial)) &&
+                    (string.IsNullOrEmpty(filters.GLN) || Busqueda.Coincide(c.GLN, filters.GLN)) &&
+                    (string.IsNullOrEmpty(filters.Cuit) || Busqueda.Coincide(c.Cuit, filters.Cuit)),
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize
             );
@@ -212,9 +213,9 @@ namespace CigralBackend.Application.Services
             var resultado = await _repository.GetFiltered<EntidadResumen>(
                 orderBy: q => q.OrderBy(e => e.RazonSocial), // Ordenar por RazonSocial
                 predicate: c =>
-                    (string.IsNullOrEmpty(filters.RazonSocial) || c.RazonSocial.Contains(filters.RazonSocial)) &&
-                    (string.IsNullOrEmpty(filters.GLN) || c.GLN.Contains(filters.GLN)) &&
-                    (string.IsNullOrEmpty(filters.Cuit) || c.Cuit.Contains(filters.Cuit)),
+                    (string.IsNullOrEmpty(filters.RazonSocial) || Busqueda.Coincide(c.RazonSocial, filters.RazonSocial)) &&
+                    (string.IsNullOrEmpty(filters.GLN) || Busqueda.Coincide(c.GLN, filters.GLN)) &&
+                    (string.IsNullOrEmpty(filters.Cuit) || Busqueda.Coincide(c.Cuit, filters.Cuit)),
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize
             );

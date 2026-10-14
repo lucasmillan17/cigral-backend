@@ -3,6 +3,7 @@ using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using System;
 using System.Linq;
@@ -29,17 +30,17 @@ namespace CigralBackend.Application.Services
         {
             var resultadoEntidad = await _repository.GetFiltered<MovimientoStock>(
                 predicate: m =>
-                    (string.IsNullOrEmpty(filters.NombreProducto) || m.Producto.Nombre.Contains(filters.NombreProducto)) &&
+                    (string.IsNullOrEmpty(filters.NombreProducto) || Busqueda.Coincide(m.Producto.Nombre, filters.NombreProducto)) &&
                     (!filters.DepositoId.HasValue || m.DepositoId == filters.DepositoId.Value) &&
-                    (string.IsNullOrEmpty(filters.CodigoLote) || m.Lote.CodigoLote.Contains(filters.CodigoLote)) &&
-                    (string.IsNullOrEmpty(filters.NumeroSerie) || m.NumeroSerie.Contains(filters.NumeroSerie)) &&
+                    (string.IsNullOrEmpty(filters.CodigoLote) || Busqueda.Coincide(m.Lote.CodigoLote, filters.CodigoLote)) &&
+                    (string.IsNullOrEmpty(filters.NumeroSerie) || Busqueda.Coincide(m.NumeroSerie, filters.NumeroSerie)) &&
                     (!filters.Tipo.HasValue || m.Tipo == filters.Tipo.Value) &&
                     (string.IsNullOrEmpty(filters.NroRemito) ||
-                    m.RemitoEgreso.NumeroRemito.Contains(filters.NroRemito) ||
-                    m.RemitoIngreso.NumeroRemito.Contains(filters.NroRemito)) &&
+                    Busqueda.Coincide(m.RemitoEgreso.NumeroRemito, filters.NroRemito) ||
+                    Busqueda.Coincide(m.RemitoIngreso.NumeroRemito, filters.NroRemito)) &&
                     (string.IsNullOrEmpty(filters.ComprobanteAsociado) ||
-                    m.RemitoEgreso.ComprobanteAsociado.Contains(filters.ComprobanteAsociado) ||
-                    m.RemitoIngreso.ComprobanteAsociado.Contains(filters.ComprobanteAsociado)) &&
+                    Busqueda.Coincide(m.RemitoEgreso.ComprobanteAsociado, filters.ComprobanteAsociado) ||
+                    Busqueda.Coincide(m.RemitoIngreso.ComprobanteAsociado, filters.ComprobanteAsociado)) &&
                     (filters.EsDevolucion ? m.Observaciones.Contains("[DEVOLUCIÓN]") : true) &&
                     (!filters.FechaDesde.HasValue || m.FechaMovimiento >= filters.FechaDesde.Value) &&
                     (!filters.FechaHasta.HasValue || m.FechaMovimiento <= filters.FechaHasta.Value),
