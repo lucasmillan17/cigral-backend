@@ -160,7 +160,7 @@ namespace CigralBackend.Controllers
         /// <summary>
         /// Ingreso sin remito de varias líneas en una sola transacción: se guardan todas o ninguna.
         /// </summary>
-        /// <returns>422 con { mensaje, errores: [{ orden, mensaje }] } si alguna línea falla</returns>
+        /// <returns>422 con { mensaje, errores: [{ orden, mensaje }] } si alguna línea falla (orden 0 = primera)</returns>
         [HttpPost("aumentar-varios")]
         [ProducesResponseType(typeof(List<ExistenciaModelResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -170,7 +170,7 @@ namespace CigralBackend.Controllers
         /// <summary>
         /// Egreso sin remito de varias líneas en una sola transacción: se guardan todas o ninguna.
         /// </summary>
-        /// <returns>422 con { mensaje, errores: [{ orden, mensaje }] } si alguna línea falla</returns>
+        /// <returns>422 con { mensaje, errores: [{ orden, mensaje }] } si alguna línea falla (orden 0 = primera)</returns>
         [HttpPost("disminuir-varios")]
         [ProducesResponseType(typeof(List<ExistenciaModelResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
