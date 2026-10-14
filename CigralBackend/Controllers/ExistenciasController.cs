@@ -47,6 +47,17 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
+        /// Existencias sumadas por producto, lote, serie y vencimiento, con el detalle por depósito.
+        /// Acepta los mismos filtros que GET /api/existencias y pagina por grupo.
+        /// </summary>
+        [HttpGet("agrupadas")]
+        [ProducesResponseType(typeof(PagedResult<ExistenciaAgrupadaResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetExistenciasAgrupadas([FromQuery] ExistenciaFilters filters)
+        {
+            return Ok(await _existenciaService.GetExistenciasAgrupadas(filters));
+        }
+
+        /// <summary>
         /// Obtiene una existencia por su ID.
         /// </summary>
         /// <param name="id">ID de la existencia</param>
