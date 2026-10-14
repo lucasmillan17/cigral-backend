@@ -66,7 +66,7 @@ namespace CigralBackend.Infraestructure.Services
                     ProductoNombre = d.Producto?.Nombre ?? "Sin Nombre",
                     ProductoGtin = d.Producto?.GTIN ?? "Sin GTIN",
                     CodigoLote = d.Lote?.CodigoLote,
-                    FechaVencimiento = d.Lote?.FechaVencimiento,
+                    FechaVencimiento = d.FechaVencimiento,
                     NumeroSerie = d.NumeroSerie,
                     Cantidad = d.Cantidad,
                     DepositoNombre = deposito?.Nombre ?? "Sin Depósito"
@@ -119,7 +119,7 @@ namespace CigralBackend.Infraestructure.Services
                     ProductoNombre = d.Producto?.Nombre ?? "Sin Nombre",
                     ProductoGtin = d.Producto?.GTIN ?? "Sin GTIN",
                     CodigoLote = d.Lote?.CodigoLote,
-                    FechaVencimiento = d.Lote?.FechaVencimiento,
+                    FechaVencimiento = d.FechaVencimiento,
                     NumeroSerie = d.NumeroSerie,
                     Cantidad = d.Cantidad,
                     DepositoNombre = deposito?.Nombre ?? "Sin Depósito"

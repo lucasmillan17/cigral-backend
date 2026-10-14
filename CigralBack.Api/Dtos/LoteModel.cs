@@ -6,9 +6,6 @@ namespace CigralBackend.Application.Dtos
     (
         [Required(ErrorMessage = "El código de lote es obligatorio")]
         [MaxLength(50, ErrorMessage = "El código de lote no puede superar los 50 caracteres")]
-        string CodigoLote,
-        DateTime? FechaVencimiento,
-        [Required(ErrorMessage = "El producto es obligatorio")]
-        int ProductoId
+        string CodigoLote
     );
 }

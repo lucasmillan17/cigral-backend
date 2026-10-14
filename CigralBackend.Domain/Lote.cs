@@ -7,14 +7,15 @@ using System.Threading.Tasks;
 
 namespace CigralBackend.Domain
 {
+    /// <summary>
+    /// Código de lote, compartido por todas las existencias, detalles y movimientos que lo usan.
+    /// No pertenece a un producto ni tiene vencimiento: el mismo código puede venir del fabricante
+    /// en productos distintos, y el vencimiento se guarda en cada existencia y detalle de remito.
+    /// </summary>
     public class Lote : EntityBase
     {
         public Lote() { }
 
         public string CodigoLote { get; set; }
-        public DateTime? FechaVencimiento { get; set; } // Opcional: hay productos que no vencen
-        public Producto Producto { get; set; }
-        public int ProductoId { get; set; }
-        public bool Activo { get; set; } = true;
     }
 }

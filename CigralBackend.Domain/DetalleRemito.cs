@@ -24,6 +24,7 @@ namespace CigralBackend.Domain
         public Lote? Lote { get; set; }
         
         public string? NumeroSerie { get; set; }
+        public DateTime? FechaVencimiento { get; set; } // Vencimiento de la mercadería de esta línea
         
         public int Cantidad { get; set; }
         public string? InformacionAdicional { get; set; }
