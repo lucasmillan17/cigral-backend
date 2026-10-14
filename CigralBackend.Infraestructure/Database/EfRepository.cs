@@ -135,6 +135,11 @@ namespace CigralBackend.Infraestructure.Database
             return await _context.Database.BeginTransactionAsync();
         }
 
+        public IQueryable<T> Query<T>() where T : EntityBase
+        {
+            return _context.Set<T>().AsNoTracking();
+        }
+
         /// <summary>
         /// Verifica si ya existe una transacción activa en el contexto actual.
         /// </summary>

@@ -80,4 +80,22 @@ namespace CigralBackend.Application.Dtos
     );
 
     public record StockDisponibleResponse(int Cantidad);
+
+    /// <summary>
+    /// Existencias de un mismo producto, lote, serie y vencimiento sumadas entre depósitos,
+    /// con el detalle de cuánto hay en cada uno.
+    /// </summary>
+    public record ExistenciaAgrupadaResponse(
+        int ProductoId,
+        string ProductoNombre,
+        string ProductoGtin,
+        int LoteId,
+        string CodigoLote,
+        string NumSerie,
+        DateTime? FechaVencimiento,
+        int CantidadTotal,
+        List<ExistenciaPorDepositoResponse> Depositos
+    );
+
+    public record ExistenciaPorDepositoResponse(int ExistenciaId, int DepositoId, string DepositoNombre, int Cantidad);
 }

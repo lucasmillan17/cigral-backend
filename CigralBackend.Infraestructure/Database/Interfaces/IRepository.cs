@@ -79,6 +79,11 @@ namespace CigralBackend.Infraestructure.Database.Interfaces
         /// </summary>
         /// <returns>IDbContextTransaction para controlar la transacción</returns>
         Task<IDbContextTransaction> BeginTransaction();
+
+        /// <summary>
+        /// Consulta de solo lectura (sin seguimiento de cambios) para agrupar o proyectar en la base.
+        /// </summary>
+        IQueryable<T> Query<T>() where T : EntityBase;
         Task<T?> Last<T>(Expression<Func<T, bool>> predicate, params string[] include) where T : EntityBase;
         bool HasActiveTransaction();
     }

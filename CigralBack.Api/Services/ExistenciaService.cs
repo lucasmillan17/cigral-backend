@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -521,7 +522,139 @@ namespace CigralBackend.Application.Services
                 : null;
 
             var resultadoEntidad = await _repository.GetFiltered<Existencia>(
-                predicate: e =>
+                predicate: FiltroExistencias(filters),
+                pageNumber: filters.PageNumber,
+                pageSize: filters.PageSize,
+                orderBy: orderByLogic,
+                include: new[] { "Producto", "Deposito", "Lote" }
+            );
+
+            var itemsDto = resultadoEntidad.Items.Select(e => new ExistenciaModelResponse(
+                e.Id,
+                e.ProductoId,
+                e.Producto?.Nombre ?? "Sin Nombre",
+                e.Producto?.GTIN ?? "Sin GTIN",
+                e.Producto?.CodigoInterno ?? "Sin Código Genérico",
+                e.DepositoId,
+                e.Deposito?.Nombre ?? "Sin Depósito",
+                e.LoteId ?? 0,
+                e.Lote?.CodigoLote.ToUpper() ?? "Sin Código de Lote",
+                e.NumSerie ?? "Sin Número de Serie",
+                e.FechaVencimiento,
+                e.Cantidad,
+                e.InformacionAdicional
+            )).ToList();
+
+            return new PagedResult<ExistenciaModelResponse>
+            {
+                Items = itemsDto,
+                TotalCount = resultadoEntidad.TotalCount,
+                PageNumber = resultadoEntidad.PageNumber,
+                PageSize = resultadoEntidad.PageSize
+            };
+        }
+
+        public async Task<PagedResult<ExistenciaAgrupadaResponse>> GetExistenciasAgrupadas(ExistenciaFilters filters)
+        {
+            var filtradas = _repository.Query<Existencia>().Where(FiltroExistencias(filters));
+
+            // Un grupo = mismo producto, lote, serie y vencimiento; se suman las cantidades de todos los depósitos.
+            var grupos = filtradas
+                .GroupBy(e => new { e.ProductoId, NombreProducto = e.Producto.Nombre, e.LoteId, e.NumSerie, e.FechaVencimiento })
+                .Select(g => new
+                {
+                    g.Key.ProductoId,
+                    g.Key.NombreProducto,
+                    g.Key.LoteId,
+                    g.Key.NumSerie,
+                    g.Key.FechaVencimiento,
+                    Total = g.Sum(e => e.Cantidad)
+                });
+
+            var ordenados = filters.OrdenarPor switch
+            {
+                OrdenExistencia.NombreProducto => filters.EsDescendente
+                    ? grupos.OrderByDescending(g => g.NombreProducto).ThenBy(g => g.LoteId)
+                    : grupos.OrderBy(g => g.NombreProducto).ThenBy(g => g.LoteId),
+                OrdenExistencia.FechaVencimiento => filters.EsDescendente
+                    ? grupos.OrderByDescending(g => g.FechaVencimiento).ThenBy(g => g.NombreProducto)
+                    : grupos.OrderBy(g => g.FechaVencimiento).ThenBy(g => g.NombreProducto),
+                OrdenExistencia.Cantidad => filters.EsDescendente
+                    ? grupos.OrderByDescending(g => g.Total).ThenBy(g => g.NombreProducto)
+                    : grupos.OrderBy(g => g.Total).ThenBy(g => g.NombreProducto),
+                _ => filters.EsDescendente
+                    ? grupos.OrderByDescending(g => g.ProductoId).ThenByDescending(g => g.LoteId)
+                    : grupos.OrderBy(g => g.ProductoId).ThenBy(g => g.LoteId)
+            };
+
+            var total = await grupos.CountAsync();
+            var pagina = await ordenados
+                .Skip((filters.PageNumber - 1) * filters.PageSize)
+                .Take(filters.PageSize)
+                .ToListAsync();
+
+            // Detalle por depósito de los grupos de esta página.
+            var productoIds = pagina.Select(g => g.ProductoId).Distinct().ToList();
+            var detalle = await filtradas
+                .Where(e => productoIds.Contains(e.ProductoId))
+                .Select(e => new
+                {
+                    e.Id,
+                    e.ProductoId,
+                    e.LoteId,
+                    e.NumSerie,
+                    e.FechaVencimiento,
+                    e.DepositoId,
+                    DepositoNombre = e.Deposito.Nombre,
+                    e.Cantidad,
+                    Gtin = e.Producto.GTIN,
+                    CodigoLote = e.Lote != null ? e.Lote.CodigoLote : null
+                })
+                .ToListAsync();
+
+            var items = pagina.Select(g =>
+            {
+                var filas = detalle
+                    .Where(d => d.ProductoId == g.ProductoId
+                        && d.LoteId == g.LoteId
+                        && string.Equals(d.NumSerie, g.NumSerie, StringComparison.OrdinalIgnoreCase)
+                        && d.FechaVencimiento == g.FechaVencimiento)
+                    .OrderBy(d => d.DepositoNombre)
+                    .ToList();
+                var primera = filas.FirstOrDefault();
+                return new ExistenciaAgrupadaResponse(
+                    g.ProductoId,
+                    g.NombreProducto ?? "Sin Nombre",
+                    primera?.Gtin ?? "Sin GTIN",
+                    g.LoteId ?? 0,
+                    primera?.CodigoLote?.ToUpper() ?? "Sin Código de Lote",
+                    g.NumSerie ?? "Sin Número de Serie",
+                    g.FechaVencimiento,
+                    g.Total,
+                    filas.Select(d => new ExistenciaPorDepositoResponse(d.Id, d.DepositoId, d.DepositoNombre ?? "Sin Depósito", d.Cantidad)).ToList());
+            }).ToList();
+
+            return new PagedResult<ExistenciaAgrupadaResponse>
+            {
+                Items = items,
+                TotalCount = total,
+                PageNumber = filters.PageNumber,
+                PageSize = filters.PageSize
+            };
+        }
+
+        /// <summary>
+        /// Filtros de existencias (texto, depósito, lote, vencimiento). Lo usan el listado y el agrupado.
+        /// </summary>
+        private static Expression<Func<Existencia, bool>> FiltroExistencias(ExistenciaFilters filters)
+        {
+            var hoy = DateTime.Now.Date;
+            var fechaLimiteVencimiento = filters.DiasParaVencer.HasValue
+                ? hoy.AddDays(filters.DiasParaVencer.Value)
+                : (DateTime?)null;
+            DateTime? limiteDiasParaVencer = fechaLimiteVencimiento;
+
+            return e =>
                     // --- FILTROS EXACTOS Y DE TEXTO ---
                     (!filters.ProductoId.HasValue || e.ProductoId == filters.ProductoId.Value) &&
                     (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
@@ -561,37 +694,7 @@ namespace CigralBackend.Application.Services
                     // SOLO CON VENCIMIENTO
                     (!filters.SoloConVencimiento.HasValue ||
                         e.FechaVencimiento.HasValue == filters.SoloConVencimiento.Value
-                    ),
-
-                pageNumber: filters.PageNumber,
-                pageSize: filters.PageSize,
-                orderBy: orderByLogic,
-                include: new[] { "Producto", "Deposito", "Lote" }
-            );
-
-            var itemsDto = resultadoEntidad.Items.Select(e => new ExistenciaModelResponse(
-                e.Id,
-                e.ProductoId,
-                e.Producto?.Nombre ?? "Sin Nombre",
-                e.Producto?.GTIN ?? "Sin GTIN",
-                e.Producto?.CodigoInterno ?? "Sin Código Genérico",
-                e.DepositoId,
-                e.Deposito?.Nombre ?? "Sin Depósito",
-                e.LoteId ?? 0,
-                e.Lote?.CodigoLote.ToUpper() ?? "Sin Código de Lote",
-                e.NumSerie ?? "Sin Número de Serie",
-                e.FechaVencimiento,
-                e.Cantidad,
-                e.InformacionAdicional
-            )).ToList();
-
-            return new PagedResult<ExistenciaModelResponse>
-            {
-                Items = itemsDto,
-                TotalCount = resultadoEntidad.TotalCount,
-                PageNumber = resultadoEntidad.PageNumber,
-                PageSize = resultadoEntidad.PageSize
-            };
+                    );
         }
 
         /// <summary>

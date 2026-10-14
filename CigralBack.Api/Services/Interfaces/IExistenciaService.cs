@@ -58,6 +58,12 @@ namespace CigralBackend.Application.Services.Interfaces
         Task<PagedResult<ExistenciaModelResponse>> GetExistencias(ExistenciaFilters filters);
 
         /// <summary>
+        /// Igual que GetExistencias, pero sumando las existencias de un mismo producto, lote, serie y
+        /// vencimiento que están en distintos depósitos. Pagina por grupo.
+        /// </summary>
+        Task<PagedResult<ExistenciaAgrupadaResponse>> GetExistenciasAgrupadas(ExistenciaFilters filters);
+
+        /// <summary>
         /// Obtiene dashboard de productos próximos a vencer agrupados por rangos.
         /// </summary>
         /// <returns>Dashboard con estadísticas de vencimientos</returns>
