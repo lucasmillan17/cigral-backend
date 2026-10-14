@@ -63,8 +63,23 @@ namespace CigralBackend.Application.Services
                 p.GTIN,
                 p.CodigoGenerico,
                 p.CodigoInterno,
-                p.Precio
+                p.Precio,
+                p.EsUnitario
             );
+        }
+
+        /// <summary>
+        /// Genera un código genérico único (GEN-aammddhhmmss-nnnn) para productos sin GTIN.
+        /// </summary>
+        private async Task<string> GenerarCodigoGenerico()
+        {
+            for (var intento = 0; intento < 5; intento++)
+            {
+                var codigo = $"GEN-{DateTime.Now:yyMMddHHmmss}-{Random.Shared.Next(1000, 10000)}";
+                if (await _repository.First<Producto>(p => p.CodigoGenerico == codigo) == null)
+                    return codigo;
+            }
+            return $"GEN-{Guid.NewGuid():N}";
         }
 
         /// <summary>
@@ -76,13 +91,10 @@ namespace CigralBackend.Application.Services
         public async Task<ProductoModelResponse> CreateProducto(ProductoModelRequest r)
         {
             int idMarca = 0;
-            // Validar que tenga GTIN o CodigoGenerico
+            // Productos sin código de barras: se les genera un código genérico único
             if (string.IsNullOrEmpty(r.GTIN) && string.IsNullOrEmpty(r.CodigoGenerico))
             {
-                throw new DomainException(
-                    DomainErrorCode.GtinDuplicado,
-                    "El producto debe tener al menos un GTIN o un Codigo Generico."
-                );
+                r = r with { CodigoGenerico = await GenerarCodigoGenerico() };
             }
             // Validar que el GTIN o CodigoGenerico no este duplicado
             var existingProducto = await _repository.First<Producto>(p =>

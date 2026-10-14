@@ -158,6 +158,43 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
+        /// Ingreso sin remito de varias líneas en una sola transacción: se guardan todas o ninguna.
+        /// </summary>
+        /// <returns>422 con { mensaje, errores: [{ orden, mensaje }] } si alguna línea falla</returns>
+        [HttpPost("aumentar-varios")]
+        [ProducesResponseType(typeof(List<ExistenciaModelResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<IActionResult> AumentarVarios([FromBody] List<ExistenciaModelRequest> movimientos)
+            => await AplicarMovimientos(movimientos, esAumento: true);
+
+        /// <summary>
+        /// Egreso sin remito de varias líneas en una sola transacción: se guardan todas o ninguna.
+        /// </summary>
+        /// <returns>422 con { mensaje, errores: [{ orden, mensaje }] } si alguna línea falla</returns>
+        [HttpPost("disminuir-varios")]
+        [ProducesResponseType(typeof(List<ExistenciaModelResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<IActionResult> DisminuirVarios([FromBody] List<ExistenciaModelRequest> movimientos)
+            => await AplicarMovimientos(movimientos, esAumento: false);
+
+        private async Task<IActionResult> AplicarMovimientos(List<ExistenciaModelRequest> movimientos, bool esAumento)
+        {
+            if (movimientos == null || movimientos.Count == 0)
+                return BadRequest(new { message = "No hay movimientos para guardar." });
+
+            var resultado = await _existenciaService.AplicarMovimientos(movimientos, esAumento);
+            if (!resultado.Exito)
+            {
+                return UnprocessableEntity(new
+                {
+                    mensaje = resultado.MensajeGeneral,
+                    errores = resultado.ErroresDetalle
+                });
+            }
+            return Ok(resultado.Datos);
+        }
+
+        /// <summary>
         /// Elimina una existencia (solo si cantidad = 0).
         /// </summary>
         /// <param name="id">ID de la existencia</param>

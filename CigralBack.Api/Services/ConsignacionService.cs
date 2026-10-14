@@ -75,7 +75,7 @@ namespace CigralBackend.Application.Services
             {
                 // ACTUALIZAR LA EXISTENTE
                 consignacionDelCliente.Cantidad += request.Cantidad;
-                consignacionDelCliente.FechaModificacion = DateTime.UtcNow;
+                consignacionDelCliente.FechaModificacion = DateTime.Now;
 
                 await _repository.Update(consignacionDelCliente);
             }
@@ -87,7 +87,7 @@ namespace CigralBackend.Application.Services
                     ExistenciaId = request.ExistenciaId,
                     ClienteId = request.ClienteId,
                     Cantidad = request.Cantidad,
-                    FechaModificacion = DateTime.UtcNow
+                    FechaModificacion = DateTime.Now
                 };
 
                 await _repository.Add(consignacionDelCliente);
@@ -132,7 +132,7 @@ namespace CigralBackend.Application.Services
 
             // 4. Aplicar la resta
             consignacion.Cantidad -= cantidadADisminuir;
-            consignacion.FechaModificacion = DateTime.UtcNow;
+            consignacion.FechaModificacion = DateTime.Now;
 
             // 5. Lógica de eliminación o actualización
             if (consignacion.Cantidad == 0)

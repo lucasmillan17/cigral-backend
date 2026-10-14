@@ -23,7 +23,8 @@ namespace CigralBackend
         public static async Task Main(string[] args)
         {
             // PostgreSQL: DateTime se guarda como "timestamp" sin zona horaria (igual que datetime2 en SQL Server).
-            // Sin esto Npgsql rechaza mezclar DateTime.Now y DateTime.UtcNow, y el código usa ambos.
+            // Todas las fechas se guardan en hora local de Argentina (DateTime.Now; el contenedor corre con
+            // TZ=America/Argentina/Buenos_Aires), y los vencimientos son fechas sin hora.
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
             var builder = WebApplication.CreateBuilder(args);

@@ -19,6 +19,7 @@ namespace CigralBackend.Application.Dtos
         public bool ExisteProducto { get; set; }
         public int? ProductoId { get; set; }
         public string? NombreProducto { get; set; }
+        public bool EsUnitario { get; set; } // Cada movimiento de stock tiene que ser de cantidad 1
         public string? InformacionAdicional { get; set; }
     }
 }

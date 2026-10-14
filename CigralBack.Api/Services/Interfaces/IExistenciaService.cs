@@ -36,6 +36,13 @@ namespace CigralBackend.Application.Services.Interfaces
             string? observaciones = null);
 
         /// <summary>
+        /// Aplica varios aumentos o disminuciones sin remito en una sola transacción (todos o ninguno).
+        /// </summary>
+        Task<ResultadoOperacion<List<ExistenciaModelResponse>>> AplicarMovimientos(
+            List<ExistenciaModelRequest> movimientos,
+            bool esAumento);
+
+        /// <summary>
         /// Obtiene una existencia por su ID.
         /// </summary>
         /// <param name="id">ID de la existencia</param>

@@ -121,7 +121,6 @@ namespace CigralBackend.Infraestructure.Database
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.CodigoLote).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.FechaVencimiento).IsRequired();
                 entity.HasOne(e => e.Producto)
                       .WithMany(p => p.Lotes)
                       .HasForeignKey(e => e.ProductoId)
@@ -329,7 +328,7 @@ namespace CigralBackend.Infraestructure.Database
                                 Campo = property.Name, // Aquí usamos el campo genérico
                                 ValorAnterior = valorAnterior, // Lo que antes era stockAnterior
                                 ValorActual = valorActual,     // Lo que antes era stockPosterior
-                                Fecha = DateTime.UtcNow,
+                                Fecha = DateTime.Now,
                                 Usuario = _userContext.HttpContext?.User?.Identity?.Name ?? "Sistema" // TODO: Puedes inyectar IHttpContextAccessor para obtener el email/ID del usuario logueado
                             });
                         }
@@ -346,7 +345,7 @@ namespace CigralBackend.Infraestructure.Database
                         Campo = "Todos",
                         ValorAnterior = null,
                         ValorActual = "Nuevo Registro Creado",
-                        Fecha = DateTime.UtcNow,
+                        Fecha = DateTime.Now,
                         Usuario = _userContext.HttpContext?.User?.Identity?.Name ?? "Sistema"
                     });
                 }

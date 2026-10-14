@@ -12,8 +12,7 @@ namespace CigralBackend.Domain
         public Lote() { }
 
         public string CodigoLote { get; set; }
-        public DateTime FechaVencimiento { get; set; }
-        public int CantidadDisponible { get; set; }
+        public DateTime? FechaVencimiento { get; set; } // Opcional: hay productos que no vencen
         public Producto Producto { get; set; }
         public int ProductoId { get; set; }
         public bool Activo { get; set; } = true;

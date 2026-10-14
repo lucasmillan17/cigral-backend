@@ -161,12 +161,11 @@ namespace CigralBackend.Application.Services
                 lote = await _repository.First<Lote>(l => l.CodigoLote == loteUpper);
                 if (lote == null)
                 {
-                    // Creamos un lote nuevo inicializado en 0 (la cantidad se sumará más abajo de forma global)
+                    // El stock vive solo en Existencias; el lote guarda código y vencimiento.
                     lote = new Lote
                     {
                         CodigoLote = loteUpper,
                         FechaVencimiento = r.FechaVencimiento,
-                        CantidadDisponible = 0,
                         ProductoId = r.ProductoId
                     };
 
@@ -224,14 +223,6 @@ namespace CigralBackend.Application.Services
 
                 existencia = await _repository.Add(existencia);
                 stockNuevo = existencia.Cantidad;
-            }
-
-            // === ACTUALIZACIÓN DEL LOTE GLOBAL ===
-            // Sumamos la cantidad entrante de forma independiente a la existencia
-            if (lote != null)
-            {
-                lote.CantidadDisponible += r.Cantidad;
-                await _repository.Update(lote);
             }
 
             // Registrar movimiento en auditoría
@@ -434,6 +425,39 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
+        /// Aplica varios movimientos sin remito en una sola transacción: se guardan todos o ninguno.
+        /// Si una línea falla, devuelve su número de orden (1 = primera) y el motivo.
+        /// </summary>
+        public async Task<ResultadoOperacion<List<ExistenciaModelResponse>>> AplicarMovimientos(
+            List<ExistenciaModelRequest> movimientos,
+            bool esAumento)
+        {
+            var resultados = new List<ExistenciaModelResponse>();
+            using var transaction = await _repository.BeginTransaction();
+
+            for (int i = 0; i < movimientos.Count; i++)
+            {
+                try
+                {
+                    resultados.Add(esAumento
+                        ? await AumentarStock(movimientos[i])
+                        : await DisminuirStock(movimientos[i]));
+                }
+                catch (Exception ex) when (ex is DomainException || ex is NotFoundException)
+                {
+                    await transaction.RollbackAsync();
+                    return ResultadoOperacion<List<ExistenciaModelResponse>>.Fallo(
+                        "No se guardó ningún movimiento porque una línea tiene un problema.",
+                        new List<ErrorDetalleDto> { new ErrorDetalleDto(i + 1, ex.Message) }
+                    );
+                }
+            }
+
+            await transaction.CommitAsync();
+            return ResultadoOperacion<List<ExistenciaModelResponse>>.Ok(resultados);
+        }
+
+        /// <summary>
         /// Obtiene una existencia por su ID.
         /// </summary>
         /// <param name="id">ID de la existencia</param>
@@ -556,16 +580,16 @@ namespace CigralBackend.Application.Services
                             (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value.Date >= hoy && e.FechaVencimiento.Value.Date <= limiteDiasParaVencer.Value)
                             ||
                             // Opción B: Su lote tiene fecha, NO está vencido hoy, y vence antes del límite
-                            (e.Lote != null && e.Lote.FechaVencimiento.Date >= hoy && e.Lote.FechaVencimiento.Date <= limiteDiasParaVencer.Value)
+                            (e.Lote != null && e.Lote.FechaVencimiento.HasValue && e.Lote.FechaVencimiento.Value.Date >= hoy && e.Lote.FechaVencimiento.Value.Date <= limiteDiasParaVencer.Value)
                         )
                     ) &&
 
                     // SOLO CON VENCIMIENTO
                     (!filters.SoloConVencimiento.HasValue ||
                         (
-                            (filters.SoloConVencimiento.Value && (e.FechaVencimiento.HasValue || e.Lote != null))
+                            (filters.SoloConVencimiento.Value && (e.FechaVencimiento.HasValue || (e.Lote != null && e.Lote.FechaVencimiento.HasValue)))
                             ||
-                            (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && e.Lote == null)
+                            (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && (e.Lote == null || !e.Lote.FechaVencimiento.HasValue))
                         )
                     ),
 
