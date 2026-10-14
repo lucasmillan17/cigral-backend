@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+﻿using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace CigralBackend.Controllers
 {
     /// <summary>
-    /// Controlador de autenticaci�n.
+    /// Controlador de autenticación.
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
@@ -57,7 +57,7 @@ namespace CigralBackend.Controllers
             
             if (string.IsNullOrEmpty(username))
             {
-                return Unauthorized("Token inv�lido");
+                return Unauthorized("Token inválido");
             }
 
             var usuario = await _authService.Register(request, username);
@@ -65,8 +65,8 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Cambiar contrase�a del usuario autenticado.
-        /// Comprobacion: la nueva contrase�a no puede ser igual a la actual.
+        /// Cambiar contraseña del usuario autenticado.
+        /// Comprobacion: la nueva contraseña no puede ser igual a la actual.
         /// </summary>
         [HttpPost("change-password")]
         [Authorize]
@@ -77,7 +77,7 @@ namespace CigralBackend.Controllers
         {
             var username = User.FindFirst(ClaimTypes.Name)?.Value;
             if (string.IsNullOrEmpty(username))
-                return Unauthorized("Token inv�lido");
+                return Unauthorized("Token inválido");
 
             await _authService.ChangePassword(username, request.CurrentPassword, request.NewPassword);
             return NoContent();

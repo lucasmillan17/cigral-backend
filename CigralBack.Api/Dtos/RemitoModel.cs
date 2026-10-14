@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,7 +9,7 @@ namespace CigralBackend.Application.Dtos
     /// </summary>
     public record RemitoRequest
     (
-        [Required(ErrorMessage = "El depósito es obligatorio")]
+        [Required(ErrorMessage = "El depÃ³sito es obligatorio")]
         int DepositoId,
 
         [Required(ErrorMessage = "La entidad (proveedor o cliente) es obligatoria")]
@@ -49,7 +49,7 @@ namespace CigralBackend.Application.Dtos
 
         string? CodigoLote,
 
-        [MaxLength(100, ErrorMessage = "El número de serie no puede superar los 100 caracteres")]
+        [MaxLength(100, ErrorMessage = "El nÃºmero de serie no puede superar los 100 caracteres")]
         string? NumeroSerie,
 
         DateTime FechaVencimiento,
@@ -70,7 +70,7 @@ namespace CigralBackend.Application.Dtos
     );
 
     /// <summary>
-    /// Respuesta con información del remito creado.
+    /// Respuesta con informaciÃ³n del remito creado.
     /// </summary>
     public record RemitoResponse
     (

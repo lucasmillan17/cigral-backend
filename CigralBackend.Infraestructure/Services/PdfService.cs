@@ -1,4 +1,4 @@
-using CigralBackend.Domain;
+ï»¿using CigralBackend.Domain;
 using CigralBackend.Infraestructure.Dtos;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Infraestructure.Database.Interfaces;
@@ -12,7 +12,7 @@ using static System.Net.Mime.MediaTypeNames;
 namespace CigralBackend.Infraestructure.Services
 {
     /// <summary>
-    /// Servicio de generación de PDFs usando QuestPDF.
+    /// Servicio de generaciÃ³n de PDFs usando QuestPDF.
     /// </summary>
     public class PdfService : IPdfService
     {
@@ -45,7 +45,7 @@ namespace CigralBackend.Infraestructure.Services
                 throw new NotFoundException(nameof(RemitoIngreso), remitoId);
             }
 
-            // Obtener el depósito
+            // Obtener el depÃ³sito
             var deposito = await _repository.GetById<Deposito>(remito.DepositoId);
 
             // Mapear a DTO
@@ -69,7 +69,7 @@ namespace CigralBackend.Infraestructure.Services
                     FechaVencimiento = d.Lote?.FechaVencimiento,
                     NumeroSerie = d.NumeroSerie,
                     Cantidad = d.Cantidad,
-                    DepositoNombre = deposito?.Nombre ?? "Sin Depósito"
+                    DepositoNombre = deposito?.Nombre ?? "Sin DepÃ³sito"
                 }).ToList() ?? new(),
                 CantidadTotal = remito.Detalles?.Sum(d => d.Cantidad) ?? 0,
                 CantidadItems = remito.Detalles?.Count ?? 0
@@ -98,7 +98,7 @@ namespace CigralBackend.Infraestructure.Services
                 throw new NotFoundException(nameof(RemitoEgreso), remitoId);
             }
 
-            // Obtener el depósito
+            // Obtener el depÃ³sito
             var deposito = await _repository.GetById<Deposito>(remito.DepositoId);
 
             // Mapear a DTO
@@ -122,7 +122,7 @@ namespace CigralBackend.Infraestructure.Services
                     FechaVencimiento = d.Lote?.FechaVencimiento,
                     NumeroSerie = d.NumeroSerie,
                     Cantidad = d.Cantidad,
-                    DepositoNombre = deposito?.Nombre ?? "Sin Depósito"
+                    DepositoNombre = deposito?.Nombre ?? "Sin DepÃ³sito"
                 }).ToList() ?? new(),
                 CantidadTotal = remito.Detalles?.Sum(d => d.Cantidad) ?? 0,
                 CantidadItems = remito.Detalles?.Count ?? 0
@@ -187,39 +187,39 @@ namespace CigralBackend.Infraestructure.Services
                 
                 column.Spacing(10);
 
-                // Información del remito
+                // InformaciÃ³n del remito
                 column.Item().Row(row =>
                 {
                     row.RelativeItem().Column(col =>
                     {
                         col.Item().Background(Colors.Blue.Medium).PaddingHorizontal(15).PaddingVertical(10).AlignMiddle().AlignCenter().Text($"ANEXO DE REMITO {remito.TipoRemito}")
                         .Bold().FontSize(16).FontColor(Colors.White);
-                        col.Item().PaddingTop(10).Text($"Comprobante Asociado N°: {remito.ComprobanteAsociado}").FontSize(10);
+                        col.Item().PaddingTop(10).Text($"Comprobante Asociado NÂ°: {remito.ComprobanteAsociado}").FontSize(10);
                         col.Item().PaddingTop(10).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingBottom(5)
-                            .Text($"Número: {remito.NumeroRemito}").Bold();
+                            .Text($"NÃºmero: {remito.NumeroRemito}").Bold();
                         col.Item().PaddingTop(8).Text($"Fecha: {remito.Fecha:dd/MM/yyyy HH:mm}");
                     });
                 });
 
                 column.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
 
-                // Información del cliente/proveedor
+                // InformaciÃ³n del cliente/proveedor
                 column.Item().Column(col =>
                 {
                     var titulo = remito.TipoRemito == "INGRESO" ? "PROVEEDOR" : "CLIENTE";
                     col.Item().Text(titulo).Bold().FontSize(12).FontColor(Colors.Blue.Medium);
                     
                     if (!string.IsNullOrEmpty(remito.RazonSocial))
-                        col.Item().Text($"Razón Social: {remito.RazonSocial}");
+                        col.Item().Text($"RazÃ³n Social: {remito.RazonSocial}");
                     
                     if (!string.IsNullOrEmpty(remito.CUIT))
                         col.Item().Text($"CUIT: {remito.CUIT}");
                     
                     if (!string.IsNullOrEmpty(remito.Direccion))
-                        col.Item().Text($"Dirección: {remito.Direccion}");
+                        col.Item().Text($"DirecciÃ³n: {remito.Direccion}");
                     
                     if (!string.IsNullOrEmpty(remito.Telefono))
-                        col.Item().Text($"Teléfono: {remito.Telefono}");
+                        col.Item().Text($"TelÃ©fono: {remito.Telefono}");
                     
                     if (!string.IsNullOrEmpty(remito.Email))
                         col.Item().Text($"Email: {remito.Email}");
@@ -237,7 +237,7 @@ namespace CigralBackend.Infraestructure.Services
                         columns.ConstantColumn(70); // Vencimiento
                         columns.RelativeColumn(2); // Serie
                         columns.RelativeColumn(1); // Cantidad
-                        columns.RelativeColumn(2); // Depósito
+                        columns.RelativeColumn(2); // DepÃ³sito
                     });
 
                     // Encabezado de tabla
@@ -247,9 +247,9 @@ namespace CigralBackend.Infraestructure.Services
                         header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("GTIN").Bold();
                         header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Lote").Bold();
                         header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Vencimiento").Bold();
-                        header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("N° Serie").Bold();
+                        header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("NÂ° Serie").Bold();
                         header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Cant.").Bold();
-                        header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Depósito").Bold();
+                        header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("DepÃ³sito").Bold();
                     });
 
                     // Filas de datos
@@ -315,7 +315,7 @@ namespace CigralBackend.Infraestructure.Services
                     row.RelativeItem().Column(col =>
                     {
                         col.Item().LineHorizontal(1).LineColor(Colors.Grey.Darken1);
-                        col.Item().PaddingTop(5).AlignCenter().Text("Firma y Aclaración").FontSize(8);
+                        col.Item().PaddingTop(5).AlignCenter().Text("Firma y AclaraciÃ³n").FontSize(8);
                         col.Item().AlignCenter().Text("Emisor").FontSize(8).FontColor(Colors.Grey.Darken2);
                     });
 
@@ -324,7 +324,7 @@ namespace CigralBackend.Infraestructure.Services
                     row.RelativeItem().Column(col =>
                     {
                         col.Item().LineHorizontal(1).LineColor(Colors.Grey.Darken1);
-                        col.Item().PaddingTop(5).AlignCenter().Text("Firma y Aclaración").FontSize(8);
+                        col.Item().PaddingTop(5).AlignCenter().Text("Firma y AclaraciÃ³n").FontSize(8);
                         col.Item().AlignCenter().Text("Receptor").FontSize(8).FontColor(Colors.Grey.Darken2);
                     });
                 });
@@ -332,13 +332,13 @@ namespace CigralBackend.Infraestructure.Services
         }
 
         /// <summary>
-        /// Compone el pie de página del PDF.
+        /// Compone el pie de pÃ¡gina del PDF.
         /// </summary>
         private void ComposeFooter(IContainer container)
         {
             container.AlignCenter().Text(text =>
             {
-                text.Span("Página ");
+                text.Span("PÃ¡gina ");
                 text.CurrentPageNumber();
                 text.Span(" de ");
                 text.TotalPages();
@@ -354,18 +354,18 @@ namespace CigralBackend.Infraestructure.Services
             // 1. Generamos una lista masiva y variada de detalles falsos
             var detallesFalsos = new List<DetalleRemitoPdfDto>();
 
-            for (int i = 1; i <= 45; i++) // 45 ítems aseguran que el PDF salte a una segunda hoja
+            for (int i = 1; i <= 45; i++) // 45 Ã­tems aseguran que el PDF salte a una segunda hoja
             {
-                // Trampa 1: Textos extremadamente largos en algunos ítems para probar márgenes
+                // Trampa 1: Textos extremadamente largos en algunos Ã­tems para probar mÃ¡rgenes
                 string nombreProducto = (i == 7 || i == 23)
-                    ? $"PRODUCTO {i} CON UN NOMBRE EXTREMADAMENTE LARGO PARA FORZAR EL SALTO DE LÍNEA EN LA TABLA DEL PDF Y VER SI ROMPE EL DISEÑO"
-                    : $"Producto Estándar de Prueba {i}";
+                    ? $"PRODUCTO {i} CON UN NOMBRE EXTREMADAMENTE LARGO PARA FORZAR EL SALTO DE LÃNEA EN LA TABLA DEL PDF Y VER SI ROMPE EL DISEÃ‘O"
+                    : $"Producto EstÃ¡ndar de Prueba {i}";
 
                 // Trampa 2: Alternamos datos nulos. (Ej: Algunos productos no tienen lote ni vencimiento)
                 string? codigoLote = (i % 4 == 0) ? null : $"LT-{DateTime.Now.Year}-{i * 10}";
                 DateTime? fechaVencimiento = (i % 4 == 0) ? null : DateTime.Now.AddDays(i * 15);
 
-                // Trampa 3: Solo algunos productos tienen número de serie
+                // Trampa 3: Solo algunos productos tienen nÃºmero de serie
                 string? numeroSerie = (i % 5 == 0) ? $"SN-{Guid.NewGuid().ToString().Substring(0, 6).ToUpper()}" : null;
 
                 detallesFalsos.Add(new DetalleRemitoPdfDto
@@ -376,7 +376,7 @@ namespace CigralBackend.Infraestructure.Services
                     FechaVencimiento = fechaVencimiento,
                     NumeroSerie = numeroSerie,
                     Cantidad = i * 2, // Cantidades variables: 2, 4, 6...
-                    DepositoNombre = "Depósito Central Prueba"
+                    DepositoNombre = "DepÃ³sito Central Prueba"
                 });
             }
 
@@ -390,7 +390,7 @@ namespace CigralBackend.Infraestructure.Services
                 ComprobanteAsociado = "FA-123456",
                 RazonSocial = "Razon Social PRUEBA",
                 CUIT = "00-00000000-0",
-                Direccion = "Dirección PRUEBAAA",
+                Direccion = "DirecciÃ³n PRUEBAAA",
                 Telefono = "0000-0000",
                 Email = "prueba@example.com",
                 Detalles = detallesFalsos,
@@ -432,7 +432,7 @@ namespace CigralBackend.Infraestructure.Services
         }
 
         /// <summary>
-        /// Compone el contenido específico para el reporte de consignaciones.
+        /// Compone el contenido especÃ­fico para el reporte de consignaciones.
         /// </summary>
         private void ComposeContentConsignaciones(IContainer container, ReporteConsignacionesPdfDto reporte)
         {
@@ -440,18 +440,18 @@ namespace CigralBackend.Infraestructure.Services
             {
                 column.Spacing(15);
 
-                // Título del reporte
+                // TÃ­tulo del reporte
                 column.Item().AlignCenter().Text("REPORTE DE CONSIGNACIONES ACTIVAS")
                     .Bold().FontSize(16).FontColor(Colors.Blue.Medium);
 
-                column.Item().AlignCenter().Text($"Fecha de emisión: {reporte.FechaReporte:dd/MM/yyyy HH:mm}");
+                column.Item().AlignCenter().Text($"Fecha de emisiÃ³n: {reporte.FechaReporte:dd/MM/yyyy HH:mm}");
 
                 column.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
 
                 // Iterar por cada cliente en el reporte
                 foreach (var cliente in reporte.Clientes)
                 {
-                    // EnsureSpace evita que el bloque de un cliente se rompa a la mitad en un salto de página
+                    // EnsureSpace evita que el bloque de un cliente se rompa a la mitad en un salto de pÃ¡gina
                     column.Item().EnsureSpace().Column(clienteCol =>
                     {
                         clienteCol.Spacing(5);
@@ -466,7 +466,7 @@ namespace CigralBackend.Infraestructure.Services
                             table.ColumnsDefinition(columns =>
                             {
                                 columns.RelativeColumn(3); // Producto
-                                columns.RelativeColumn(1.5f); // Código/GTIN
+                                columns.RelativeColumn(1.5f); // CÃ³digo/GTIN
                                 columns.RelativeColumn(1.5f); // Fecha
                                 columns.RelativeColumn(1); // Cantidad
                             });
@@ -474,8 +474,8 @@ namespace CigralBackend.Infraestructure.Services
                             table.Header(header =>
                             {
                                 header.Cell().BorderBottom(1).BorderColor(Colors.Black).Padding(3).Text("Producto").Bold();
-                                header.Cell().BorderBottom(1).BorderColor(Colors.Black).Padding(3).Text("Código").Bold();
-                                header.Cell().BorderBottom(1).BorderColor(Colors.Black).Padding(3).Text("Última Mod.").Bold();
+                                header.Cell().BorderBottom(1).BorderColor(Colors.Black).Padding(3).Text("CÃ³digo").Bold();
+                                header.Cell().BorderBottom(1).BorderColor(Colors.Black).Padding(3).Text("Ãšltima Mod.").Bold();
                                 header.Cell().BorderBottom(1).BorderColor(Colors.Black).Padding(3).AlignRight().Text("Cant.").Bold();
                             });
 
@@ -502,7 +502,7 @@ namespace CigralBackend.Infraestructure.Services
                             row.AutoItem().Text(cliente.TotalUnidades.ToString()).Bold().FontColor(Colors.Blue.Medium);
                         });
 
-                        // Espacio extra antes del próximo cliente
+                        // Espacio extra antes del prÃ³ximo cliente
                         clienteCol.Item().PaddingBottom(10);
                     });
                 }

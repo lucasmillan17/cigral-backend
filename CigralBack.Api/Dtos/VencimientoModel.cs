@@ -1,10 +1,10 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 
 namespace CigralBackend.Application.Dtos
 {
     /// <summary>
-    /// DTO ligero para items próximos a vencer (dashboard).
+    /// DTO ligero para items prÃ³ximos a vencer (dashboard).
     /// </summary>
     public record ProductoProximoVencerDto
     (
@@ -24,11 +24,11 @@ namespace CigralBackend.Application.Dtos
     );
 
     /// <summary>
-    /// Estadísticas de vencimientos agrupadas por rango.
+    /// EstadÃ­sticas de vencimientos agrupadas por rango.
     /// </summary>
     public record VencimientoStats
     (
-        string Rango,           // "0-30 días", "31-90 días", etc.
+        string Rango,           // "0-30 dÃ­as", "31-90 dÃ­as", etc.
         int DiasMinimo,
         int DiasMaximo,
         int TotalProductos,     // Cantidad de productos diferentes
@@ -50,7 +50,7 @@ namespace CigralBackend.Application.Dtos
     );
 
     /// <summary>
-    /// Filtros para consultar productos próximos a vencer.
+    /// Filtros para consultar productos prÃ³ximos a vencer.
     /// </summary>
     public record VencimientoFilters
     (

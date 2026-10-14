@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace CigralBackend.Application.Dtos
@@ -11,7 +11,7 @@ namespace CigralBackend.Application.Dtos
         [Required(ErrorMessage = "El username es obligatorio")]
         string Username,
 
-        [Required(ErrorMessage = "La contrase�a es obligatoria")]
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
         string Password
     );
 
@@ -24,14 +24,14 @@ namespace CigralBackend.Application.Dtos
         [MaxLength(50, ErrorMessage = "El username no puede superar los 50 caracteres")]
         string Username,
 
-        [Required(ErrorMessage = "La contrase�a es obligatoria")]
-        [MinLength(6, ErrorMessage = "La contrase�a debe tener al menos 6 caracteres")]
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
+        [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
         string Password,
 
         [MaxLength(200, ErrorMessage = "El nombre completo no puede superar los 200 caracteres")]
         string? NombreCompleto,
 
-        [EmailAddress(ErrorMessage = "El email no tiene un formato v�lido")]
+        [EmailAddress(ErrorMessage = "El email no tiene un formato válido")]
         [MaxLength(100, ErrorMessage = "El email no puede superar los 100 caracteres")]
         string? Email,
 
@@ -39,20 +39,20 @@ namespace CigralBackend.Application.Dtos
     );
 
     /// <summary>
-    /// Request para cambiar contrase�a.
+    /// Request para cambiar contraseña.
     /// </summary>
     public record ChangePasswordRequest
     (
-        [Required(ErrorMessage = "La contrase�a actual es obligatoria")]
+        [Required(ErrorMessage = "La contraseña actual es obligatoria")]
         string CurrentPassword,
 
-        [Required(ErrorMessage = "La nueva contrase�a es obligatoria")]
-        [MinLength(6, ErrorMessage = "La nueva contrase�a debe tener al menos 6 caracteres")]
+        [Required(ErrorMessage = "La nueva contraseña es obligatoria")]
+        [MinLength(6, ErrorMessage = "La nueva contraseña debe tener al menos 6 caracteres")]
         string NewPassword
     );
 
     /// <summary>
-    /// Respuesta de autenticaci�n exitosa.
+    /// Respuesta de autenticación exitosa.
     /// </summary>
     public record AuthResponse
     (
@@ -64,7 +64,7 @@ namespace CigralBackend.Application.Dtos
     );
 
     /// <summary>
-    /// Respuesta con informaci�n del usuario.
+    /// Respuesta con información del usuario.
     /// </summary>
     public record UsuarioResponse
     (

@@ -1,20 +1,20 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 
 namespace CigralBackend.Infraestructure.Dtos
 {
     /// <summary>
-    /// DTO con información completa de remito para generar PDF.
+    /// DTO con informaciÃ³n completa de remito para generar PDF.
     /// </summary>
     public record RemitoPdfDto
     {
-        // Información del Remito
+        // InformaciÃ³n del Remito
         public string NumeroRemito { get; init; } = string.Empty;
         public DateTime Fecha { get; init; }
         public string? Observaciones { get; init; }
         public string TipoRemito { get; init; } = string.Empty; // "Ingreso" o "Egreso"
         public string? ComprobanteAsociado { get; init; } = string.Empty;
-        // Información del Cliente/Proveedor
+        // InformaciÃ³n del Cliente/Proveedor
         public string? RazonSocial { get; init; }
         public string? CUIT { get; init; }
         public string? Direccion { get; init; }

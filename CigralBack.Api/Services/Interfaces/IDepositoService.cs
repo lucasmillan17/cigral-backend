@@ -1,36 +1,36 @@
-using CigralBackend.Application.Dtos;
+锘縰sing CigralBackend.Application.Dtos;
 using CigralBackend.Domain.Wrappers;
 using System.Threading.Tasks;
 
 namespace CigralBackend.Application.Services.Interfaces
 {
     /// <summary>
-    /// Interfaz para el servicio de dep髎itos.
+    /// Interfaz para el servicio de dep贸sitos.
     /// </summary>
     public interface IDepositoService
     {
         /// <summary>
-        /// Crea un nuevo dep髎ito.
+        /// Crea un nuevo dep贸sito.
         /// </summary>
         Task<DepositoModelResponse> CreateDeposito(DepositoModelRequest request);
 
         /// <summary>
-        /// Obtiene un dep髎ito por su ID.
+        /// Obtiene un dep贸sito por su ID.
         /// </summary>
         Task<DepositoModelResponse> GetDepositoById(int id);
 
         /// <summary>
-        /// Obtiene dep髎itos filtrados con paginaci髇.
+        /// Obtiene dep贸sitos filtrados con paginaci贸n.
         /// </summary>
         Task<PagedResult<DepositoModelResponse>> GetDepositos(DepositoFilters filters);
 
         /// <summary>
-        /// Actualiza un dep髎ito existente.
+        /// Actualiza un dep贸sito existente.
         /// </summary>
         Task<DepositoModelResponse> UpdateDeposito(int id, DepositoModelRequest request);
 
         /// <summary>
-        /// Elimina un dep髎ito.
+        /// Elimina un dep贸sito.
         /// </summary>
         Task DeleteDeposito(int id);
     }

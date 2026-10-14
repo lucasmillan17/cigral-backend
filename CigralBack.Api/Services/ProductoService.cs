@@ -4,6 +4,7 @@ using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using CigralBackend.Infraestructure.Dtos;
 using CigralBackend.Infraestructure.Services.Interfaces;
@@ -158,26 +159,24 @@ namespace CigralBackend.Application.Services
         {
             var productos = await _repository.GetFiltered<Producto>(p =>
                 // ==========================================================
-                // BLOQUE 1: BÚSQUEDA GLOBAL (Con OR ||)
+                // BLOQUE 1: BÚSQUEDA GLOBAL
                 // Si f.BusquedaGlobal está vacío, todo este bloque da 'true' y se ignora.
-                // Si tiene texto, exige que coincida con AL MENOS UNA de estas columnas.
+                // Si tiene texto, cada palabra tiene que aparecer en alguno de estos campos
+                // (ej: "medtronic resolute 18" combina marca y nombre).
                 // ==========================================================
                 (string.IsNullOrEmpty(f.BusquedaGlobal) ||
-                (
-                    p.Nombre.Contains(f.BusquedaGlobal) ||
-                    (p.CodigoInterno != null && p.CodigoInterno.Contains(f.BusquedaGlobal)) ||
-                    (p.GTIN != null && p.GTIN.Contains(f.BusquedaGlobal)) ||
-                    (p.Marca != null && p.Marca.Nombre.Contains(f.BusquedaGlobal))
-                ))
+                    Busqueda.Coincide(
+                        p.Nombre + " " + (p.CodigoInterno ?? "") + " " + (p.GTIN ?? "") + " " + (p.Marca != null ? p.Marca.Nombre : ""),
+                        f.BusquedaGlobal))
                 && // <--- Unimos el bloque global con los filtros específicos usando AND
                    // ==========================================================
                    // BLOQUE 2: FILTROS ESPECÍFICOS (Con AND &&)
                    // Se evalúan individualmente. Si el frontend no los envía, se ignoran.
                    // ==========================================================
-                (string.IsNullOrEmpty(f.Nombre) || p.Nombre.Contains(f.Nombre)) &&
-                (string.IsNullOrEmpty(f.Gtin) || (p.GTIN != null && p.GTIN.Contains(f.Gtin))) &&
-                (string.IsNullOrEmpty(f.CodigoGenerico) || (p.CodigoGenerico != null && p.CodigoGenerico.Contains(f.CodigoGenerico))) &&
-                (string.IsNullOrEmpty(f.CodigoInterno) || (p.CodigoInterno != null && p.CodigoInterno.Contains(f.CodigoInterno))),
+                (string.IsNullOrEmpty(f.Nombre) || Busqueda.Coincide(p.Nombre, f.Nombre)) &&
+                (string.IsNullOrEmpty(f.Gtin) || (p.GTIN != null && Busqueda.Coincide(p.GTIN, f.Gtin))) &&
+                (string.IsNullOrEmpty(f.CodigoGenerico) || (p.CodigoGenerico != null && Busqueda.Coincide(p.CodigoGenerico, f.CodigoGenerico))) &&
+                (string.IsNullOrEmpty(f.CodigoInterno) || (p.CodigoInterno != null && Busqueda.Coincide(p.CodigoInterno, f.CodigoInterno))),
 
                 pageNumber: f.PageNumber,
                 pageSize: f.PageSize,

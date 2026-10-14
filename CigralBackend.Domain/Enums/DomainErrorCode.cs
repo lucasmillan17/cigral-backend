@@ -1,4 +1,4 @@
-namespace CigralBackend.Domain.Enums
+﻿namespace CigralBackend.Domain.Enums
 {
     /// <summary>
     /// Codigos de error de dominio organizados por rangos numericos.
@@ -84,7 +84,7 @@ namespace CigralBackend.Domain.Enums
         ProductoUnitarioCantidadInvalida = 3006,
 
         /// <summary>
-        /// El c�digo del dep�sito ya existe.
+        /// El código del depósito ya existe.
         /// </summary>
         CodigoDepositoDuplicado = 3007,
 
@@ -151,9 +151,9 @@ namespace CigralBackend.Domain.Enums
         /// </summary>
         CantidadInvalida = 6003,
 
-        // 7000 - Errores de Autenticaci�n
+        // 7000 - Errores de Autenticación
         /// <summary>
-        /// Credenciales inv�lidas (usuario o contrase�a incorrectos).
+        /// Credenciales inválidas (usuario o contraseña incorrectos).
         /// </summary>
         CredencialesInvalidas = 7000,
 
@@ -168,7 +168,7 @@ namespace CigralBackend.Domain.Enums
         UsuarioInactivo = 7002,
 
         /// <summary>
-        /// Token JWT inv�lido o expirado.
+        /// Token JWT inválido o expirado.
         /// </summary>
         TokenInvalido = 7003,
 
@@ -183,7 +183,7 @@ namespace CigralBackend.Domain.Enums
         UsuarioNoExiste = 7005,
 
         /// <summary>
-        /// Nueva contrase�a igual a la anterior.
+        /// Nueva contraseña igual a la anterior.
         /// </summary>
         ContrasenaDuplicada = 7006,
 

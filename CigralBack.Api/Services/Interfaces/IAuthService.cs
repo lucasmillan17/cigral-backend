@@ -1,10 +1,10 @@
-using CigralBackend.Application.Dtos;
+ï»¿using CigralBackend.Application.Dtos;
 using System.Threading.Tasks;
 
 namespace CigralBackend.Application.Services.Interfaces
 {
     /// <summary>
-    /// Interfaz para el servicio de autenticación.
+    /// Interfaz para el servicio de autenticaciÃ³n.
     /// </summary>
     public interface IAuthService
     {
@@ -24,7 +24,7 @@ namespace CigralBackend.Application.Services.Interfaces
         Task<bool> IsAdmin(string username);
 
         /// <summary>
-        /// Cambia la contraseña de un usuario.
+        /// Cambia la contraseÃ±a de un usuario.
         /// </summary>
         Task ChangePassword(string username, string currentPassword, string newPassword);
     }

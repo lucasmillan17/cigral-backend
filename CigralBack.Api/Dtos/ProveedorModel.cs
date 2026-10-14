@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+锘縰sing System.ComponentModel.DataAnnotations;
 
 namespace CigralBackend.Application.Dtos
 {
@@ -7,30 +7,30 @@ namespace CigralBackend.Application.Dtos
     /// </summary>
     public record ProveedorModelRequest
     (
-        [Required(ErrorMessage = "La raz髇 social es obligatoria")]
-        [MaxLength(200, ErrorMessage = "La raz髇 social no puede superar los 200 caracteres")]
+        [Required(ErrorMessage = "La raz贸n social es obligatoria")]
+        [MaxLength(200, ErrorMessage = "La raz贸n social no puede superar los 200 caracteres")]
         string RazonSocial,
 
         [MaxLength(13, ErrorMessage = "El GLN debe tener 13 caracteres")]
         [MinLength(13, ErrorMessage = "El GLN debe tener 13 caracteres")]
         string? GLN,
 
-        [EmailAddress(ErrorMessage = "El email no tiene un formato v醠ido")]
+        [EmailAddress(ErrorMessage = "El email no tiene un formato v谩lido")]
         [MaxLength(100, ErrorMessage = "El email no puede superar los 100 caracteres")]
         string? Email,
 
         [MaxLength(11, ErrorMessage = "El CUIT no puede superar los 11 caracteres")]
         string? Cuit,
 
-        [MaxLength(20, ErrorMessage = "El tel閒ono no puede superar los 20 caracteres")]
+        [MaxLength(20, ErrorMessage = "El tel茅fono no puede superar los 20 caracteres")]
         string? Telefono,
 
-        [MaxLength(200, ErrorMessage = "La direcci髇 no puede superar los 200 caracteres")]
+        [MaxLength(200, ErrorMessage = "La direcci贸n no puede superar los 200 caracteres")]
         string? Direccion
     );
 
     /// <summary>
-    /// Respuesta con informaci髇 del proveedor.
+    /// Respuesta con informaci贸n del proveedor.
     /// </summary>
     public record ProveedorModelResponse
     (
@@ -51,9 +51,9 @@ namespace CigralBackend.Application.Dtos
         string? RazonSocial,
         string? GLN,
         string? Cuit,
-        [Range(1, int.MaxValue, ErrorMessage = "La p醙ina debe ser mayor a 0")]
+        [Range(1, int.MaxValue, ErrorMessage = "La p谩gina debe ser mayor a 0")]
         int PageNumber = 1,
-        [Range(1, 100, ErrorMessage = "El tama駉 de p醙ina no puede superar los 100 items")]
+        [Range(1, 100, ErrorMessage = "El tama帽o de p谩gina no puede superar los 100 items")]
         int PageSize = 10
     );
 }

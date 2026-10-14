@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Identity;
+ï»¿using Microsoft.AspNetCore.Identity;
 using System;
 
 namespace CigralBackend.Domain
 {
     /// <summary>
-    /// Usuario de la aplicación extendiendo IdentityUser.
+    /// Usuario de la aplicaciÃ³n extendiendo IdentityUser.
     /// </summary>
     public class ApplicationUser : IdentityUser<int>
     {
@@ -19,12 +19,12 @@ namespace CigralBackend.Domain
         public bool EsAdmin { get; set; }
 
         /// <summary>
-        /// Fecha de creación del usuario.
+        /// Fecha de creaciÃ³n del usuario.
         /// </summary>
         public DateTime FechaCreacion { get; set; }
 
         /// <summary>
-        /// Última fecha de login.
+        /// Ãšltima fecha de login.
         /// </summary>
         public DateTime? UltimoLogin { get; set; }
     }

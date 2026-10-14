@@ -1,9 +1,10 @@
-using CigralBackend.Application.Dtos;
+ï»¿using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using CigralBackend.Infraestructure.Services.Interfaces;
 using System.Linq;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 namespace CigralBackend.Application.Services
 {
     /// <summary>
-    /// Servicio de aplicación para operaciones de proveedores.
+    /// Servicio de aplicaciÃ³n para operaciones de proveedores.
     /// </summary>
     public class ProveedorService : IProveedorService
     {
@@ -31,7 +32,7 @@ namespace CigralBackend.Application.Services
             // 1. Delegar a Infraestructura la lectura del CSV
             var records = _parserService.ParsearProveedores(fileStream);
 
-            // 2. Aplicar lógica de negocio y mapeo a Dominio
+            // 2. Aplicar lÃ³gica de negocio y mapeo a Dominio
             foreach (var record in records)
             {
                 var cuitLimpio = record.Cuit?.Replace("-", "").Replace(" ", "") ?? "";
@@ -65,7 +66,7 @@ namespace CigralBackend.Application.Services
         /// </summary>
         public async Task<ProveedorModelResponse> CreateProveedor(ProveedorModelRequest request)
         {
-            // Validar GLN único (solo si se proporciona)
+            // Validar GLN Ãºnico (solo si se proporciona)
             if (!string.IsNullOrEmpty(request.GLN))
             {
                 var existeGLN = await _repository.First<Proveedor>(p => p.GLN == request.GLN);
@@ -78,7 +79,7 @@ namespace CigralBackend.Application.Services
                 }
             }
 
-            // Validar CUIT único (si se proporciona)
+            // Validar CUIT Ãºnico (si se proporciona)
             if (!string.IsNullOrEmpty(request.Cuit))
             {
                 var existeCuit = await _repository.First<Proveedor>(p => p.Cuit == request.Cuit);
@@ -138,15 +139,15 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Obtiene proveedores filtrados con paginación.
+        /// Obtiene proveedores filtrados con paginaciÃ³n.
         /// </summary>
         public async Task<PagedResult<ProveedorModelResponse>> GetProveedores(ProveedorFilters filters)
         {
             var resultado = await _repository.GetFiltered<Proveedor>(
                 predicate: p =>
-                    (string.IsNullOrEmpty(filters.RazonSocial) || p.RazonSocial.Contains(filters.RazonSocial)) &&
-                    (string.IsNullOrEmpty(filters.GLN) || p.GLN.Contains(filters.GLN)) &&
-                    (string.IsNullOrEmpty(filters.Cuit) || p.Cuit.Contains(filters.Cuit)),
+                    (string.IsNullOrEmpty(filters.RazonSocial) || Busqueda.Coincide(p.RazonSocial, filters.RazonSocial)) &&
+                    (string.IsNullOrEmpty(filters.GLN) || Busqueda.Coincide(p.GLN, filters.GLN)) &&
+                    (string.IsNullOrEmpty(filters.Cuit) || Busqueda.Coincide(p.Cuit, filters.Cuit)),
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize
             );
@@ -181,7 +182,7 @@ namespace CigralBackend.Application.Services
                 throw new NotFoundException(nameof(Proveedor), id);
             }
 
-            // Validar GLN único (si se proporciona y si cambió)
+            // Validar GLN Ãºnico (si se proporciona y si cambiÃ³)
             if (!string.IsNullOrEmpty(request.GLN) && request.GLN != proveedor.GLN)
             {
                 var existeGLN = await _repository.First<Proveedor>(p => p.GLN == request.GLN && p.Id != id);
@@ -194,7 +195,7 @@ namespace CigralBackend.Application.Services
                 }
             }
 
-            // Validar CUIT único (si cambió y se proporciona)
+            // Validar CUIT Ãºnico (si cambiÃ³ y se proporciona)
             if (!string.IsNullOrEmpty(request.Cuit) && request.Cuit != proveedor.Cuit)
             {
                 var existeCuit = await _repository.First<Proveedor>(p => p.Cuit == request.Cuit && p.Id != id);

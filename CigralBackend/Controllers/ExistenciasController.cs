@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+ï»¿using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain.Wrappers;
 using Microsoft.AspNetCore.Authorization;
@@ -24,17 +24,17 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Obtiene existencias con filtros y paginación.
-        /// Ahora incluye filtros por fecha de vencimiento y días para vencer.
+        /// Obtiene existencias con filtros y paginaciÃ³n.
+        /// Ahora incluye filtros por fecha de vencimiento y dÃ­as para vencer.
         /// </summary>
-        /// <param name="filters">Filtros de búsqueda</param>
+        /// <param name="filters">Filtros de bÃºsqueda</param>
         /// <returns>Lista paginada de existencias</returns>
         /// <remarks>
         /// Ejemplos de uso:
         /// 
         /// - Todos los productos: GET /api/existencias
-        /// - Por depósito: GET /api/existencias?depositoId=1
-        /// - Productos que vencen en 30 días: GET /api/existencias?diasParaVencer=30
+        /// - Por depÃ³sito: GET /api/existencias?depositoId=1
+        /// - Productos que vencen en 30 dÃ­as: GET /api/existencias?diasParaVencer=30
         /// - Productos que vencen entre fechas: GET /api/existencias?fechaVencimientoDesde=2025-01-01&amp;fechaVencimientoHasta=2025-03-31
         /// - Solo productos con vencimiento: GET /api/existencias?soloConVencimiento=true
         /// </remarks>
@@ -61,20 +61,20 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Dashboard de productos próximos a vencer.
-        /// Retorna productos agrupados por rangos de días (0-30, 31-60, 61-90, etc.)
+        /// Dashboard de productos prÃ³ximos a vencer.
+        /// Retorna productos agrupados por rangos de dÃ­as (0-30, 31-60, 61-90, etc.)
         /// </summary>
-        /// <returns>Dashboard con estadísticas de vencimientos</returns>
+        /// <returns>Dashboard con estadÃ­sticas de vencimientos</returns>
         /// <remarks>
-        /// Este endpoint es ideal para mostrar un semáforo en el frontend:
+        /// Este endpoint es ideal para mostrar un semÃ¡foro en el frontend:
         /// 
-        /// - Rojo (0-30 días): Productos críticos
-        /// - Amarillo (31-90 días): Productos próximos a vencer
-        /// - Verde (91-180 días): Productos con vencimiento lejano
+        /// - Rojo (0-30 dÃ­as): Productos crÃ­ticos
+        /// - Amarillo (31-90 dÃ­as): Productos prÃ³ximos a vencer
+        /// - Verde (91-180 dÃ­as): Productos con vencimiento lejano
         /// 
         /// Retorna:
-        /// - Total de productos/lotes próximos a vencer
-        /// - Datos agrupados por rangos de días
+        /// - Total de productos/lotes prÃ³ximos a vencer
+        /// - Datos agrupados por rangos de dÃ­as
         /// - Lista detallada de productos en cada rango
         /// </remarks>
         [HttpGet("dashboard/vencimientos")]
@@ -86,21 +86,21 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Obtiene productos próximos a vencer con filtros personalizados.
+        /// Obtiene productos prÃ³ximos a vencer con filtros personalizados.
         /// </summary>
-        /// <param name="diasDesde">Días desde hoy (ej: 0 = hoy)</param>
-        /// <param name="diasHasta">Días hasta (ej: 90 = 3 meses)</param>
-        /// <param name="depositoId">Filtrar por depósito (opcional)</param>
+        /// <param name="diasDesde">DÃ­as desde hoy (ej: 0 = hoy)</param>
+        /// <param name="diasHasta">DÃ­as hasta (ej: 90 = 3 meses)</param>
+        /// <param name="depositoId">Filtrar por depÃ³sito (opcional)</param>
         /// <param name="productoId">Filtrar por producto (opcional)</param>
         /// <param name="incluirVencidos">Incluir productos ya vencidos</param>
-        /// <returns>Lista de productos próximos a vencer</returns>
+        /// <returns>Lista de productos prÃ³ximos a vencer</returns>
         /// <remarks>
         /// Ejemplos de uso:
         /// 
-        /// - Productos que vencen en los próximos 30 días:
+        /// - Productos que vencen en los prÃ³ximos 30 dÃ­as:
         ///   GET /api/existencias/proximos-vencer?diasDesde=0&amp;diasHasta=30
         ///   
-        /// - Productos que vencen entre 30 y 60 días:
+        /// - Productos que vencen entre 30 y 60 dÃ­as:
         ///   GET /api/existencias/proximos-vencer?diasDesde=30&amp;diasHasta=60
         ///   
         /// - Productos vencidos:

@@ -5,6 +5,7 @@ using CigralBackend.Domain.Enums;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Application.Services;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using CigralBackend.Infraestructure.Services;
 using CigralBackend.Infraestructure.Dtos;
@@ -172,16 +173,16 @@ namespace CigralBackend.Application.Services
             var resultadoEntidad = await _repository.GetFiltered<Consignacion>(
                 predicate: c =>
                     (string.IsNullOrEmpty(filters.ClienteNombre) ||
-                        (c.Cliente != null && c.Cliente.RazonSocial.Contains(filters.ClienteNombre))) &&
+                        (c.Cliente != null && Busqueda.Coincide(c.Cliente.RazonSocial, filters.ClienteNombre))) &&
 
                     (string.IsNullOrEmpty(filters.ProductoNombre) ||
-                        (c.Existencia.Producto != null && c.Existencia.Producto.Nombre.Contains(filters.ProductoNombre))) &&
+                        (c.Existencia.Producto != null && Busqueda.Coincide(c.Existencia.Producto.Nombre, filters.ProductoNombre))) &&
 
                     (string.IsNullOrEmpty(filters.CodigoLote) ||
-                        (c.Existencia.Lote != null && c.Existencia.Lote.CodigoLote.Contains(filters.CodigoLote))) &&
+                        (c.Existencia.Lote != null && Busqueda.Coincide(c.Existencia.Lote.CodigoLote, filters.CodigoLote))) &&
 
                     (string.IsNullOrEmpty(filters.NumSerie) ||
-                        (c.Existencia.NumSerie != null && c.Existencia.NumSerie.Contains(filters.NumSerie))),
+                        (c.Existencia.NumSerie != null && Busqueda.Coincide(c.Existencia.NumSerie, filters.NumSerie))),
 
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,

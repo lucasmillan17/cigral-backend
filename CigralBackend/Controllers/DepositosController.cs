@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+锘縰sing CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain.Wrappers;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CigralBackend.Controllers
 {
     /// <summary>
-    /// Controlador para operaciones CRUD de dep髎itos.
+    /// Controlador para operaciones CRUD de dep贸sitos.
     /// </summary>
     [Authorize]
     [ApiController]
@@ -23,10 +23,10 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Obtiene dep髎itos con filtros y paginaci髇.
+        /// Obtiene dep贸sitos con filtros y paginaci贸n.
         /// </summary>
-        /// <param name="filters">Filtros de b鷖queda</param>
-        /// <returns>Lista paginada de dep髎itos</returns>
+        /// <param name="filters">Filtros de b煤squeda</param>
+        /// <returns>Lista paginada de dep贸sitos</returns>
         [HttpGet]
         [ProducesResponseType(typeof(PagedResult<DepositoModelResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetDepositos([FromQuery] DepositoFilters filters)
@@ -36,10 +36,10 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Obtiene un dep髎ito por su ID.
+        /// Obtiene un dep贸sito por su ID.
         /// </summary>
-        /// <param name="id">ID del dep髎ito</param>
-        /// <returns>El dep髎ito solicitado</returns>
+        /// <param name="id">ID del dep贸sito</param>
+        /// <returns>El dep贸sito solicitado</returns>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(DepositoModelResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -50,10 +50,10 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Crea un nuevo dep髎ito.
+        /// Crea un nuevo dep贸sito.
         /// </summary>
-        /// <param name="request">Datos del dep髎ito</param>
-        /// <returns>El dep髎ito creado</returns>
+        /// <param name="request">Datos del dep贸sito</param>
+        /// <returns>El dep贸sito creado</returns>
         [HttpPost]
         [ProducesResponseType(typeof(DepositoModelResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -64,11 +64,11 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Actualiza un dep髎ito existente.
+        /// Actualiza un dep贸sito existente.
         /// </summary>
-        /// <param name="id">ID del dep髎ito</param>
-        /// <param name="request">Nuevos datos del dep髎ito</param>
-        /// <returns>El dep髎ito actualizado</returns>
+        /// <param name="id">ID del dep贸sito</param>
+        /// <param name="request">Nuevos datos del dep贸sito</param>
+        /// <returns>El dep贸sito actualizado</returns>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(DepositoModelResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -80,9 +80,9 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Elimina un dep髎ito.
+        /// Elimina un dep贸sito.
         /// </summary>
-        /// <param name="id">ID del dep髎ito</param>
+        /// <param name="id">ID del dep贸sito</param>
         /// <returns>No content si fue exitoso</returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

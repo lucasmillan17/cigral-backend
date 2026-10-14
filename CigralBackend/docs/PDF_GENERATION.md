@@ -1,4 +1,4 @@
-# ? Sistema de GeneraciÛn de PDFs con QuestPDF - ImplementaciÛn Completa
+Ôªø# ? Sistema de Generaci√≥n de PDFs con QuestPDF - Implementaci√≥n Completa
 
 ## ?? PDF DE REMITOS IMPLEMENTADO
 
@@ -8,7 +8,7 @@
 
 ## ?? Arquitectura Implementada
 
-### SeparaciÛn de Responsabilidades (Clean Architecture)
+### Separaci√≥n de Responsabilidades (Clean Architecture)
 
 ```
 ???????????????????????????????????????????????
@@ -46,11 +46,11 @@ cd CigralBackend.Infraestructure
 dotnet add package QuestPDF --version 2024.12.3
 ```
 
-**CaracterÌsticas:**
+**Caracter√≠sticas:**
 - ? Licencia Community (gratuita)
 - ? API fluent moderna
 - ? Soporte completo para tablas, colores, fuentes
-- ? GeneraciÛn en memoria (byte[])
+- ? Generaci√≥n en memoria (byte[])
 - ? Sin dependencias externas
 
 ---
@@ -97,19 +97,19 @@ public record DetalleRemitoPdfDto
 ```
 
 ### 3. Infrastructure/Services/PdfService.cs
-**ImplementaciÛn con QuestPDF** (380+ lÌneas)
+**Implementaci√≥n con QuestPDF** (380+ l√≠neas)
 
-**CaracterÌsticas:**
-- ? Genera PDFs A4 con m·rgenes
+**Caracter√≠sticas:**
+- ? Genera PDFs A4 con m√°rgenes
 - ? Encabezado con logo/empresa
-- ? TÌtulo diferenciado (INGRESO/EGRESO)
-- ? InformaciÛn de cliente/proveedor
+- ? T√≠tulo diferenciado (INGRESO/EGRESO)
+- ? Informaci√≥n de cliente/proveedor
 - ? Tabla de productos con 7 columnas
 - ? Totales calculados
 - ? Observaciones opcionales
 - ? Firmas (emisor/receptor)
-- ? Pie de p·gina con paginaciÛn
-- ? DiseÒo profesional con colores
+- ? Pie de p√°gina con paginaci√≥n
+- ? Dise√±o profesional con colores
 
 ### 4. Controllers/RemitosController.cs (Actualizado)
 **Nuevos endpoints:**
@@ -163,7 +163,7 @@ const blob = await response.blob();
 const url = URL.createObjectURL(blob);
 window.open(url, '_blank');
 
-// Imprimir autom·ticamente
+// Imprimir autom√°ticamente
 const iframe = document.createElement('iframe');
 iframe.style.display = 'none';
 iframe.src = url;
@@ -191,20 +191,20 @@ Authorization: Bearer {token}
 - Body: Binary PDF data
 
 **Diferencias visuales:**
-- TÌtulo: "REMITO DE EGRESO" (en lugar de INGRESO)
-- SecciÛn: "CLIENTE" (en lugar de PROVEEDOR)
-- Resto de la plantilla idÈntica
+- T√≠tulo: "REMITO DE EGRESO" (en lugar de INGRESO)
+- Secci√≥n: "CLIENTE" (en lugar de PROVEEDOR)
+- Resto de la plantilla id√©ntica
 
 ---
 
-## ?? DiseÒo del PDF
+## ?? Dise√±o del PDF
 
 ### Vista Previa del Layout
 
 ```
 ?????????????????????????????????????????????????????????????
 ?  CIGRAL                                           [LOGO]  ?
-?  Sistema de GestiÛn de Inventario                         ?
+?  Sistema de Gesti√≥n de Inventario                         ?
 ?  www.cigral.com | info@cigral.com                         ?
 ?????????????????????????????????????????????????????????????
 ?                                                            ?
@@ -212,14 +212,14 @@ Authorization: Bearer {token}
 ?  ?  REMITO DE INGRESO                                  ?  ?
 ?  ??????????????????????????????????????????????????????  ?
 ?                                                            ?
-?  N˙mero: RI-5           Fecha: 27/01/2025 14:30          ?
+?  N√∫mero: RI-5           Fecha: 27/01/2025 14:30          ?
 ?  ????????????????????????????????????????????????????     ?
 ?                                                            ?
 ?  PROVEEDOR                                                ?
-?  RazÛn Social: Proveedor SA                               ?
+?  Raz√≥n Social: Proveedor SA                               ?
 ?  CUIT: 30-12345678-9                                      ?
-?  DirecciÛn: Av. Principal 123                             ?
-?  TelÈfono: +54 11 1234-5678                               ?
+?  Direcci√≥n: Av. Principal 123                             ?
+?  Tel√©fono: +54 11 1234-5678                               ?
 ?  Email: contacto@proveedor.com                            ?
 ?  ????????????????????????????????????????????????????     ?
 ?                                                            ?
@@ -235,85 +235,85 @@ Authorization: Bearer {token}
 ?                                                            ?
 ?  OBSERVACIONES:                                           ?
 ?  ??????????????????????????????????????????????????????  ?
-?  ? Ingreso de mercaderÌa enero 2025                    ?  ?
+?  ? Ingreso de mercader√≠a enero 2025                    ?  ?
 ?  ??????????????????????????????????????????????????????  ?
 ?                                                            ?
 ?  ___________________        ___________________           ?
-?  Firma y AclaraciÛn         Firma y AclaraciÛn            ?
+?  Firma y Aclaraci√≥n         Firma y Aclaraci√≥n            ?
 ?  Emisor                     Receptor                      ?
 ?                                                            ?
 ?????????????????????????????????????????????????????????????
-?  P·gina 1 de 1 - Documento generado el 27/01/2025 14:30 ?
+?  P√°gina 1 de 1 - Documento generado el 27/01/2025 14:30 ?
 ?????????????????????????????????????????????????????????????
 ```
 
 ---
 
-## ?? CaracterÌsticas del PDF
+## ?? Caracter√≠sticas del PDF
 
 ### Encabezado
 - ? Logo/nombre de la empresa
-- ? InformaciÛn de contacto
+- ? Informaci√≥n de contacto
 - ? Placeholder para logo (100x50 px)
 
-### TÌtulo
+### T√≠tulo
 - ? Fondo azul
 - ? Texto blanco en negrita
 - ? "REMITO DE INGRESO" o "REMITO DE EGRESO"
 
-### InformaciÛn del Remito
-- ? N˙mero de remito (o generado autom·ticamente)
+### Informaci√≥n del Remito
+- ? N√∫mero de remito (o generado autom√°ticamente)
 - ? Fecha y hora formateada
 
 ### Cliente/Proveedor
-- ? TÌtulo din·mico (CLIENTE/PROVEEDOR)
-- ? RazÛn Social
+- ? T√≠tulo din√°mico (CLIENTE/PROVEEDOR)
+- ? Raz√≥n Social
 - ? CUIT
-- ? DirecciÛn
-- ? TelÈfono
+- ? Direcci√≥n
+- ? Tel√©fono
 - ? Email
 - ? Solo muestra campos con datos
 
 ### Tabla de Productos
 - ? 7 Columnas:
   - Producto (nombre)
-  - GTIN (cÛdigo de barras)
-  - Lote (cÛdigo)
+  - GTIN (c√≥digo de barras)
+  - Lote (c√≥digo)
   - Vencimiento (fecha)
-  - N˙mero de Serie
+  - N√∫mero de Serie
   - Cantidad
-  - DepÛsito (nombre)
+  - Dep√≥sito (nombre)
 - ? Encabezado con fondo gris
 - ? Bordes y separadores
-- ? Texto de diferentes tamaÒos
+- ? Texto de diferentes tama√±os
 - ? Cantidad alineada a la derecha y en negrita
 
 ### Totales
-- ? Total de items (lÌneas)
+- ? Total de items (l√≠neas)
 - ? Cantidad total (suma)
 - ? Borde superior azul
 - ? Alineado a la derecha
 
 ### Observaciones
 - ? Solo se muestra si hay observaciones
-- ? TÌtulo en azul
+- ? T√≠tulo en azul
 - ? Cuadro con borde
-- ? Texto m·s pequeÒo
+- ? Texto m√°s peque√±o
 
 ### Firmas
 - ? Dos secciones (Emisor y Receptor)
-- ? LÌnea para firma
+- ? L√≠nea para firma
 - ? Texto descriptivo
 
-### Pie de P·gina
-- ? PaginaciÛn (P·gina X de Y)
-- ? Fecha y hora de generaciÛn
+### Pie de P√°gina
+- ? Paginaci√≥n (P√°gina X de Y)
+- ? Fecha y hora de generaci√≥n
 - ? Centrado
-- ? Texto pequeÒo gris
+- ? Texto peque√±o gris
 
 ---
 
-## ?? CÛdigo Frontend
+## ?? C√≥digo Frontend
 
 ### React Example
 
@@ -328,10 +328,10 @@ const RemitoActions = ({ remitoId, tipo }) => {
     try {
       const url = `/api/remitos/${tipo}/${remitoId}/pdf`;
       
-      // OpciÛn 1: Abrir en nueva ventana
+      // Opci√≥n 1: Abrir en nueva ventana
       window.open(url, '_blank');
       
-      // OpciÛn 2: Descargar
+      // Opci√≥n 2: Descargar
       const response = await fetch(url);
       const blob = await response.blob();
       const downloadUrl = URL.createObjectURL(blob);
@@ -430,7 +430,7 @@ export default {
 
 ---
 
-## ?? PersonalizaciÛn
+## ?? Personalizaci√≥n
 
 ### Cambiar Logo de la Empresa
 
@@ -470,7 +470,7 @@ private void ComposeHeader(IContainer container)
 .Background("#3498DB")
 ```
 
-### Agregar M·s Campos
+### Agregar M√°s Campos
 
 En `ComposeContent`:
 
@@ -505,7 +505,7 @@ curl -X GET "https://localhost:5001/api/remitos/ingreso/5/pdf" \
   --output remito_5.pdf \
   -k
 
-# Verificar que es PDF v·lido
+# Verificar que es PDF v√°lido
 file remito_5.pdf
 # Output: remito_5.pdf: PDF document, version 1.4
 ```
@@ -529,7 +529,7 @@ public async Task ImprimirRemitoIngreso_RemitoExiste_RetornaPdf()
     var bytes = await response.Content.ReadAsByteArrayAsync();
     Assert.True(bytes.Length > 0);
     
-    // Verificar que es PDF v·lido (magic bytes)
+    // Verificar que es PDF v√°lido (magic bytes)
     var pdfHeader = System.Text.Encoding.ASCII.GetString(bytes[..4]);
     Assert.Equal("%PDF", pdfHeader);
 }
@@ -553,45 +553,45 @@ public async Task ImprimirRemitoIngreso_RemitoNoExiste_Retorna404()
 ## ?? Ventajas de QuestPDF
 
 ### vs iTextSharp/iText7
-? **Licencia m·s simple** - Community gratuita
+? **Licencia m√°s simple** - Community gratuita
 ? **API moderna** - Fluent API tipo LINQ
-? **Sin legacy code** - DiseÒado para .NET moderno
+? **Sin legacy code** - Dise√±ado para .NET moderno
 ? iTextSharp/iText7 tiene licencia AGPL (restrictiva)
 
 ### vs DinkToPdf (wkhtmltopdf)
 ? **Nativo .NET** - No requiere binarios externos
 ? **Cross-platform** - Funciona en Windows/Linux/Mac
-? **M·s control** - DiseÒo program·tico
+? **M√°s control** - Dise√±o program√°tico
 ? DinkToPdf requiere wkhtmltopdf.exe
 
 ### vs Reporting Services (SSRS)
-? **M·s ligero** - No requiere servidor SQL
-? **M·s flexible** - Control total del diseÒo
-? **M·s r·pido** - GeneraciÛn en memoria
+? **M√°s ligero** - No requiere servidor SQL
+? **M√°s flexible** - Control total del dise√±o
+? **M√°s r√°pido** - Generaci√≥n en memoria
 ? SSRS requiere infraestructura pesada
 
 ---
 
 ## ?? Performance
 
-### Tiempos de GeneraciÛn (Estimados)
+### Tiempos de Generaci√≥n (Estimados)
 
-| Remito | Items | Tiempo | TamaÒo PDF |
+| Remito | Items | Tiempo | Tama√±o PDF |
 |--------|-------|--------|------------|
-| PequeÒo | 1-5 items | ~50ms | ~15 KB |
+| Peque√±o | 1-5 items | ~50ms | ~15 KB |
 | Mediano | 10-20 items | ~100ms | ~25 KB |
 | Grande | 50+ items | ~200ms | ~50 KB |
 
 ### Optimizaciones
 
 ```csharp
-// Cachear configuraciÛn de QuestPDF
+// Cachear configuraci√≥n de QuestPDF
 private static readonly Document.Configuration = ...;
 
 // Reusar DTOs
 private readonly ObjectPool<RemitoPdfDto> _dtoPool;
 
-// Generar en paralelo (m˙ltiples remitos)
+// Generar en paralelo (m√∫ltiples remitos)
 var tasks = remitos.Select(id => _pdfService.GenerarPdfRemitoIngreso(id));
 var pdfs = await Task.WhenAll(tasks);
 ```
@@ -607,23 +607,23 @@ var pdfs = await Task.WhenAll(tasks);
 ?                                            ?
 ?  ? Paquete:           QuestPDF 2024.12.3 ?
 ?  ? Interfaz:          IPdfService        ?
-?  ? ImplementaciÛn:    PdfService         ?
+?  ? Implementaci√≥n:    PdfService         ?
 ?  ? DTOs:              2 records          ?
 ?  ? Endpoints:         2 nuevos           ?
 ?  ? Plantilla:         Profesional        ?
-?  ? DiseÒo:            A4, colores, logos ?
-?  ? CompilaciÛn:       EXITOSA            ?
-?  ? DocumentaciÛn:     Completa           ?
+?  ? Dise√±o:            A4, colores, logos ?
+?  ? Compilaci√≥n:       EXITOSA            ?
+?  ? Documentaci√≥n:     Completa           ?
 ?                                            ?
 ??????????????????????????????????????????????
 ```
 
 ---
 
-**°Sistema de PDFs listo para producciÛn!** ??
+**¬°Sistema de PDFs listo para producci√≥n!** ??
 
 **Genera PDFs profesionales de remitos de ingreso y egreso**
 
 **Frontend:** Puede descargar, mostrar en iframe, o imprimir directamente
 
-**Personalizable:** F·cil cambiar colores, logos, agregar campos
+**Personalizable:** F√°cil cambiar colores, logos, agregar campos

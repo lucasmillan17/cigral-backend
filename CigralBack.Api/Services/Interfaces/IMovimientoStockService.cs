@@ -1,16 +1,16 @@
-using CigralBackend.Application.Dtos;
+ï»¿using CigralBackend.Application.Dtos;
 using CigralBackend.Domain.Wrappers;
 using System.Threading.Tasks;
 
 namespace CigralBackend.Application.Services.Interfaces
 {
     /// <summary>
-    /// Interfaz para el servicio de auditoría de movimientos de stock.
+    /// Interfaz para el servicio de auditorÃ­a de movimientos de stock.
     /// </summary>
     public interface IMovimientoStockService
     {
         /// <summary>
-        /// Obtiene movimientos de stock filtrados con paginación.
+        /// Obtiene movimientos de stock filtrados con paginaciÃ³n.
         /// </summary>
         /// <param name="filters">Filtros a aplicar</param>
         /// <returns>Resultado paginado de movimientos</returns>

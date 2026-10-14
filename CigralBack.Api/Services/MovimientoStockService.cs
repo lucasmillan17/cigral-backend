@@ -1,8 +1,9 @@
-using CigralBackend.Application.Dtos;
+锘縰sing CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Domain;
 using CigralBackend.Domain.Exceptions;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Infraestructure.Database;
 using CigralBackend.Infraestructure.Database.Interfaces;
 using System;
 using System.Linq;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace CigralBackend.Application.Services
 {
     /// <summary>
-    /// Servicio para consultar la auditor韆 de movimientos de stock.
+    /// Servicio para consultar la auditor铆a de movimientos de stock.
     /// </summary>
     public class MovimientoStockService : IMovimientoStockService
     {
@@ -23,24 +24,24 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
-        /// Obtiene movimientos de stock filtrados con paginaci髇.
+        /// Obtiene movimientos de stock filtrados con paginaci贸n.
         /// </summary>
         public async Task<PagedResult<MovimientoStockResponse>> GetMovimientos(MovimientoStockFilters filters)
         {
             var resultadoEntidad = await _repository.GetFiltered<MovimientoStock>(
                 predicate: m =>
-                    (string.IsNullOrEmpty(filters.NombreProducto) || m.Producto.Nombre.Contains(filters.NombreProducto)) &&
+                    (string.IsNullOrEmpty(filters.NombreProducto) || Busqueda.Coincide(m.Producto.Nombre, filters.NombreProducto)) &&
                     (!filters.DepositoId.HasValue || m.DepositoId == filters.DepositoId.Value) &&
-                    (string.IsNullOrEmpty(filters.CodigoLote) || m.Lote.CodigoLote.Contains(filters.CodigoLote)) &&
-                    (string.IsNullOrEmpty(filters.NumeroSerie) || m.NumeroSerie.Contains(filters.NumeroSerie)) &&
+                    (string.IsNullOrEmpty(filters.CodigoLote) || Busqueda.Coincide(m.Lote.CodigoLote, filters.CodigoLote)) &&
+                    (string.IsNullOrEmpty(filters.NumeroSerie) || Busqueda.Coincide(m.NumeroSerie, filters.NumeroSerie)) &&
                     (!filters.Tipo.HasValue || m.Tipo == filters.Tipo.Value) &&
                     (string.IsNullOrEmpty(filters.NroRemito) ||
-                    m.RemitoEgreso.NumeroRemito.Contains(filters.NroRemito) ||
-                    m.RemitoIngreso.NumeroRemito.Contains(filters.NroRemito)) &&
+                    Busqueda.Coincide(m.RemitoEgreso.NumeroRemito, filters.NroRemito) ||
+                    Busqueda.Coincide(m.RemitoIngreso.NumeroRemito, filters.NroRemito)) &&
                     (string.IsNullOrEmpty(filters.ComprobanteAsociado) ||
-                    m.RemitoEgreso.ComprobanteAsociado.Contains(filters.ComprobanteAsociado) ||
-                    m.RemitoIngreso.ComprobanteAsociado.Contains(filters.ComprobanteAsociado)) &&
-                    (filters.EsDevolucion ? m.Observaciones.Contains("[DEVOLUCI覰]") : true) &&
+                    Busqueda.Coincide(m.RemitoEgreso.ComprobanteAsociado, filters.ComprobanteAsociado) ||
+                    Busqueda.Coincide(m.RemitoIngreso.ComprobanteAsociado, filters.ComprobanteAsociado)) &&
+                    (filters.EsDevolucion ? m.Observaciones.Contains("[DEVOLUCI脫N]") : true) &&
                     (!filters.FechaDesde.HasValue || m.FechaMovimiento >= filters.FechaDesde.Value) &&
                     (!filters.FechaHasta.HasValue || m.FechaMovimiento <= filters.FechaHasta.Value),
                 orderBy: q => q.OrderByDescending(m => m.FechaMovimiento),
@@ -56,11 +57,11 @@ namespace CigralBackend.Application.Services
                 ProductoId: m.ProductoId,
                 ProductoNombre: m.Producto?.Nombre ?? "Sin Nombre",
                 DepositoId: m.DepositoId,
-                DepositoNombre: m.Deposito?.Nombre ?? "Sin Dep髎ito",
+                DepositoNombre: m.Deposito?.Nombre ?? "Sin Dep贸sito",
                 LoteId: m.LoteId,
                 CodigoLote: m.Lote?.CodigoLote,
                 NumeroSerie: m.NumeroSerie,
-                CodigoGenerico: m.Producto?.CodigoGenerico ?? "Sin C骴igo Gen閞ico",
+                CodigoGenerico: m.Producto?.CodigoGenerico ?? "Sin C贸digo Gen茅rico",
                 Cantidad: m.Cantidad,
                 StockAnterior: m.StockAnterior,
                 StockNuevo: m.StockNuevo,
@@ -100,11 +101,11 @@ namespace CigralBackend.Application.Services
                 ProductoId: movimiento.ProductoId,
                 ProductoNombre: movimiento.Producto?.Nombre ?? "Sin Nombre",
                 DepositoId: movimiento.DepositoId,
-                DepositoNombre: movimiento.Deposito?.Nombre ?? "Sin Dep髎ito",
+                DepositoNombre: movimiento.Deposito?.Nombre ?? "Sin Dep贸sito",
                 LoteId: movimiento.LoteId,
                 CodigoLote: movimiento.Lote?.CodigoLote,
                 NumeroSerie: movimiento.NumeroSerie,
-                CodigoGenerico: movimiento.Producto?.CodigoGenerico ?? "Sin C骴igo Gen閞ico",
+                CodigoGenerico: movimiento.Producto?.CodigoGenerico ?? "Sin C贸digo Gen茅rico",
                 Cantidad: movimiento.Cantidad,
                 StockAnterior: movimiento.StockAnterior,
                 StockNuevo: movimiento.StockNuevo,

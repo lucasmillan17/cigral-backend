@@ -1,4 +1,4 @@
-using CigralBackend.Application.Dtos;
+锘縰sing CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Infraestructure.Services;
@@ -28,11 +28,11 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Registra un remito de ingreso (entrada de mercader韆 de proveedor).
-        /// Aumenta autom醫icamente el stock en el dep髎ito especificado.
+        /// Registra un remito de ingreso (entrada de mercader铆a de proveedor).
+        /// Aumenta autom谩ticamente el stock en el dep贸sito especificado.
         /// </summary>
         /// <param name="request">Datos del remito de ingreso</param>
-        /// <returns>Informaci髇 del remito creado</returns>
+        /// <returns>Informaci贸n del remito creado</returns>
         /// <remarks>
         /// Sample request:
         ///
@@ -41,7 +41,7 @@ namespace CigralBackend.Controllers
         ///        "depositoId": 1,
         ///        "entidadId": 5,
         ///        "numeroRemito": "REM-001",
-        ///        "observaciones": "Ingreso de mercader韆",
+        ///        "observaciones": "Ingreso de mercader铆a",
         ///        "detalles": [
         ///          {
         ///            "productoId": 10,
@@ -68,11 +68,11 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Registra un remito de egreso (salida de mercader韆 a cliente).
-        /// Disminuye autom醫icamente el stock en el dep髎ito especificado.
+        /// Registra un remito de egreso (salida de mercader铆a a cliente).
+        /// Disminuye autom谩ticamente el stock en el dep贸sito especificado.
         /// </summary>
         /// <param name="request">Datos del remito de egreso</param>
-        /// <returns>Informaci髇 del remito creado</returns>
+        /// <returns>Informaci贸n del remito creado</returns>
         /// <remarks>
         /// Sample request:
         ///
@@ -118,11 +118,11 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Actualiza un remito de ingreso (solo n鷐ero y observaciones, NO afecta stock).
+        /// Actualiza un remito de ingreso (solo n煤mero y observaciones, NO afecta stock).
         /// </summary>
         /// <param name="id">ID del remito de ingreso</param>
         /// <param name="request">Datos a actualizar</param>
-        /// <returns>Informaci髇 del remito actualizado</returns>
+        /// <returns>Informaci贸n del remito actualizado</returns>
         [HttpPut("ingreso/{id}")]
         [ProducesResponseType(typeof(RemitoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -134,11 +134,11 @@ namespace CigralBackend.Controllers
         }
 
         /// <summary>
-        /// Actualiza un remito de egreso (solo n鷐ero y observaciones, NO afecta stock).
+        /// Actualiza un remito de egreso (solo n煤mero y observaciones, NO afecta stock).
         /// </summary>
         /// <param name="id">ID del remito de egreso</param>
         /// <param name="request">Datos a actualizar</param>
-        /// <returns>Informaci髇 del remito actualizado</returns>
+        /// <returns>Informaci贸n del remito actualizado</returns>
         [HttpPut("egreso/{id}")]
         [ProducesResponseType(typeof(RemitoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -250,7 +250,7 @@ namespace CigralBackend.Controllers
         [HttpGet("Design")]
         public async Task<IActionResult> GetRemitoDesign()
         {
-            await _pdfService.GenerarPdfRemitoDisenio(); // ID fijo para dise駉
+            await _pdfService.GenerarPdfRemitoDisenio(); // ID fijo para dise帽o
 
             return Ok();
         }
