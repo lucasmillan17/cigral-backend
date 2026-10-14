@@ -37,6 +37,21 @@ Swagger queda en `http://localhost:8080/swagger`.
 Al arrancar, la API aplica las migraciones pendientes y, si la base está vacía, crea el usuario
 administrador inicial.
 
+## Deploy automático (GitHub Actions)
+
+`.github/workflows/deploy.yml` se ejecuta cada vez que entra código a `development` o `main`
+(merge de un pull request o push directo): compila la API y, si compila, llama al webhook de
+deploy de Easypanel.
+
+| Rama | Secret de GitHub con el webhook | Servicio |
+|---|---|---|
+| `development` | `EASYPANEL_DEPLOY_URL_DEVELOPMENT` | test-api.cigral.com.ar |
+| `main` | `EASYPANEL_DEPLOY_URL_MAIN` | producción (pendiente) |
+
+El webhook se obtiene en Easypanel, en el servicio de la API → *Deployments* → *Deploy webhook*.
+Lleva un token, así que va como secret y nunca en el código. Si el secret de una rama no está
+definido, el workflow compila igual pero no despliega (queda una advertencia en la ejecución).
+
 ## Seguridad
 
 - **Header `x-cigral-auth`**: si `AuthHeader__Key` está definida, la API rechaza con 401 toda

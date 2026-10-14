@@ -1,0 +1,50 @@
+# Compila la API y dispara el deploy en Easypanel cada vez que entra código a
+# `development` (servidor de pruebas, test-api.cigral.com.ar) o a `main` (producción),
+# ya sea por el merge de un pull request o por un push directo.
+#
+# Secrets necesarios (Settings > Secrets and variables > Actions > Repository secrets):
+#   EASYPANEL_DEPLOY_URL_DEVELOPMENT  webhook "Deploy" del servicio de test-api en Easypanel
+#   EASYPANEL_DEPLOY_URL_MAIN         webhook de producción. Mientras no exista, main no despliega.
+name: Deploy
+
+on:
+  push:
+    branches: [development, main]
+
+# Si entran dos merges seguidos a la misma rama, solo se despliega el último.
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compilar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - run: dotnet build CigralBackend/CigralBackend.Api.csproj -c Release
+
+  deploy:
+    name: Deploy en Easypanel
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar el webhook de deploy
+        env:
+          URL_DEVELOPMENT: ${{ secrets.EASYPANEL_DEPLOY_URL_DEVELOPMENT }}
+          URL_MAIN: ${{ secrets.EASYPANEL_DEPLOY_URL_MAIN }}
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then URL="$URL_MAIN"; else URL="$URL_DEVELOPMENT"; fi
+
+          if [ -z "$URL" ]; then
+            echo "::warning::No hay webhook de deploy configurado para '$GITHUB_REF_NAME'; se omite el deploy."
+            exit 0
+          fi
+
+          curl --fail --silent --show-error --max-time 30 --retry 3 -X POST "$URL" -o /dev/null
+          echo "Deploy de '$GITHUB_REF_NAME' disparado en Easypanel."
