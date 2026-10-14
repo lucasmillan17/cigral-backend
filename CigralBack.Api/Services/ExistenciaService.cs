@@ -51,7 +51,7 @@ namespace CigralBackend.Application.Services
                 e.LoteId ?? 0,
                 lote?.CodigoLote.ToUpper() ?? "Sin Código de Lote",
                 e.NumSerie ?? "Sin Número de Serie",
-                lote?.FechaVencimiento ?? e.FechaVencimiento,
+                e.FechaVencimiento,
                 e.Cantidad,
                 e.InformacionAdicional
             );
@@ -161,13 +161,8 @@ namespace CigralBackend.Application.Services
                 lote = await _repository.First<Lote>(l => l.CodigoLote == loteUpper);
                 if (lote == null)
                 {
-                    // El stock vive solo en Existencias; el lote guarda código y vencimiento.
-                    lote = new Lote
-                    {
-                        CodigoLote = loteUpper,
-                        FechaVencimiento = r.FechaVencimiento,
-                        ProductoId = r.ProductoId
-                    };
+                    // El lote es solo el código; cantidad y vencimiento viven en la existencia.
+                    lote = new Lote { CodigoLote = loteUpper };
 
                     lote = await _repository.Add(lote);
                 }
@@ -199,18 +194,10 @@ namespace CigralBackend.Application.Services
                 {
                     ProductoId = r.ProductoId,
                     DepositoId = r.DepositoId,
-                    Cantidad = r.Cantidad
+                    Cantidad = r.Cantidad,
+                    LoteId = lote?.Id,
+                    FechaVencimiento = r.FechaVencimiento
                 };
-
-                if (lote != null)
-                {
-                    existencia.LoteId = lote.Id;
-                    existencia.FechaVencimiento = lote.FechaVencimiento;
-                }
-                else
-                {
-                    existencia.FechaVencimiento = r.FechaVencimiento;
-                }
 
                 if (!string.IsNullOrEmpty(r.NumSerie))
                 {
@@ -300,12 +287,15 @@ namespace CigralBackend.Application.Services
                 
             }
 
-            // Buscar existencia existente
-            // Buscar existencia existente
+            // Buscar las existencias a descontar.
+            // A propósito NO se filtra por depósito: así trabajan en Cigral (se descuenta del stock
+            // del producto/lote/serie esté en el depósito que esté), a pedido del cliente.
             var existenciasADescontar = await _repository.GetFiltered<Existencia>(
                 e => e.ProductoId == r.ProductoId &&
                      (string.IsNullOrEmpty(loteUpper) || e.LoteId == lote.Id) &&
-                     (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie)
+                     (string.IsNullOrEmpty(r.NumSerie) || e.NumSerie == r.NumSerie),
+                pageNumber: 1,
+                pageSize: int.MaxValue // Todas: antes solo se consideraban las primeras 10
             );
 
             if (existenciasADescontar == null || !existenciasADescontar.Items.Any())
@@ -483,7 +473,7 @@ namespace CigralBackend.Application.Services
                 existencia.LoteId ?? 0,
                 existencia.Lote?.CodigoLote.ToUpper() ?? "Sin Código de Lote",
                 existencia.NumSerie ?? "Sin Número de Serie",
-                existencia.Lote?.FechaVencimiento ?? existencia.FechaVencimiento,
+                existencia.FechaVencimiento,
                 existencia.Cantidad,
                 existencia.InformacionAdicional
             );
@@ -511,9 +501,8 @@ namespace CigralBackend.Application.Services
                         : q.OrderBy(e => e.Producto.Nombre),
 
                     OrdenExistencia.FechaVencimiento => filters.EsDescendente
-                        // EF Core es inteligente, si la fecha es nula, ordenará usando el lote
-                        ? q.OrderByDescending(e => e.FechaVencimiento ?? e.Lote.FechaVencimiento)
-                        : q.OrderBy(e => e.FechaVencimiento ?? e.Lote.FechaVencimiento),
+                        ? q.OrderByDescending(e => e.FechaVencimiento)
+                        : q.OrderBy(e => e.FechaVencimiento),
 
                     OrdenExistencia.Cantidad => filters.EsDescendente
                         ? q.OrderByDescending(e => e.Cantidad)
@@ -551,46 +540,27 @@ namespace CigralBackend.Application.Services
 
                     // Vencimiento DESDE
                     (!filters.FechaVencimientoDesde.HasValue ||
-                        ( // <-- Paréntesis clave para agrupar el OR
-                            (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= filters.FechaVencimientoDesde.Value) ||
-                            (e.Lote != null && e.Lote.FechaVencimiento >= filters.FechaVencimientoDesde.Value)
-                        )
+                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= filters.FechaVencimientoDesde.Value)
                     ) &&
 
                     // Vencimiento HASTA
                     (!filters.FechaVencimientoHasta.HasValue ||
-                        (
-                            (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= filters.FechaVencimientoHasta.Value) ||
-                            (e.Lote != null && e.Lote.FechaVencimiento <= filters.FechaVencimientoHasta.Value)
-                        )
+                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= filters.FechaVencimientoHasta.Value)
                     ) &&
 
                     // Límite Vencimiento (Extra)
                     (!fechaLimiteVencimiento.HasValue ||
-                        (
-                            (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= fechaLimiteVencimiento.Value) ||
-                            (e.Lote != null && e.Lote.FechaVencimiento <= fechaLimiteVencimiento.Value)
-                        )
+                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value <= fechaLimiteVencimiento.Value)
                     ) &&
 
-                    // DÍAS PARA VENCER (Arreglado)
+                    // DÍAS PARA VENCER: no vencido hoy y vence antes del límite
                     (!limiteDiasParaVencer.HasValue ||
-                        (
-                            // Opción A: Tiene fecha propia, NO está vencido hoy, y vence antes del límite
-                            (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value.Date >= hoy && e.FechaVencimiento.Value.Date <= limiteDiasParaVencer.Value)
-                            ||
-                            // Opción B: Su lote tiene fecha, NO está vencido hoy, y vence antes del límite
-                            (e.Lote != null && e.Lote.FechaVencimiento.HasValue && e.Lote.FechaVencimiento.Value.Date >= hoy && e.Lote.FechaVencimiento.Value.Date <= limiteDiasParaVencer.Value)
-                        )
+                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value.Date >= hoy && e.FechaVencimiento.Value.Date <= limiteDiasParaVencer.Value)
                     ) &&
 
                     // SOLO CON VENCIMIENTO
                     (!filters.SoloConVencimiento.HasValue ||
-                        (
-                            (filters.SoloConVencimiento.Value && (e.FechaVencimiento.HasValue || (e.Lote != null && e.Lote.FechaVencimiento.HasValue)))
-                            ||
-                            (!filters.SoloConVencimiento.Value && !e.FechaVencimiento.HasValue && (e.Lote == null || !e.Lote.FechaVencimiento.HasValue))
-                        )
+                        e.FechaVencimiento.HasValue == filters.SoloConVencimiento.Value
                     ),
 
                 pageNumber: filters.PageNumber,
@@ -610,7 +580,7 @@ namespace CigralBackend.Application.Services
                 e.LoteId ?? 0,
                 e.Lote?.CodigoLote.ToUpper() ?? "Sin Código de Lote",
                 e.NumSerie ?? "Sin Número de Serie",
-                e.FechaVencimiento ?? e.Lote?.FechaVencimiento,
+                e.FechaVencimiento,
                 e.Cantidad,
                 e.InformacionAdicional
             )).ToList();
@@ -636,21 +606,15 @@ namespace CigralBackend.Application.Services
             // Obtener todas las existencias con vencimiento
             var existencias = await _repository.GetFiltered<Existencia>(
                 predicate: e =>
-                    // Solo con fecha de vencimiento
-                    (e.FechaVencimiento.HasValue || e.Lote != null) &&
-
-                    // Dentro del rango de fechas
-                    ((e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= fechaMinima && e.FechaVencimiento.Value <= fechaMaxima) ||
-                     (e.Lote != null && e.Lote.FechaVencimiento >= fechaMinima && e.Lote.FechaVencimiento <= fechaMaxima)) &&
+                    // Con fecha de vencimiento dentro del rango
+                    e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= fechaMinima && e.FechaVencimiento.Value <= fechaMaxima &&
 
                     // Filtros opcionales
                     (!filters.DepositoId.HasValue || e.DepositoId == filters.DepositoId.Value) &&
                     (!filters.ProductoId.HasValue || e.ProductoId == filters.ProductoId.Value) &&
 
                     // Incluir vencidos solo si se solicita
-                    (filters.IncluirVencidos ||
-                        (e.FechaVencimiento.HasValue && e.FechaVencimiento.Value >= hoy) ||
-                        (e.Lote != null && e.Lote.FechaVencimiento >= hoy)),
+                    (filters.IncluirVencidos || e.FechaVencimiento.Value >= hoy),
 
                 pageNumber: 1,
                 pageSize: int.MaxValue, // Sin paginación
@@ -660,7 +624,7 @@ namespace CigralBackend.Application.Services
             var resultado = existencias.Items
                 .Select(e =>
                 {
-                    var fechaVenc = e.Lote?.FechaVencimiento ?? e.FechaVencimiento ?? hoy;
+                    var fechaVenc = e.FechaVencimiento ?? hoy;
                     var diasParaVencer = (int)(fechaVenc.Date - hoy).TotalDays;
 
                     return new ProductoProximoVencerDto(

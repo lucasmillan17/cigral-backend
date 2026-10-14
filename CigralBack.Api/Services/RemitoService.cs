@@ -99,21 +99,13 @@ namespace CigralBackend.Application.Services
                 // Procesar cada detalle
                 foreach (var detalle in request.Detalles)
                 {
+                    var codigoLote = detalle.CodigoLote?.Trim().ToUpper();
                     Lote? lote = null;
-                    if (!string.IsNullOrEmpty(detalle.CodigoLote.ToUpper()))
+                    if (!string.IsNullOrEmpty(codigoLote))
                     {
-                            lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote.ToUpper());
-                        if (lote == null)
-                        {
-                            // Si el lote no existe, lo creamos
-                            lote = new Lote
-                            {
-                                CodigoLote = detalle.CodigoLote,
-                                ProductoId = detalle.ProductoId,
-                                FechaVencimiento = detalle.FechaVencimiento // Podríamos agregar esta info al detalle si es necesario
-                            };
-                            lote = await _repository.Add(lote);
-                        }
+                        // El lote es solo el código: si no existe, se crea
+                        lote = await _repository.First<Lote>(d => d.CodigoLote == codigoLote)
+                            ?? await _repository.Add(new Lote { CodigoLote = codigoLote });
                     }
 
                     // Crear el detalle del remito
@@ -123,6 +115,7 @@ namespace CigralBackend.Application.Services
                         ProductoId = detalle.ProductoId,
                         LoteId = lote?.Id,
                         NumeroSerie = detalle.NumeroSerie,
+                        FechaVencimiento = detalle.FechaVencimiento,
                         Cantidad = detalle.Cantidad
                     };
 
@@ -133,7 +126,7 @@ namespace CigralBackend.Application.Services
                         DepositoId: request.DepositoId,
                         ProductoId: detalle.ProductoId,
                         NumSerie: detalle.NumeroSerie,
-                        CodigoLote: detalle.CodigoLote.ToUpper(),
+                        CodigoLote: codigoLote,
                         FechaVencimiento: detalle.FechaVencimiento,
                         Cantidad: detalle.Cantidad,
                         InformacionAdicional: detalle.InformacionAdicional,
@@ -275,7 +268,8 @@ namespace CigralBackend.Application.Services
                 // Procesar cada detalle
                 foreach (var detalle in request.Detalles)
                 {
-                    var lote = await _repository.First<Lote>(d => d.CodigoLote == detalle.CodigoLote.ToUpper());
+                    var codigoLote = detalle.CodigoLote?.Trim().ToUpper();
+                    var lote = string.IsNullOrEmpty(codigoLote) ? null : await _repository.First<Lote>(d => d.CodigoLote == codigoLote);
                     // Crear el detalle del remito
                     var detalleRemito = new DetalleRemito
                     {
@@ -283,6 +277,7 @@ namespace CigralBackend.Application.Services
                         ProductoId = detalle.ProductoId,
                         LoteId = lote?.Id,
                         NumeroSerie = detalle.NumeroSerie,
+                        FechaVencimiento = detalle.FechaVencimiento,
                         Cantidad = detalle.Cantidad
                     };
 
@@ -471,7 +466,7 @@ namespace CigralBackend.Application.Services
                 Detalles: e.Detalles.Select(d => new RemitoDetalleResponse(
                     ProductoId: d.ProductoId,
                     CodigoLote: d.Lote != null ? d.Lote.CodigoLote.ToUpper() : null,
-                    FechaVencimiento: d.Lote != null ? d.Lote.FechaVencimiento : (DateTime?)null,
+                    FechaVencimiento: d.FechaVencimiento,
                     NumeroSerie: d.NumeroSerie,
                     Cantidad: d.Cantidad
                 )).ToList()
@@ -519,7 +514,7 @@ namespace CigralBackend.Application.Services
                 Detalles: e.Detalles.Select(d => new RemitoDetalleResponse(
                     ProductoId: d.ProductoId,
                     CodigoLote: d.Lote != null ? d.Lote.CodigoLote.ToUpper() : null,
-                    FechaVencimiento: d.Lote != null ? d.Lote.FechaVencimiento : (DateTime?)null,
+                    FechaVencimiento: d.FechaVencimiento,
                     NumeroSerie: d.NumeroSerie,
                     Cantidad: d.Cantidad
                 )).ToList()

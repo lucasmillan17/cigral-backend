@@ -214,6 +214,9 @@ namespace CigralBackend.Infraestructure.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("FechaVencimiento")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("InformacionAdicional")
                         .HasColumnType("citext");
 
@@ -333,28 +336,15 @@ namespace CigralBackend.Infraestructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Activo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
                     b.Property<string>("CodigoLote")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("citext");
 
-                    b.Property<DateTime?>("FechaVencimiento")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<int>("ProductoId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CodigoLote")
                         .IsUnique();
-
-                    b.HasIndex("ProductoId");
 
                     b.ToTable("Lotes");
                 });
@@ -888,17 +878,6 @@ namespace CigralBackend.Infraestructure.Migrations
                     b.Navigation("Producto");
                 });
 
-            modelBuilder.Entity("CigralBackend.Domain.Lote", b =>
-                {
-                    b.HasOne("CigralBackend.Domain.Producto", "Producto")
-                        .WithMany("Lotes")
-                        .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Producto");
-                });
-
             modelBuilder.Entity("CigralBackend.Domain.MovimientoStock", b =>
                 {
                     b.HasOne("CigralBackend.Domain.Deposito", "Deposito")
@@ -1041,11 +1020,6 @@ namespace CigralBackend.Infraestructure.Migrations
             modelBuilder.Entity("CigralBackend.Domain.Cliente", b =>
                 {
                     b.Navigation("Remitos");
-                });
-
-            modelBuilder.Entity("CigralBackend.Domain.Producto", b =>
-                {
-                    b.Navigation("Lotes");
                 });
 
             modelBuilder.Entity("CigralBackend.Domain.Proveedor", b =>

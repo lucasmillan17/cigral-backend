@@ -96,10 +96,6 @@ namespace CigralBackend.Infraestructure.Database
                       .WithMany()
                       .HasForeignKey(e => e.MarcaId)
                       .OnDelete(DeleteBehavior.Restrict);
-                entity.HasMany(e => e.Lotes)
-                      .WithOne(l => l.Producto)
-                      .HasForeignKey(l => l.ProductoId)
-                      .OnDelete(DeleteBehavior.Restrict);
                 entity.HasIndex(e => e.GTIN).IsUnique().HasFilter("\"GTIN\" IS NOT NULL");
                 entity.Property(e => e.Activo).HasDefaultValue(true);
                 entity.HasIndex(e => e.CodigoGenerico).IsUnique();
@@ -121,13 +117,7 @@ namespace CigralBackend.Infraestructure.Database
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.CodigoLote).HasMaxLength(50).IsRequired();
-                entity.HasOne(e => e.Producto)
-                      .WithMany(p => p.Lotes)
-                      .HasForeignKey(e => e.ProductoId)
-                      .OnDelete(DeleteBehavior.Restrict);
                 entity.HasIndex(e => e.CodigoLote).IsUnique();
-                entity.Property(e => e.Activo).HasDefaultValue(true);
-                entity.HasQueryFilter(c => c.Activo);
             });
 
             // Configuración de Deposito
