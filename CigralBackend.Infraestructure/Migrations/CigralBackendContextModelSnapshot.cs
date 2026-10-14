@@ -338,15 +338,12 @@ namespace CigralBackend.Infraestructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
-                    b.Property<int>("CantidadDisponible")
-                        .HasColumnType("integer");
-
                     b.Property<string>("CodigoLote")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("citext");
 
-                    b.Property<DateTime>("FechaVencimiento")
+                    b.Property<DateTime?>("FechaVencimiento")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("ProductoId")

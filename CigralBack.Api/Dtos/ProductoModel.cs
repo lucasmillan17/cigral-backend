@@ -51,7 +51,8 @@ namespace CigralBackend.Application.Dtos
         string? GTIN,
         string? CodigoGenerico,
         string? CodigoInterno,
-        decimal? Precio
+        decimal? Precio,
+        bool EsUnitario // Cada movimiento de stock tiene que ser de cantidad 1
     );
 
     public record ProductoFilters
