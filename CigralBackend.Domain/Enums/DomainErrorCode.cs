@@ -98,6 +98,16 @@
         /// </summary>
         StockEnConsignacion = 3009,
 
+        /// <summary>
+        /// Una corrección de soporte no cambia nada respecto de la existencia actual.
+        /// </summary>
+        CorreccionSinCambios = 3010,
+
+        /// <summary>
+        /// Una corrección de soporte no indica ticket ni motivo.
+        /// </summary>
+        CorreccionSinMotivo = 3011,
+
         // 4000 - Errores de Clientes
         /// <summary>
         /// El cliente especificado no existe.

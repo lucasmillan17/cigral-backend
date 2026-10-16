@@ -1,5 +1,6 @@
 ﻿using CigralBackend.Application.Dtos;
 using CigralBackend.Application.Services.Interfaces;
+using CigralBackend.Domain;
 using CigralBackend.Domain.Wrappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -218,6 +219,21 @@ namespace CigralBackend.Controllers
         {
             await _existenciaService.DeleteExistencia(id);
             return NoContent();
+        }
+
+        /// <summary>
+        /// Corrección de soporte: lote, serie, vencimiento, depósito o cantidad de una existencia.
+        /// Requiere ticket o motivo. Si la nueva combinación ya existe, se suman y la original se elimina.
+        /// </summary>
+        [HttpPut("{id}/correccion")]
+        [Authorize(Roles = Roles.Soporte)]
+        [ProducesResponseType(typeof(ExistenciaModelResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Corregir(int id, [FromBody] ExistenciaCorreccionRequest request)
+        {
+            return Ok(await _existenciaService.CorregirExistencia(id, request));
         }
 
         [HttpGet("{id}/stock-disponible")]

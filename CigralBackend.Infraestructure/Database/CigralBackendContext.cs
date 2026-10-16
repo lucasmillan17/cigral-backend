@@ -377,6 +377,24 @@ namespace CigralBackend.Infraestructure.Database
                         Usuario = _userContext.HttpContext?.User?.Identity?.Name ?? "Sistema"
                     });
                 }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    // Se guarda cómo era la fila borrada, para poder reconstruirla.
+                    var valores = entry.OriginalValues.Properties
+                        .Where(p => !p.IsPrimaryKey())
+                        .Select(p => $"{p.Name}={entry.OriginalValues[p]}");
+                    entradasAuditoria.Add(new RegistroAuditoria
+                    {
+                        Entidad = nombreEntidad,
+                        EntidadId = pk,
+                        Accion = "Delete",
+                        Campo = "Todos",
+                        ValorAnterior = string.Join("; ", valores),
+                        ValorActual = "Registro eliminado",
+                        Fecha = DateTime.Now,
+                        Usuario = _userContext.HttpContext?.User?.Identity?.Name ?? "Sistema"
+                    });
+                }
             }
 
             // Guardamos las auditorías en el contexto antes de hacer el commit final
