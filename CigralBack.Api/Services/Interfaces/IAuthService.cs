@@ -27,5 +27,10 @@ namespace CigralBackend.Application.Services.Interfaces
         /// Cambia la contraseña de un usuario.
         /// </summary>
         Task ChangePassword(string username, string currentPassword, string newPassword);
+
+        /// <summary>
+        /// Reemplaza los roles de un usuario (Administrador, Soporte). Devuelve los roles resultantes.
+        /// </summary>
+        Task<System.Collections.Generic.IList<string>> AsignarRoles(int usuarioId, System.Collections.Generic.IEnumerable<string> roles);
     }
 }

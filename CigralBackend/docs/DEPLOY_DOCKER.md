@@ -32,10 +32,35 @@ Swagger queda en `http://localhost:8080/swagger`.
      Jwt__Key=<clave aleatoria de 64+ caracteres, distinta a la de appsettings.json>
      AuthHeader__Key=<valor del header x-cigral-auth que envía el cliente de escritorio>
      Swagger__Habilitado=true   # opcional: solo en el entorno de pruebas
+
+     # Aviso por mail de tickets de soporte (opcional: sin esto los tickets se guardan igual)
+     Smtp__Host=smtp.gmail.com
+     Smtp__Port=587            # 465 usa SSL directo; el resto, STARTTLS si el servidor lo ofrece
+     Smtp__Usuario=<cuenta que envía>
+     Smtp__Password=<contraseña de aplicación>
+     Smtp__Remitente=<dirección From; por defecto, el usuario>
+     Soporte__EmailDestino=<una o varias direcciones separadas por coma>
      ```
 
-Al arrancar, la API aplica las migraciones pendientes y, si la base está vacía, crea el usuario
+Al arrancar, la API aplica las migraciones pendientes, crea los roles `Administrador` y `Soporte`,
+asigna `Administrador` a todo usuario sin rol y, si la base está vacía, crea el usuario
 administrador inicial.
+
+### Roles
+
+- `Administrador`: el resto de los usuarios (crean tickets y ven los suyos).
+- `Soporte`: las cuentas del equipo de soporte (ven y gestionan todos los tickets).
+
+Para dar el rol `Soporte` por primera vez (después, desde una cuenta Soporte se puede usar
+`POST /api/Auth/usuarios/{id}/roles` con `{ "roles": ["Administrador", "Soporte"] }`):
+
+```sql
+INSERT INTO "AspNetUserRoles" ("UserId", "RoleId")
+SELECT u."Id", r."Id" FROM "AspNetUsers" u, "AspNetRoles" r
+WHERE u."UserName" = '<usuario>' AND r."Name" = 'Soporte';
+```
+
+El rol se ve en el próximo inicio de sesión (viaja en el token).
 
 ## Deploy automático (GitHub Actions)
 

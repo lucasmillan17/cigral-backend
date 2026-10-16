@@ -82,5 +82,19 @@ namespace CigralBackend.Controllers
             await _authService.ChangePassword(username, request.CurrentPassword, request.NewPassword);
             return NoContent();
         }
+
+        /// <summary>
+        /// Reemplaza los roles de un usuario (Administrador, Soporte). Solo Soporte.
+        /// Los cambios se ven en el próximo inicio de sesión del usuario.
+        /// </summary>
+        [HttpPost("usuarios/{id:int}/roles")]
+        [Authorize(Roles = CigralBackend.Domain.Roles.Soporte)]
+        [ProducesResponseType(typeof(IList<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> AsignarRoles(int id, [FromBody] RolesUsuarioRequest request)
+        {
+            return Ok(await _authService.AsignarRoles(id, request.Roles));
+        }
     }
 }

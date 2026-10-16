@@ -28,6 +28,9 @@ namespace CigralBackend.Infraestructure.Database
         public DbSet<EntidadResumen> EntidadesResumen { get; set; }
         public DbSet<Consignacion> Consignaciones { get; set; }
         public DbSet<RegistroAuditoria> Auditorias { get; set; }
+        public DbSet<Ticket> Tickets { get; set; }
+        public DbSet<TicketComentario> TicketComentarios { get; set; }
+        public DbSet<TicketAdjunto> TicketAdjuntos { get; set; }
 
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
@@ -276,6 +279,40 @@ namespace CigralBackend.Infraestructure.Database
                 entity.HasIndex(e => e.Fecha);
             });
 
+            modelBuilder.Entity<Ticket>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Titulo).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Descripcion).HasMaxLength(4000);
+                entity.Property(e => e.CodigoCrudo).HasMaxLength(2000);
+                entity.Property(e => e.Pantalla).HasMaxLength(50);
+                entity.Property(e => e.LoteEtiqueta).HasMaxLength(100);
+                entity.Property(e => e.SerieEtiqueta).HasMaxLength(100);
+                entity.Property(e => e.VencimientoEtiqueta).HasMaxLength(30);
+                entity.Property(e => e.CreadoPorNombre).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.VersionApp).HasMaxLength(30);
+                entity.HasIndex(e => e.Estado);
+                entity.HasIndex(e => e.CreadoPorId);
+                entity.HasIndex(e => e.FechaActualizacion);
+                entity.HasMany(e => e.Comentarios).WithOne().HasForeignKey(c => c.TicketId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasMany(e => e.Adjuntos).WithOne().HasForeignKey(a => a.TicketId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<TicketComentario>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UsuarioNombre).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Texto).HasMaxLength(4000).IsRequired();
+            });
+
+            modelBuilder.Entity<TicketAdjunto>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.NombreArchivo).HasMaxLength(255).IsRequired();
+                entity.Property(e => e.ContentType).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Datos).HasColumnType("bytea").IsRequired();
+            });
+
             modelBuilder.Entity<EntidadResumen>()
                 .ToView("vw_Entidades_Resumen")
                 .HasNoKey();
@@ -293,7 +330,8 @@ namespace CigralBackend.Infraestructure.Database
             foreach (var entry in entradasModificadas)
             {
                 // Evitamos auditar la tabla de auditoría para no crear un bucle infinito
-                if (entry.Entity is RegistroAuditoria)
+                // Ni los adjuntos de tickets: la auditoría guardaría la foto como texto.
+                if (entry.Entity is RegistroAuditoria or TicketAdjunto)
                     continue;
 
                 var nombreEntidad = entry.Entity.GetType().Name;

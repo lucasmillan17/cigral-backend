@@ -669,6 +669,159 @@ namespace CigralBackend.Infraestructure.Migrations
                     b.ToTable("RemitosIngreso");
                 });
 
+            modelBuilder.Entity("CigralBackend.Domain.Ticket", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoCrudo")
+                        .HasMaxLength(2000)
+                        .HasColumnType("citext");
+
+                    b.Property<int>("CreadoPorId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CreadoPorNombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("citext");
+
+                    b.Property<int?>("DepositoId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(4000)
+                        .HasColumnType("citext");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("FechaActualizacion")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("LoteEtiqueta")
+                        .HasMaxLength(100)
+                        .HasColumnType("citext");
+
+                    b.Property<string>("Pantalla")
+                        .HasMaxLength(50)
+                        .HasColumnType("citext");
+
+                    b.Property<int?>("ProductoId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ResultadoParserJson")
+                        .HasColumnType("citext");
+
+                    b.Property<string>("SerieEtiqueta")
+                        .HasMaxLength(100)
+                        .HasColumnType("citext");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("citext");
+
+                    b.Property<string>("VencimientoEtiqueta")
+                        .HasMaxLength(30)
+                        .HasColumnType("citext");
+
+                    b.Property<string>("VersionApp")
+                        .HasMaxLength(30)
+                        .HasColumnType("citext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("Estado");
+
+                    b.HasIndex("FechaActualizacion");
+
+                    b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("CigralBackend.Domain.TicketAdjunto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("citext");
+
+                    b.Property<byte[]>("Datos")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("NombreArchivo")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("citext");
+
+                    b.Property<int>("Tamano")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("TicketAdjuntos");
+                });
+
+            modelBuilder.Entity("CigralBackend.Domain.TicketComentario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("EsDeSoporte")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("citext");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UsuarioNombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("citext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("TicketComentarios");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
                 {
                     b.Property<int>("Id")
@@ -966,6 +1119,24 @@ namespace CigralBackend.Infraestructure.Migrations
                     b.Navigation("Proveedor");
                 });
 
+            modelBuilder.Entity("CigralBackend.Domain.TicketAdjunto", b =>
+                {
+                    b.HasOne("CigralBackend.Domain.Ticket", null)
+                        .WithMany("Adjuntos")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CigralBackend.Domain.TicketComentario", b =>
+                {
+                    b.HasOne("CigralBackend.Domain.Ticket", null)
+                        .WithMany("Comentarios")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
@@ -1035,6 +1206,13 @@ namespace CigralBackend.Infraestructure.Migrations
             modelBuilder.Entity("CigralBackend.Domain.RemitoIngreso", b =>
                 {
                     b.Navigation("Detalles");
+                });
+
+            modelBuilder.Entity("CigralBackend.Domain.Ticket", b =>
+                {
+                    b.Navigation("Adjuntos");
+
+                    b.Navigation("Comentarios");
                 });
 #pragma warning restore 612, 618
         }

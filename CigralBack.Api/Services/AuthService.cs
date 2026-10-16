@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -143,6 +144,9 @@ namespace CigralBackend.Application.Services
                 );
             }
 
+            // Por ahora todo usuario nuevo es Administrador; Soporte se asigna aparte.
+            await _userManager.AddToRoleAsync(usuario, Roles.Administrador);
+
             return new UsuarioResponse(
                 Id: usuario.Id,
                 Username: usuario.UserName!,
@@ -210,6 +214,27 @@ namespace CigralBackend.Application.Services
         }
 
         /// <summary>
+        /// Reemplaza los roles de un usuario por los indicados (solo roles conocidos).
+        /// </summary>
+        public async Task<IList<string>> AsignarRoles(int usuarioId, IEnumerable<string> roles)
+        {
+            var usuario = await _userManager.FindByIdAsync(usuarioId.ToString())
+                ?? throw new DomainException(DomainErrorCode.UsuarioNoExiste, "El usuario no existe.");
+
+            var nuevos = roles.Select(r => r.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            var desconocidos = nuevos.Where(r => !Roles.Todos.Contains(r)).ToList();
+            if (desconocidos.Count > 0)
+                throw new DomainException(DomainErrorCode.UnknownError, $"Roles desconocidos: {string.Join(", ", desconocidos)}. Válidos: {string.Join(", ", Roles.Todos)}.");
+            if (nuevos.Count == 0)
+                throw new DomainException(DomainErrorCode.UnknownError, "El usuario tiene que tener al menos un rol.");
+
+            var actuales = await _userManager.GetRolesAsync(usuario);
+            await _userManager.RemoveFromRolesAsync(usuario, actuales.Except(nuevos));
+            await _userManager.AddToRolesAsync(usuario, nuevos.Except(actuales));
+            return await _userManager.GetRolesAsync(usuario);
+        }
+
+        /// <summary>
         /// Genera un token JWT para el usuario.
         /// </summary>
         private async Task<string> GenerateJwtToken(ApplicationUser usuario)
@@ -221,14 +246,18 @@ namespace CigralBackend.Application.Services
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
                 new Claim(ClaimTypes.Name, usuario.UserName!),
                 new Claim(ClaimTypes.Email, usuario.Email ?? ""),
+                new Claim("nombreCompleto", usuario.NombreCompleto ?? usuario.UserName!),
                 new Claim("esAdmin", usuario.EsAdmin.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+            // Un claim por rol (Administrador, Soporte...): lo usan [Authorize(Roles = ...)] y el front.
+            foreach (var rol in await _userManager.GetRolesAsync(usuario))
+                claims.Add(new Claim(ClaimTypes.Role, rol));
 
             var token = new JwtSecurityToken(
                 issuer: jwtIssuer,

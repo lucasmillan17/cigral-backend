@@ -118,6 +118,8 @@ namespace CigralBackend
             builder.Services.AddSingleton<IBarCodeParser, BarCodeParser>();
             builder.Services.AddScoped<ICatalogParserService, CsvCatalogParserService>();
             builder.Services.AddScoped<IConsignacionService, ConsignacionService>();
+            builder.Services.AddScoped<ITicketService, TicketService>();
+            builder.Services.AddSingleton<IEmailService, EmailService>();
             builder.Services.AddHttpContextAccessor();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -219,8 +221,14 @@ namespace CigralBackend
                     // 1. Migrar la base de datos (ya lo tenías)
                     context.Database.Migrate();
 
-                    // 2. INICIO NUEVO CÓDIGO: Crear Admin si no existe
+                    // 2. Roles (Administrador, Soporte) y admin inicial
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+                    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+                    foreach (var rol in Roles.Todos)
+                    {
+                        if (!await roleManager.RoleExistsAsync(rol))
+                            await roleManager.CreateAsync(new IdentityRole<int>(rol));
+                    }
 
                     // Verificamos si la tabla de usuarios está vacía
                     if (!context.Users.Any())
@@ -253,7 +261,13 @@ namespace CigralBackend
                             logger.LogError("Error al crear el usuario Admin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
                         }
                     }
-                    // FIN NUEVO CÓDIGO
+
+                    // Todo usuario sin rol queda como Administrador (es el acceso que tenían antes de los roles).
+                    foreach (var usuario in userManager.Users.ToList())
+                    {
+                        if ((await userManager.GetRolesAsync(usuario)).Count == 0)
+                            await userManager.AddToRoleAsync(usuario, Roles.Administrador);
+                    }
                 }
                 catch (Exception ex)
                 {
