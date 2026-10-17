@@ -98,4 +98,24 @@ namespace CigralBackend.Application.Dtos
     );
 
     public record ExistenciaPorDepositoResponse(int ExistenciaId, int DepositoId, string DepositoNombre, int Cantidad);
+
+    /// <summary>
+    /// Corrección de una existencia hecha por soporte: estado final completo deseado.
+    /// Debe indicar un ticket o un motivo.
+    /// </summary>
+    public record ExistenciaCorreccionRequest
+    (
+        [MaxLength(100, ErrorMessage = "El código de lote no puede superar los 100 caracteres")]
+        string? CodigoLote,
+        [MaxLength(100, ErrorMessage = "El número de serie no puede superar los 100 caracteres")]
+        string? NumSerie,
+        DateTime? FechaVencimiento,
+        [Range(1, int.MaxValue, ErrorMessage = "El depósito es obligatorio")]
+        int DepositoId,
+        [Range(0, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor o igual a 0")]
+        int Cantidad,
+        int? TicketId,
+        [MaxLength(500, ErrorMessage = "El motivo no puede superar los 500 caracteres")]
+        string? Motivo
+    );
 }

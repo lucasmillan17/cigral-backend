@@ -81,6 +81,13 @@ namespace CigralBackend.Application.Services.Interfaces
         /// </summary>
         /// <param name="id">ID de la existencia a eliminar</param>
         Task DeleteExistencia(int id);
+
+        /// <summary>
+        /// Corrección de soporte: cambia lote, serie, vencimiento, depósito o cantidad de una existencia.
+        /// Si la nueva combinación ya existe en otra existencia, se suman y la original se elimina.
+        /// Registra los movimientos de ajuste y, si hay ticket, deja un comentario en él.
+        /// </summary>
+        Task<ExistenciaModelResponse> CorregirExistencia(int id, ExistenciaCorreccionRequest r);
         Task<int> GetStockDisponible(int productoId, string? codigoLote = null, string? numSerie = null);
         Task<StockDisponibleResponse> GetStockDisponible(int existenciaId);
     }

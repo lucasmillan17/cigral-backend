@@ -831,6 +831,173 @@ namespace CigralBackend.Application.Services
             await _repository.Delete(existencia);
         }
 
+        public async Task<ExistenciaModelResponse> CorregirExistencia(int id, ExistenciaCorreccionRequest r)
+        {
+            var motivo = string.IsNullOrWhiteSpace(r.Motivo) ? null : r.Motivo.Trim();
+            if (r.TicketId == null && motivo == null)
+                throw new DomainException(DomainErrorCode.CorreccionSinMotivo, "Indicá el ticket o el motivo de la corrección.");
+
+            // Sin includes: Update() marca todo el grafo como modificado y ensuciaría la auditoría.
+            var original = await _repository.GetById<Existencia>(id)
+                ?? throw new NotFoundException(nameof(Existencia), id);
+            var producto = await _repository.GetById<Producto>(original.ProductoId)
+                ?? throw new NotFoundException(nameof(Producto), original.ProductoId);
+
+            Ticket? ticket = null;
+            if (r.TicketId.HasValue)
+                ticket = await _repository.GetById<Ticket>(r.TicketId.Value)
+                    ?? throw new NotFoundException(nameof(Ticket), r.TicketId.Value);
+
+            var deposito = await _repository.GetById<Deposito>(r.DepositoId)
+                ?? throw new NotFoundException(nameof(Deposito), r.DepositoId);
+
+            var loteNuevo = string.IsNullOrWhiteSpace(r.CodigoLote) ? null : r.CodigoLote.Trim().ToUpper();
+            var serieNueva = string.IsNullOrWhiteSpace(r.NumSerie) ? null : r.NumSerie.Trim();
+            var loteAnterior = original.LoteId.HasValue
+                ? (await _repository.GetById<Lote>(original.LoteId.Value))?.CodigoLote?.ToUpper()
+                : null;
+            var vencNuevo = r.FechaVencimiento?.Date;
+
+            if (serieNueva == null && loteNuevo == null && string.IsNullOrEmpty(producto.CodigoGenerico))
+                throw new DomainException(DomainErrorCode.SerieYCodigoLoteNoEspecificados,
+                    "La existencia tiene que tener número de serie, código de lote o el producto un código genérico.");
+
+            var cambiaLote = loteNuevo != loteAnterior;
+            var cambiaSerie = serieNueva != original.NumSerie;
+            var cambiaDeposito = r.DepositoId != original.DepositoId;
+            var cambiaVenc = vencNuevo != original.FechaVencimiento?.Date;
+            var cambiaCantidad = r.Cantidad != original.Cantidad;
+            var cambiaIdentidad = cambiaLote || cambiaSerie || cambiaDeposito;
+            if (!cambiaIdentidad && !cambiaVenc && !cambiaCantidad)
+                throw new DomainException(DomainErrorCode.CorreccionSinCambios, "No hay cambios para guardar.");
+
+            using var transaction = await _repository.BeginTransaction();
+
+            Lote? lote = null;
+            if (loteNuevo != null)
+                lote = await _repository.First<Lote>(l => l.CodigoLote == loteNuevo)
+                    ?? await _repository.Add(new Lote { CodigoLote = loteNuevo });
+
+            // ¿La nueva combinación ya es otra existencia? Entonces se suman.
+            Existencia? destino = null;
+            if (cambiaIdentidad)
+            {
+                int? loteId = lote?.Id;
+                destino = await _repository.First<Existencia>(e =>
+                    e.Id != original.Id &&
+                    e.ProductoId == original.ProductoId &&
+                    e.DepositoId == r.DepositoId &&
+                    e.LoteId == loteId &&
+                    (serieNueva == null ? e.NumSerie == null : e.NumSerie == serieNueva));
+            }
+
+            var cantidadFinal = r.Cantidad + (destino?.Cantidad ?? 0);
+            if (producto.EsUnitario && cantidadFinal > 1)
+                throw new DomainException(DomainErrorCode.ProductoUnitarioCantidadInvalida,
+                    destino != null
+                        ? $"Ya existe la existencia #{destino.Id} con esa serie/lote en ese depósito y el producto es unitario."
+                        : "Un producto unitario no puede tener más de 1 unidad por existencia.");
+
+            var consignaciones = (await _repository.GetFiltered<Consignacion>(c => c.ExistenciaId == original.Id, 1, int.MaxValue)).Items;
+            var consignado = consignaciones.Sum(c => c.Cantidad);
+            if (r.Cantidad < consignado)
+                throw new DomainException(DomainErrorCode.StockEnConsignacion,
+                    $"Hay {consignado} unidad(es) de esta existencia en consignación; la cantidad no puede quedar por debajo.");
+
+            var observaciones = "Corrección de soporte"
+                + (ticket != null ? $" · Ticket #{ticket.Id}" : "")
+                + (motivo != null ? $" · {motivo}" : "");
+            if (observaciones.Length > 500) observaciones = observaciones[..500];
+
+            var cantidadAnterior = original.Cantidad;
+            var depositoAnteriorId = original.DepositoId;
+            var loteAnteriorId = original.LoteId;
+            var serieAnterior = original.NumSerie;
+            var vencAnterior = original.FechaVencimiento;
+            Existencia resultado;
+
+            if (cambiaIdentidad)
+            {
+                // Sale todo de la combinación vieja y entra la cantidad corregida en la nueva.
+                if (cantidadAnterior > 0)
+                    await RegistrarMovimiento(TipoMovimiento.AjusteNegativo, original.ProductoId, depositoAnteriorId,
+                        loteAnteriorId, serieAnterior, -cantidadAnterior, cantidadAnterior, 0, observaciones: observaciones);
+
+                if (destino != null)
+                {
+                    var stockDestino = destino.Cantidad;
+                    destino.Cantidad = cantidadFinal;
+                    destino.FechaVencimiento = r.FechaVencimiento;
+                    await _repository.Update(destino);
+                    foreach (var c in consignaciones)
+                    {
+                        c.ExistenciaId = destino.Id;
+                        await _repository.Update(c);
+                    }
+                    await _repository.Delete(original);
+                    if (r.Cantidad > 0)
+                        await RegistrarMovimiento(TipoMovimiento.AjustePositivo, destino.ProductoId, destino.DepositoId,
+                            destino.LoteId, destino.NumSerie, r.Cantidad, stockDestino, cantidadFinal, observaciones: observaciones);
+                    resultado = destino;
+                }
+                else
+                {
+                    original.LoteId = lote?.Id;
+                    original.NumSerie = serieNueva;
+                    original.DepositoId = r.DepositoId;
+                    original.FechaVencimiento = r.FechaVencimiento;
+                    original.Cantidad = r.Cantidad;
+                    await _repository.Update(original);
+                    if (r.Cantidad > 0)
+                        await RegistrarMovimiento(TipoMovimiento.AjustePositivo, original.ProductoId, original.DepositoId,
+                            original.LoteId, original.NumSerie, r.Cantidad, 0, r.Cantidad, observaciones: observaciones);
+                    resultado = original;
+                }
+            }
+            else
+            {
+                original.FechaVencimiento = r.FechaVencimiento;
+                original.Cantidad = r.Cantidad;
+                await _repository.Update(original);
+                if (cambiaCantidad)
+                {
+                    var diferencia = r.Cantidad - cantidadAnterior;
+                    await RegistrarMovimiento(diferencia > 0 ? TipoMovimiento.AjustePositivo : TipoMovimiento.AjusteNegativo,
+                        original.ProductoId, original.DepositoId, original.LoteId, original.NumSerie,
+                        diferencia, cantidadAnterior, r.Cantidad, observaciones: observaciones);
+                }
+                resultado = original;
+            }
+
+            if (ticket != null)
+            {
+                var depositoAnterior = cambiaDeposito ? (await _repository.GetById<Deposito>(depositoAnteriorId))?.Nombre : null;
+                static string V(string? v) => string.IsNullOrEmpty(v) ? "(vacío)" : v;
+                var cambios = new List<string>();
+                if (cambiaLote) cambios.Add($"lote {V(loteAnterior)} → {V(loteNuevo)}");
+                if (cambiaSerie) cambios.Add($"serie {V(serieAnterior)} → {V(serieNueva)}");
+                if (cambiaVenc) cambios.Add($"vencimiento {V(vencAnterior?.ToString("dd/MM/yyyy"))} → {V(r.FechaVencimiento?.ToString("dd/MM/yyyy"))}");
+                if (cambiaDeposito) cambios.Add($"depósito {V(depositoAnterior)} → {deposito.Nombre}");
+                if (cambiaCantidad) cambios.Add($"cantidad {cantidadAnterior} → {r.Cantidad}");
+                var texto = $"Existencia #{id} de {producto.Nombre} corregida: {string.Join(", ", cambios)}."
+                    + (destino != null ? $" Se sumó a la existencia #{destino.Id}, que quedó con {cantidadFinal}." : "")
+                    + (motivo != null ? $"\nMotivo: {motivo}" : "");
+                await _repository.Add(new TicketComentario
+                {
+                    TicketId = ticket.Id,
+                    UsuarioNombre = _httpContextAccessor.HttpContext?.User?.FindFirst("nombreCompleto")?.Value ?? GetCurrentUserName(),
+                    Fecha = DateTime.Now,
+                    Texto = texto,
+                    EsDeSoporte = true,
+                });
+                ticket.FechaActualizacion = DateTime.Now;
+                await _repository.Update(ticket);
+            }
+
+            await transaction.CommitAsync();
+            return await GetExistenciaById(resultado.Id);
+        }
+
         public async Task<int> GetStockDisponible(int productoId, string? codigoLote = null, string? numSerie = null)
         {
             var existencia = await _repository.GetFiltered<Existencia>(
