@@ -24,7 +24,8 @@ namespace CigralBackend.Application.Dtos
         [property: MaxLength(100)] string? LoteEtiqueta,
         [property: MaxLength(100)] string? SerieEtiqueta,
         [property: MaxLength(30)] string? VencimientoEtiqueta,
-        [property: MaxLength(30)] string? VersionApp
+        [property: MaxLength(30)] string? VersionApp,
+        [property: MaxLength(20000, ErrorMessage = "El contexto técnico es demasiado largo")] string? ContextoJson = null
     );
 
     public record TicketComentarioRequest(
@@ -82,7 +83,8 @@ namespace CigralBackend.Application.Dtos
         DateTime FechaActualizacion,
         string? VersionApp,
         List<TicketComentarioResponse> Comentarios,
-        List<TicketAdjuntoResponse> Adjuntos
+        List<TicketAdjuntoResponse> Adjuntos,
+        string? ContextoJson
     );
 
     public record TicketPendientesResponse(int Abiertos, int EnRevision);

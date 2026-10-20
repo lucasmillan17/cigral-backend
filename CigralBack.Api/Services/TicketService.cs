@@ -64,6 +64,7 @@ namespace CigralBackend.Application.Services
                 FechaCreacion = ahora,
                 FechaActualizacion = ahora,
                 VersionApp = Limpio(r.VersionApp),
+                ContextoJson = Limpio(r.ContextoJson),
             });
 
             var adjuntos = new List<TicketAdjunto>();
@@ -118,7 +119,8 @@ namespace CigralBackend.Application.Services
                     x.DepositoId, x.ProductoId, x.LoteEtiqueta, x.SerieEtiqueta, x.VencimientoEtiqueta,
                     x.CreadoPorId, x.CreadoPorNombre, x.FechaCreacion, x.FechaActualizacion, x.VersionApp,
                     x.Comentarios.OrderBy(c => c.Fecha).Select(c => new TicketComentarioResponse(c.Id, c.UsuarioNombre, c.Fecha, c.Texto, c.EsDeSoporte)).ToList(),
-                    x.Adjuntos.OrderBy(a => a.Id).Select(a => new TicketAdjuntoResponse(a.Id, a.NombreArchivo, a.ContentType, a.Tamano)).ToList()))
+                    x.Adjuntos.OrderBy(a => a.Id).Select(a => new TicketAdjuntoResponse(a.Id, a.NombreArchivo, a.ContentType, a.Tamano)).ToList(),
+                    x.ContextoJson))
                 .FirstOrDefaultAsync();
 
             return t ?? throw new NotFoundException("Ticket", id);

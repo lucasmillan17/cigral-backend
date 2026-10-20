@@ -40,6 +40,9 @@ namespace CigralBackend.Domain
 
         public string? VersionApp { get; set; }
 
+        /// <summary>Contexto técnico de un reporte de interfaz (JSON): resolución, zoom, errores recientes, recorrido.</summary>
+        public string? ContextoJson { get; set; }
+
         public List<TicketComentario> Comentarios { get; set; } = new();
         public List<TicketAdjunto> Adjuntos { get; set; } = new();
     }
@@ -71,7 +74,7 @@ namespace CigralBackend.Domain
         /// <summary>Un código de barras o QR que no carga bien producto, lote, serie o vencimiento.</summary>
         Codigo = 1,
 
-        /// <summary>Reservado: errores de la interfaz.</summary>
+        /// <summary>Un problema de la interfaz de la app, reportado con captura y contexto técnico.</summary>
         Interfaz = 2,
 
         /// <summary>Reservado: datos a corregir (stock, lotes, series, remitos).</summary>

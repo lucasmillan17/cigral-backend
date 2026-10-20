@@ -22,6 +22,35 @@ Se actualiza con cada herramienta nueva.
 
 **Mail:** variables `Smtp__Host`, `Smtp__Port`, `Smtp__Usuario`, `Smtp__Password`, `Smtp__Remitente` y `Soporte__EmailDestino` (ver `DEPLOY_DOCKER.md`). Si faltan, el ticket se guarda igual.
 
+## Reporte de problemas de la interfaz (`tipo: "Interfaz"`)
+Un ticket de tipo `Interfaz` (`TipoTicket.Interfaz = 2`) se crea con el mismo `POST api/Tickets`. No lleva `codigoCrudo` ni datos del parser; la captura de pantalla viaja como una de las `fotos`.
+
+Campo nuevo de `TicketCreateRequest` (al final, opcional): `contextoJson` (texto, máximo 20000 caracteres; más da 400). Se guarda en `Tickets.ContextoJson` y vuelve en `TicketDetalleResponse.contextoJson`. La API no lo valida: es el JSON que arma la app y puede cambiar sin migrar. Forma actual:
+
+```json
+{
+  "version": "1.0.0",
+  "pantalla": { "ruta": "/ingresos", "titulo": "Ingresos" },
+  "usuario": "Antonella",
+  "ventana": { "ancho": 1280, "alto": 720 },
+  "monitor": { "ancho": 1920, "alto": 1080 },
+  "zoom": 1.25,
+  "tema": "claro",
+  "userAgent": "...",
+  "errorReportado": "mensaje del error desde el que se abrió el reporte (opcional)",
+  "eventos": [
+    { "hora": "10:00:05", "tipo": "api", "detalle": { "metodo": "POST", "ruta": "/api/Remitos/ingreso", "estado": 400, "mensaje": "..." } },
+    { "hora": "10:00:09", "tipo": "js", "detalle": { "mensaje": "..." } },
+    { "hora": "10:00:10", "tipo": "navegacion", "detalle": { "ruta": "/egresos" } }
+  ]
+}
+```
+
+- `eventos` son los últimos 25, del más viejo al más nuevo. `tipo` es `api`, `js`, `promesa` o `navegacion`. De la API se guarda solo método, ruta sin la query, estado y mensaje: nunca bodies, headers ni tokens.
+- `zoom` es `devicePixelRatio`: sirve para reproducir problemas de monitores con escala de Windows.
+- **Mail:** el asunto es `[Soporte #N · Interfaz] título`. El cuerpo trae título, usuario, fecha, pantalla y versión, la descripción, una tabla con resolución, zoom, tema y pantalla, los últimos 5 errores (los eventos que no son de navegación) y "Captura adjunta". Todo es opcional: un `contextoJson` inválido o con otra forma no impide el envío (se muestra lo que se pueda leer).
+- `GET api/Tickets?tipo=Interfaz` filtra la bandeja por tipo.
+
 ## Reglas comunes de las correcciones
 - Todas son `[Authorize(Roles = Roles.Soporte)]`.
 - Piden `ticketId` o `motivo` (máximo 500 caracteres). Si faltan los dos: 400 `CorreccionSinMotivo`. Si no hay cambios: 400 `CorreccionSinCambios`.
