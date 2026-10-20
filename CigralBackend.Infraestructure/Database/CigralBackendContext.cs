@@ -355,7 +355,7 @@ namespace CigralBackend.Infraestructure.Database
                                 Accion = "Update",
                                 Campo = property.Name, // Aquí usamos el campo genérico
                                 ValorAnterior = valorAnterior, // Lo que antes era stockAnterior
-                                ValorActual = valorActual,     // Lo que antes era stockPosterior
+                                ValorActual = valorActual ?? "(vacío)", // La columna no admite nulos: un campo que se vacía queda así
                                 Fecha = DateTime.Now,
                                 Usuario = _userContext.HttpContext?.User?.Identity?.Name ?? "Sistema" // TODO: Puedes inyectar IHttpContextAccessor para obtener el email/ID del usuario logueado
                             });

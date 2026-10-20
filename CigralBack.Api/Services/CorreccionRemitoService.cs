@@ -193,7 +193,7 @@ namespace CigralBackend.Application.Services
             {
                 if (esIngreso)
                     await _existencias.AjustarExistenciaExacta(depositoId, productoId, lote?.Id, serieNueva, vencNuevo,
-                        cantidadNueva, observaciones, remIngreso, remEgreso, actualizarVencimiento: true);
+                        cantidadNueva, observaciones, remIngreso, remEgreso, actualizarVencimiento: vencNuevo != null);
                 else
                     await Descontar(depositoId, productoId, lote?.CodigoLote, serieNueva, vencNuevo, cantidadNueva, observaciones);
             }
