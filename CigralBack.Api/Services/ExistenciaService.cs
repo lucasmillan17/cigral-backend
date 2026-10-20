@@ -873,81 +873,27 @@ namespace CigralBackend.Application.Services
                 lote = await _repository.First<Lote>(l => l.CodigoLote == loteNuevo)
                     ?? await _repository.Add(new Lote { CodigoLote = loteNuevo });
 
-            // ¿La nueva combinación ya es otra existencia? Entonces se suman.
-            Existencia? destino = null;
-            if (cambiaIdentidad)
-            {
-                int? loteId = lote?.Id;
-                destino = await _repository.First<Existencia>(e =>
-                    e.Id != original.Id &&
-                    e.ProductoId == original.ProductoId &&
-                    e.DepositoId == r.DepositoId &&
-                    e.LoteId == loteId &&
-                    (serieNueva == null ? e.NumSerie == null : e.NumSerie == serieNueva));
-            }
-
-            var cantidadFinal = r.Cantidad + (destino?.Cantidad ?? 0);
-            if (producto.EsUnitario && cantidadFinal > 1)
-                throw new DomainException(DomainErrorCode.ProductoUnitarioCantidadInvalida,
-                    destino != null
-                        ? $"Ya existe la existencia #{destino.Id} con esa serie/lote en ese depósito y el producto es unitario."
-                        : "Un producto unitario no puede tener más de 1 unidad por existencia.");
-
-            var consignaciones = (await _repository.GetFiltered<Consignacion>(c => c.ExistenciaId == original.Id, 1, int.MaxValue)).Items;
-            var consignado = consignaciones.Sum(c => c.Cantidad);
-            if (r.Cantidad < consignado)
-                throw new DomainException(DomainErrorCode.StockEnConsignacion,
-                    $"Hay {consignado} unidad(es) de esta existencia en consignación; la cantidad no puede quedar por debajo.");
-
             var observaciones = CorreccionSoporte.Observaciones(ticket, motivo);
 
             var cantidadAnterior = original.Cantidad;
             var depositoAnteriorId = original.DepositoId;
-            var loteAnteriorId = original.LoteId;
             var serieAnterior = original.NumSerie;
             var vencAnterior = original.FechaVencimiento;
             Existencia resultado;
+            Existencia? destino = null;
 
             if (cambiaIdentidad)
             {
-                // Sale todo de la combinación vieja y entra la cantidad corregida en la nueva.
-                if (cantidadAnterior > 0)
-                    await RegistrarMovimiento(TipoMovimiento.AjusteNegativo, original.ProductoId, depositoAnteriorId,
-                        loteAnteriorId, serieAnterior, -cantidadAnterior, cantidadAnterior, 0, observaciones: observaciones);
-
-                if (destino != null)
-                {
-                    var stockDestino = destino.Cantidad;
-                    destino.Cantidad = cantidadFinal;
-                    destino.FechaVencimiento = r.FechaVencimiento;
-                    await _repository.Update(destino);
-                    foreach (var c in consignaciones)
-                    {
-                        c.ExistenciaId = destino.Id;
-                        await _repository.Update(c);
-                    }
-                    await _repository.Delete(original);
-                    if (r.Cantidad > 0)
-                        await RegistrarMovimiento(TipoMovimiento.AjustePositivo, destino.ProductoId, destino.DepositoId,
-                            destino.LoteId, destino.NumSerie, r.Cantidad, stockDestino, cantidadFinal, observaciones: observaciones);
-                    resultado = destino;
-                }
-                else
-                {
-                    original.LoteId = lote?.Id;
-                    original.NumSerie = serieNueva;
-                    original.DepositoId = r.DepositoId;
-                    original.FechaVencimiento = r.FechaVencimiento;
-                    original.Cantidad = r.Cantidad;
-                    await _repository.Update(original);
-                    if (r.Cantidad > 0)
-                        await RegistrarMovimiento(TipoMovimiento.AjustePositivo, original.ProductoId, original.DepositoId,
-                            original.LoteId, original.NumSerie, r.Cantidad, 0, r.Cantidad, observaciones: observaciones);
-                    resultado = original;
-                }
+                // Sale todo de la combinación vieja y entra la cantidad corregida en la nueva (o se suma a otra existencia).
+                (resultado, destino) = await MoverExistencia(original, lote?.Id, serieNueva, r.DepositoId, r.FechaVencimiento, r.Cantidad, observaciones);
             }
             else
             {
+                if (producto.EsUnitario && r.Cantidad > 1)
+                    throw new DomainException(DomainErrorCode.ProductoUnitarioCantidadInvalida,
+                        "Un producto unitario no puede tener más de 1 unidad por existencia.");
+                ValidarConsignado(await ConsignacionesDe(original.Id), r.Cantidad);
+
                 original.FechaVencimiento = r.FechaVencimiento;
                 original.Cantidad = r.Cantidad;
                 await _repository.Update(original);
@@ -972,12 +918,94 @@ namespace CigralBackend.Application.Services
                 if (cambiaDeposito) cambios.Add($"depósito {V(depositoAnterior)} → {deposito.Nombre}");
                 if (cambiaCantidad) cambios.Add($"cantidad {cantidadAnterior} → {r.Cantidad}");
                 var texto = $"Existencia #{id} de {producto.Nombre} corregida: {string.Join(", ", cambios)}."
-                    + (destino != null ? $" Se sumó a la existencia #{destino.Id}, que quedó con {cantidadFinal}." : "");
+                    + (destino != null ? $" Se sumó a la existencia #{destino.Id}, que quedó con {destino.Cantidad}." : "");
                 await CorreccionSoporte.Comentar(_repository, _httpContextAccessor, ticket, texto, motivo);
             }
 
             await transaction.CommitAsync();
             return await GetExistenciaById(resultado.Id);
+        }
+
+        private async Task<List<Consignacion>> ConsignacionesDe(int existenciaId)
+            => (await _repository.GetFiltered<Consignacion>(c => c.ExistenciaId == existenciaId, 1, int.MaxValue)).Items.ToList();
+
+        private static void ValidarConsignado(List<Consignacion> consignaciones, int cantidad)
+        {
+            var consignado = consignaciones.Sum(c => c.Cantidad);
+            if (cantidad < consignado)
+                throw new DomainException(DomainErrorCode.StockEnConsignacion,
+                    $"Hay {consignado} unidad(es) de esta existencia en consignación; la cantidad no puede quedar por debajo.");
+        }
+
+        /// <summary>
+        /// Mueve una existencia a otra clave (depósito, lote, serie): si ya hay una existencia del mismo
+        /// producto con esa clave, suma la cantidad, le pasa las consignaciones y borra la original; si no,
+        /// cambia la clave en el lugar. Registra el ajuste negativo en la clave vieja y el positivo en la nueva.
+        /// Debe llamarse dentro de una transacción. Con conservarVencimientoDestino, una existencia destino
+        /// que ya tiene vencimiento lo mantiene (si no tiene, toma el indicado).
+        /// </summary>
+        public async Task<(Existencia Resultado, Existencia? Destino)> MoverExistencia(Existencia original, int? loteId, string? numSerie,
+            int depositoId, DateTime? fechaVencimiento, int cantidad, string observaciones, bool conservarVencimientoDestino = false)
+        {
+            var producto = await _repository.GetById<Producto>(original.ProductoId)
+                ?? throw new NotFoundException(nameof(Producto), original.ProductoId);
+
+            // ¿La nueva combinación ya es otra existencia? Entonces se suman.
+            var destino = await _repository.First<Existencia>(e =>
+                e.Id != original.Id &&
+                e.ProductoId == original.ProductoId &&
+                e.DepositoId == depositoId &&
+                e.LoteId == loteId &&
+                (numSerie == null ? e.NumSerie == null : e.NumSerie == numSerie));
+
+            var cantidadFinal = cantidad + (destino?.Cantidad ?? 0);
+            if (producto.EsUnitario && cantidadFinal > 1)
+                throw new DomainException(DomainErrorCode.ProductoUnitarioCantidadInvalida,
+                    destino != null
+                        ? $"Ya existe la existencia #{destino.Id} con esa serie/lote en ese depósito y el producto es unitario."
+                        : "Un producto unitario no puede tener más de 1 unidad por existencia.");
+
+            var consignaciones = await ConsignacionesDe(original.Id);
+            ValidarConsignado(consignaciones, cantidad);
+
+            var cantidadAnterior = original.Cantidad;
+            var depositoAnteriorId = original.DepositoId;
+            var loteAnteriorId = original.LoteId;
+            var serieAnterior = original.NumSerie;
+
+            if (cantidadAnterior > 0)
+                await RegistrarMovimiento(TipoMovimiento.AjusteNegativo, original.ProductoId, depositoAnteriorId,
+                    loteAnteriorId, serieAnterior, -cantidadAnterior, cantidadAnterior, 0, observaciones: observaciones);
+
+            if (destino != null)
+            {
+                var stockDestino = destino.Cantidad;
+                destino.Cantidad = cantidadFinal;
+                if (!conservarVencimientoDestino || destino.FechaVencimiento == null)
+                    destino.FechaVencimiento = fechaVencimiento;
+                await _repository.Update(destino);
+                foreach (var c in consignaciones)
+                {
+                    c.ExistenciaId = destino.Id;
+                    await _repository.Update(c);
+                }
+                await _repository.Delete(original);
+                if (cantidad > 0)
+                    await RegistrarMovimiento(TipoMovimiento.AjustePositivo, destino.ProductoId, destino.DepositoId,
+                        destino.LoteId, destino.NumSerie, cantidad, stockDestino, cantidadFinal, observaciones: observaciones);
+                return (destino, destino);
+            }
+
+            original.LoteId = loteId;
+            original.NumSerie = numSerie;
+            original.DepositoId = depositoId;
+            original.FechaVencimiento = fechaVencimiento;
+            original.Cantidad = cantidad;
+            await _repository.Update(original);
+            if (cantidad > 0)
+                await RegistrarMovimiento(TipoMovimiento.AjustePositivo, original.ProductoId, original.DepositoId,
+                    original.LoteId, original.NumSerie, cantidad, 0, cantidad, observaciones: observaciones);
+            return (original, null);
         }
 
         public async Task AjustarExistenciaExacta(int depositoId, int productoId, int? loteId, string? numSerie, DateTime? fechaVencimiento,

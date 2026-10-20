@@ -1,5 +1,7 @@
 ﻿using CigralBackend.Application.Dtos;
+using CigralBackend.Domain;
 using CigralBackend.Domain.Wrappers;
+using System;
 using System.Threading.Tasks;
 
 namespace CigralBackend.Application.Services.Interfaces
@@ -96,6 +98,13 @@ namespace CigralBackend.Application.Services.Interfaces
         /// </summary>
         Task AjustarExistenciaExacta(int depositoId, int productoId, int? loteId, string? numSerie, DateTime? fechaVencimiento,
             int delta, string observaciones, int? remitoIngresoId = null, int? remitoEgresoId = null, bool actualizarVencimiento = false);
+        /// <summary>
+        /// Mueve una existencia a otra clave (depósito, lote, serie). Si ya hay otra existencia con esa clave,
+        /// se suman las cantidades, se pasan las consignaciones y se borra la original. Registra los ajustes.
+        /// Debe llamarse dentro de una transacción. Usado por las correcciones de soporte.
+        /// </summary>
+        Task<(Existencia Resultado, Existencia? Destino)> MoverExistencia(Existencia original, int? loteId, string? numSerie,
+            int depositoId, DateTime? fechaVencimiento, int cantidad, string observaciones, bool conservarVencimientoDestino = false);
         Task<int> GetStockDisponible(int productoId, string? codigoLote = null, string? numSerie = null);
         Task<StockDisponibleResponse> GetStockDisponible(int existenciaId);
     }
