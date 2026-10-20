@@ -42,7 +42,7 @@ Se actualiza con cada herramienta nueva.
   - `StockEnConsignacion`: la cantidad quedaría por debajo de lo consignado.
   - `ProductoUnitarioCantidadInvalida`: más de 1 unidad de un producto unitario.
   - `SerieYCodigoLoteNoEspecificados`: sin serie ni lote, y el producto no tiene código genérico.
-- Servicio: `ExistenciaService.CorregirExistencia`.
+- Servicio: `ExistenciaService.CorregirExistencia`. La parte de mover o fusionar una existencia a otra clave es `ExistenciaService.MoverExistencia` (la reutiliza la corrección de lote).
 
 ## Corregir remitos — `RemitosController`
 `{tipo}` = `ingreso` | `egreso`. Las tres devuelven el remito corregido (`RemitoResponseGet`).
@@ -67,6 +67,35 @@ Se actualiza con cada herramienta nueva.
 Otros errores: quitar la única línea da 400 `RemitoSinDetalles`, y un tipo inválido da 400.
 
 `GET api/Remitos/ingreso|egreso` devuelve ahora, en cada línea, `id` y `productoNombre`.
+
+## Corregir lote completo — `LotesController`
+Corrige **de una vez, para un producto**, un lote mal leído: renombra el código (si el código nuevo ya existe para ese producto, los lotes se fusionan) y/o cambia el vencimiento, en todas sus existencias y líneas de remito. `Lote` es solo un código compartido entre productos (índice único en `CodigoLote`), así que **nunca se renombra el registro**: se reasignan los `LoteId` de las existencias y líneas de ese producto a otro `Lote`, que se busca o se crea. Los demás productos con el mismo código no se tocan.
+
+| Método | Ruta | Qué hace |
+|---|---|---|
+| GET | `api/Lotes/correccion/vista-previa?productoId=&codigoLote=&codigoNuevo=` | Qué va a pasar, sin cambiar nada (`CorreccionLotePrevia`). |
+| PUT | `api/Lotes/correccion` | Aplica la corrección. Body `CorreccionLoteRequest`. Devuelve `CorreccionLoteResponse`. |
+
+```json
+{ "productoId": 268, "codigoLote": "L1234", "codigoNuevo": "L12345", "cambiarVencimiento": true, "fechaVencimiento": "2027-12-31", "ticketId": 3, "motivo": "lote mal leído" }
+```
+- `codigoNuevo` vacío o igual al actual: el código no cambia (el código se normaliza a mayúsculas).
+- `cambiarVencimiento` en false: cada existencia y línea conserva su vencimiento. En true se pone `fechaVencimiento` en todas (null = sin vencimiento).
+- **Vista previa:** existencias afectadas (depósito, serie, vencimiento, cantidad, consignado), con `fusionaConExistenciaId` si se van a sumar a otra del código nuevo (mismo depósito y serie); cantidad de líneas de remito de ingreso y de egreso, con el número de cada remito; y `fusionaLotes` si el código nuevo ya existe para el producto.
+- **Existencias** (`CorreccionLoteService` + `ExistenciaService.MoverExistencia`, la misma lógica que usa `CorregirExistencia`):
+  - si ya hay una existencia con la clave nueva, se suman las cantidades, las consignaciones pasan a ella y la original se borra (una destino con vencimiento propio lo conserva si no se pidió cambiarlo);
+  - si no, se cambia el `LoteId` en el lugar;
+  - cada una registra un `AjusteNegativo` en la clave vieja y un `AjustePositivo` en la nueva, con la observación `Corrección de soporte · Lote A → B · Ticket #T · motivo`;
+  - un cambio solo de vencimiento no genera movimientos.
+- **Líneas de remito** (`DetalleRemito`) del producto con ese lote: se les cambia `LoteId` y, si corresponde, `FechaVencimiento`. No mueven stock (ya se movió con las existencias).
+- Los `MovimientoStock` históricos **no se tocan**: son historia. La corrección queda en los ajustes nuevos y en la auditoría.
+- Con ticket, un solo comentario de soporte con el resumen, por ejemplo: "Lote L1234 de {producto} corregido a L12345: 3 existencias (1 fusionada), 7 líneas de remito; vencimiento 31/12/2026 → 31/12/2027."
+- Errores:
+  - `CorreccionSinMotivo` (400): faltan ticket y motivo.
+  - `CorreccionSinCambios` (400): el código es el mismo y el vencimiento ya es ese.
+  - `ProductoUnitarioCantidadInvalida` (400): la fusión dejaría más de 1 unidad con la misma serie de un producto unitario.
+  - 404: el producto o el ticket no existen, o el producto no tiene existencias ni líneas con ese lote.
+- Rol Administrador: 403 en los dos endpoints.
 
 ## Códigos de error de soporte (`DomainErrorCode`)
 | Código | Valor | Cuándo |
