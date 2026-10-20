@@ -88,6 +88,14 @@ namespace CigralBackend.Application.Services.Interfaces
         /// Registra los movimientos de ajuste y, si hay ticket, deja un comentario en él.
         /// </summary>
         Task<ExistenciaModelResponse> CorregirExistencia(int id, ExistenciaCorreccionRequest r);
+
+        /// <summary>
+        /// Suma (delta &gt; 0) o resta (delta &lt; 0) en la existencia exacta producto + depósito + lote + serie,
+        /// creándola si hace falta, y registra el ajuste. Si para restar no alcanza lo disponible
+        /// (cantidad menos consignado) lanza CorreccionStockYaMovido. Usado por las correcciones de soporte.
+        /// </summary>
+        Task AjustarExistenciaExacta(int depositoId, int productoId, int? loteId, string? numSerie, DateTime? fechaVencimiento,
+            int delta, string observaciones, int? remitoIngresoId = null, int? remitoEgresoId = null, bool actualizarVencimiento = false);
         Task<int> GetStockDisponible(int productoId, string? codigoLote = null, string? numSerie = null);
         Task<StockDisponibleResponse> GetStockDisponible(int existenciaId);
     }

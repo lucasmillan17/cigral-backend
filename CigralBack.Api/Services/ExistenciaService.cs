@@ -833,9 +833,7 @@ namespace CigralBackend.Application.Services
 
         public async Task<ExistenciaModelResponse> CorregirExistencia(int id, ExistenciaCorreccionRequest r)
         {
-            var motivo = string.IsNullOrWhiteSpace(r.Motivo) ? null : r.Motivo.Trim();
-            if (r.TicketId == null && motivo == null)
-                throw new DomainException(DomainErrorCode.CorreccionSinMotivo, "Indicá el ticket o el motivo de la corrección.");
+            var motivo = CorreccionSoporte.Motivo(r.TicketId, r.Motivo);
 
             // Sin includes: Update() marca todo el grafo como modificado y ensuciaría la auditoría.
             var original = await _repository.GetById<Existencia>(id)
@@ -843,10 +841,7 @@ namespace CigralBackend.Application.Services
             var producto = await _repository.GetById<Producto>(original.ProductoId)
                 ?? throw new NotFoundException(nameof(Producto), original.ProductoId);
 
-            Ticket? ticket = null;
-            if (r.TicketId.HasValue)
-                ticket = await _repository.GetById<Ticket>(r.TicketId.Value)
-                    ?? throw new NotFoundException(nameof(Ticket), r.TicketId.Value);
+            var ticket = await CorreccionSoporte.Ticket(_repository, r.TicketId);
 
             var deposito = await _repository.GetById<Deposito>(r.DepositoId)
                 ?? throw new NotFoundException(nameof(Deposito), r.DepositoId);
@@ -904,10 +899,7 @@ namespace CigralBackend.Application.Services
                 throw new DomainException(DomainErrorCode.StockEnConsignacion,
                     $"Hay {consignado} unidad(es) de esta existencia en consignación; la cantidad no puede quedar por debajo.");
 
-            var observaciones = "Corrección de soporte"
-                + (ticket != null ? $" · Ticket #{ticket.Id}" : "")
-                + (motivo != null ? $" · {motivo}" : "");
-            if (observaciones.Length > 500) observaciones = observaciones[..500];
+            var observaciones = CorreccionSoporte.Observaciones(ticket, motivo);
 
             var cantidadAnterior = original.Cantidad;
             var depositoAnteriorId = original.DepositoId;
@@ -972,7 +964,7 @@ namespace CigralBackend.Application.Services
             if (ticket != null)
             {
                 var depositoAnterior = cambiaDeposito ? (await _repository.GetById<Deposito>(depositoAnteriorId))?.Nombre : null;
-                static string V(string? v) => string.IsNullOrEmpty(v) ? "(vacío)" : v;
+                var V = CorreccionSoporte.Valor;
                 var cambios = new List<string>();
                 if (cambiaLote) cambios.Add($"lote {V(loteAnterior)} → {V(loteNuevo)}");
                 if (cambiaSerie) cambios.Add($"serie {V(serieAnterior)} → {V(serieNueva)}");
@@ -980,22 +972,79 @@ namespace CigralBackend.Application.Services
                 if (cambiaDeposito) cambios.Add($"depósito {V(depositoAnterior)} → {deposito.Nombre}");
                 if (cambiaCantidad) cambios.Add($"cantidad {cantidadAnterior} → {r.Cantidad}");
                 var texto = $"Existencia #{id} de {producto.Nombre} corregida: {string.Join(", ", cambios)}."
-                    + (destino != null ? $" Se sumó a la existencia #{destino.Id}, que quedó con {cantidadFinal}." : "")
-                    + (motivo != null ? $"\nMotivo: {motivo}" : "");
-                await _repository.Add(new TicketComentario
-                {
-                    TicketId = ticket.Id,
-                    UsuarioNombre = _httpContextAccessor.HttpContext?.User?.FindFirst("nombreCompleto")?.Value ?? GetCurrentUserName(),
-                    Fecha = DateTime.Now,
-                    Texto = texto,
-                    EsDeSoporte = true,
-                });
-                ticket.FechaActualizacion = DateTime.Now;
-                await _repository.Update(ticket);
+                    + (destino != null ? $" Se sumó a la existencia #{destino.Id}, que quedó con {cantidadFinal}." : "");
+                await CorreccionSoporte.Comentar(_repository, _httpContextAccessor, ticket, texto, motivo);
             }
 
             await transaction.CommitAsync();
             return await GetExistenciaById(resultado.Id);
+        }
+
+        public async Task AjustarExistenciaExacta(int depositoId, int productoId, int? loteId, string? numSerie, DateTime? fechaVencimiento,
+            int delta, string observaciones, int? remitoIngresoId = null, int? remitoEgresoId = null, bool actualizarVencimiento = false)
+        {
+            var existencia = await _repository.First<Existencia>(e =>
+                e.ProductoId == productoId &&
+                e.DepositoId == depositoId &&
+                e.LoteId == loteId &&
+                (numSerie == null ? e.NumSerie == null : e.NumSerie == numSerie));
+            var anterior = existencia?.Cantidad ?? 0;
+
+            if (delta < 0)
+            {
+                var consignado = existencia == null ? 0
+                    : (await _repository.GetFiltered<Consignacion>(c => c.ExistenciaId == existencia.Id, 1, int.MaxValue)).Items.Sum(c => c.Cantidad);
+                var disponible = anterior - consignado;
+                if (existencia == null || disponible < -delta)
+                {
+                    var deposito = (await _repository.GetById<Deposito>(depositoId))?.Nombre ?? $"el depósito #{depositoId}";
+                    throw new DomainException(DomainErrorCode.CorreccionStockYaMovido,
+                        $"En {deposito} quedan {Math.Max(disponible, 0)} u. disponibles y la corrección necesita sacar {-delta}" +
+                        (consignado > 0 ? $" ({consignado} están en consignación)." : "."));
+                }
+                existencia.Cantidad += delta;
+                if (actualizarVencimiento) existencia.FechaVencimiento = fechaVencimiento;
+                if (existencia.Cantidad == 0 && consignado == 0)
+                    await _repository.Delete(existencia);
+                else
+                    await _repository.Update(existencia);
+            }
+            else if (delta > 0)
+            {
+                var producto = await _repository.GetById<Producto>(productoId)
+                    ?? throw new NotFoundException(nameof(Producto), productoId);
+                if (producto.EsUnitario && anterior + delta > 1)
+                    throw new DomainException(DomainErrorCode.ProductoUnitarioCantidadInvalida,
+                        "El producto es unitario y ya hay una unidad con esa serie/lote en el depósito.");
+                if (existencia == null)
+                {
+                    await _repository.Add(new Existencia
+                    {
+                        ProductoId = productoId,
+                        DepositoId = depositoId,
+                        LoteId = loteId,
+                        NumSerie = numSerie,
+                        FechaVencimiento = fechaVencimiento,
+                        Cantidad = delta,
+                    });
+                }
+                else
+                {
+                    existencia.Cantidad += delta;
+                    if (actualizarVencimiento) existencia.FechaVencimiento = fechaVencimiento;
+                    await _repository.Update(existencia);
+                }
+            }
+            else if (actualizarVencimiento && existencia != null && existencia.FechaVencimiento?.Date != fechaVencimiento?.Date)
+            {
+                existencia.FechaVencimiento = fechaVencimiento;
+                await _repository.Update(existencia);
+            }
+
+            if (delta != 0)
+                await RegistrarMovimiento(delta > 0 ? TipoMovimiento.AjustePositivo : TipoMovimiento.AjusteNegativo,
+                    productoId, depositoId, loteId, numSerie, delta, anterior, anterior + delta,
+                    remitoIngresoId: remitoIngresoId, remitoEgresoId: remitoEgresoId, observaciones: observaciones);
         }
 
         public async Task<int> GetStockDisponible(int productoId, string? codigoLote = null, string? numSerie = null)

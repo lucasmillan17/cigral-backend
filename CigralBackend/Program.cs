@@ -109,6 +109,7 @@ namespace CigralBackend
             builder.Services.AddScoped<IMarcaService, MarcaService>();
             builder.Services.AddScoped<IExistenciaService, ExistenciaService>();
             builder.Services.AddScoped<IRemitoService, RemitoService>();
+            builder.Services.AddScoped<ICorreccionRemitoService, CorreccionRemitoService>();
             builder.Services.AddScoped<IMovimientoStockService, MovimientoStockService>();
             builder.Services.AddScoped<IClienteService, ClienteService>();
             builder.Services.AddScoped<IProveedorService, ProveedorService>();

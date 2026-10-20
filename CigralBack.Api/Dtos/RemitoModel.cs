@@ -66,8 +66,54 @@ namespace CigralBackend.Application.Dtos
         string? CodigoLote,
         string? NumeroSerie,
         DateTime? FechaVencimiento,
-        int Cantidad
+        int Cantidad,
+        int Id = 0,
+        string? ProductoNombre = null
     );
+
+    /// <summary>
+    /// Corrección de soporte de una línea de remito: estado final completo. Cantidad 0 quita la línea.
+    /// Con AjustarStock (por defecto) el stock acompaña el cambio; sin él, cambia solo el documento.
+    /// </summary>
+    public record CorreccionLineaRequest
+    {
+        [MaxLength(100, ErrorMessage = "El código de lote no puede superar los 100 caracteres")]
+        public string? CodigoLote { get; init; }
+
+        [MaxLength(100, ErrorMessage = "El número de serie no puede superar los 100 caracteres")]
+        public string? NumeroSerie { get; init; }
+
+        public DateTime? FechaVencimiento { get; init; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "La cantidad debe ser 0 o más")]
+        public int Cantidad { get; init; }
+
+        public bool AjustarStock { get; init; } = true;
+
+        public int? TicketId { get; init; }
+
+        [MaxLength(500, ErrorMessage = "El motivo no puede superar los 500 caracteres")]
+        public string? Motivo { get; init; }
+    }
+
+    /// <summary>Línea nueva agregada por soporte a un remito ya emitido.</summary>
+    public record AgregarLineaRequest : CorreccionLineaRequest
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "El producto es obligatorio")]
+        public int ProductoId { get; init; }
+    }
+
+    /// <summary>Cambio de cliente (egreso) o proveedor (ingreso) de un remito. No mueve stock.</summary>
+    public record CorreccionEntidadRequest
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Elegí el cliente o proveedor")]
+        public int EntidadId { get; init; }
+
+        public int? TicketId { get; init; }
+
+        [MaxLength(500, ErrorMessage = "El motivo no puede superar los 500 caracteres")]
+        public string? Motivo { get; init; }
+    }
 
     /// <summary>
     /// Respuesta con información del remito creado.

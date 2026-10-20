@@ -7,6 +7,14 @@ namespace CigralBackend.Application.Services.Interfaces
     /// <summary>
     /// Interfaz para el servicio de remitos.
     /// </summary>
+    /// <summary>Correcciones de soporte sobre remitos ya emitidos.</summary>
+    public interface ICorreccionRemitoService
+    {
+        Task<RemitoResponseGet> CorregirLinea(bool esIngreso, int remitoId, int detalleId, CorreccionLineaRequest r);
+        Task<RemitoResponseGet> AgregarLinea(bool esIngreso, int remitoId, AgregarLineaRequest r);
+        Task<RemitoResponseGet> CorregirEntidad(bool esIngreso, int remitoId, CorreccionEntidadRequest r);
+    }
+
     public interface IRemitoService
     {
         /// <summary>
