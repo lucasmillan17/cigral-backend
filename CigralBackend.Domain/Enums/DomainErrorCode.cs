@@ -108,6 +108,11 @@
         /// </summary>
         CorreccionSinMotivo = 3011,
 
+        /// <summary>
+        /// La corrección necesita sacar stock que ya no está (salió o está en consignación).
+        /// </summary>
+        CorreccionStockYaMovido = 3012,
+
         // 4000 - Errores de Clientes
         /// <summary>
         /// El cliente especificado no existe.

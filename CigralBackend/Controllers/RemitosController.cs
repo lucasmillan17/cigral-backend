@@ -3,6 +3,9 @@ using CigralBackend.Application.Services;
 using CigralBackend.Application.Services.Interfaces;
 using CigralBackend.Infraestructure.Services;
 using CigralBackend.Domain.Wrappers;
+using CigralBackend.Domain;
+using CigralBackend.Domain.Enums;
+using CigralBackend.Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -20,12 +23,46 @@ namespace CigralBackend.Controllers
     {
         private readonly IRemitoService _remitoService;
         private readonly IPdfService _pdfService;
+        private readonly ICorreccionRemitoService _correcciones;
 
-        public RemitosController(IRemitoService remitoService, IPdfService pdfService)
+        public RemitosController(IRemitoService remitoService, IPdfService pdfService, ICorreccionRemitoService correcciones)
         {
             _remitoService = remitoService;
             _pdfService = pdfService;
+            _correcciones = correcciones;
         }
+
+        private static bool EsIngreso(string tipo) => tipo.ToLowerInvariant() switch
+        {
+            "ingreso" => true,
+            "egreso" => false,
+            _ => throw new DomainException(DomainErrorCode.UnknownError, "El tipo de remito tiene que ser ingreso o egreso.")
+        };
+
+        /// <summary>
+        /// Corrección de soporte de una línea: lote, serie, vencimiento o cantidad (0 la quita).
+        /// Con ajustarStock (por defecto) el stock acompaña; sin él cambia solo el documento.
+        /// Error CorreccionStockYaMovido si lo que entró con un ingreso ya salió.
+        /// </summary>
+        [HttpPut("{tipo}/{id}/detalles/{detalleId}/correccion")]
+        [Authorize(Roles = Roles.Soporte)]
+        [ProducesResponseType(typeof(RemitoResponseGet), StatusCodes.Status200OK)]
+        public async Task<IActionResult> CorregirLinea(string tipo, int id, int detalleId, [FromBody] CorreccionLineaRequest request)
+            => Ok(await _correcciones.CorregirLinea(EsIngreso(tipo), id, detalleId, request));
+
+        /// <summary>Corrección de soporte: agrega una línea a un remito ya emitido (con su movimiento de stock).</summary>
+        [HttpPost("{tipo}/{id}/detalles/correccion")]
+        [Authorize(Roles = Roles.Soporte)]
+        [ProducesResponseType(typeof(RemitoResponseGet), StatusCodes.Status200OK)]
+        public async Task<IActionResult> AgregarLinea(string tipo, int id, [FromBody] AgregarLineaRequest request)
+            => Ok(await _correcciones.AgregarLinea(EsIngreso(tipo), id, request));
+
+        /// <summary>Corrección de soporte: cambia el cliente (egreso) o el proveedor (ingreso). No mueve stock.</summary>
+        [HttpPut("{tipo}/{id}/entidad/correccion")]
+        [Authorize(Roles = Roles.Soporte)]
+        [ProducesResponseType(typeof(RemitoResponseGet), StatusCodes.Status200OK)]
+        public async Task<IActionResult> CorregirEntidad(string tipo, int id, [FromBody] CorreccionEntidadRequest request)
+            => Ok(await _correcciones.CorregirEntidad(EsIngreso(tipo), id, request));
 
         /// <summary>
         /// Registra un remito de ingreso (entrada de mercadería de proveedor).

@@ -432,6 +432,16 @@ namespace CigralBackend.Application.Services
             };
         };
 
+        /// <summary>Línea de remito como la devuelve el historial (necesita Lote y Producto incluidos).</summary>
+        internal static RemitoDetalleResponse Detalle(DetalleRemito d) => new(
+            ProductoId: d.ProductoId,
+            CodigoLote: d.Lote != null ? d.Lote.CodigoLote.ToUpper() : null,
+            NumeroSerie: d.NumeroSerie,
+            FechaVencimiento: d.FechaVencimiento,
+            Cantidad: d.Cantidad,
+            Id: d.Id,
+            ProductoNombre: d.Producto?.Nombre);
+
         public async Task<PagedResult<RemitoResponseGet>> GetRemitosIngreso(RemitoFilters filters)
         {
             var resultadoEntidad = await _repository.GetFiltered<RemitoIngreso>(
@@ -450,7 +460,7 @@ namespace CigralBackend.Application.Services
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
                 orderBy: orderByLogic<RemitoIngreso>(filters),
-                include: new[] { "Detalles", "Detalles.Lote", "Deposito", "Proveedor" }
+                include: new[] { "Detalles", "Detalles.Lote", "Detalles.Producto", "Deposito", "Proveedor" }
             );
 
             var remitos = resultadoEntidad.Items.Select(e => new RemitoResponseGet(
@@ -463,13 +473,7 @@ namespace CigralBackend.Application.Services
                 EntidadId: e.ProveedorId,
                 NombreEntidad: e.Proveedor.RazonSocial,
                 Observaciones: e.Observaciones,
-                Detalles: e.Detalles.Select(d => new RemitoDetalleResponse(
-                    ProductoId: d.ProductoId,
-                    CodigoLote: d.Lote != null ? d.Lote.CodigoLote.ToUpper() : null,
-                    FechaVencimiento: d.FechaVencimiento,
-                    NumeroSerie: d.NumeroSerie,
-                    Cantidad: d.Cantidad
-                )).ToList()
+                Detalles: e.Detalles.Select(Detalle).ToList()
             )).ToList();
 
             return new PagedResult<RemitoResponseGet> { 
@@ -498,7 +502,7 @@ namespace CigralBackend.Application.Services
                 pageNumber: filters.PageNumber,
                 pageSize: filters.PageSize,
                 orderBy: orderByLogic<RemitoEgreso>(filters),
-                include: new[] { "Detalles", "Detalles.Lote", "Deposito", "Cliente" }
+                include: new[] { "Detalles", "Detalles.Lote", "Detalles.Producto", "Deposito", "Cliente" }
             );
 
             var remitos = resultadoEntidad.Items.Select(e => new RemitoResponseGet(
@@ -511,13 +515,7 @@ namespace CigralBackend.Application.Services
                 EntidadId: e.ClienteId,
                 NombreEntidad: e.Cliente.RazonSocial,
                 Observaciones: e.Observaciones,
-                Detalles: e.Detalles.Select(d => new RemitoDetalleResponse(
-                    ProductoId: d.ProductoId,
-                    CodigoLote: d.Lote != null ? d.Lote.CodigoLote.ToUpper() : null,
-                    FechaVencimiento: d.FechaVencimiento,
-                    NumeroSerie: d.NumeroSerie,
-                    Cantidad: d.Cantidad
-                )).ToList()
+                Detalles: e.Detalles.Select(Detalle).ToList()
             )).ToList();
 
             return new PagedResult<RemitoResponseGet>

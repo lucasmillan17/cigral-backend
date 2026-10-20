@@ -13,6 +13,7 @@
 6. **docs/ERROR_HANDLING.md** - Sistema de manejo de errores
 7. **docs/DASHBOARD_VENCIMIENTOS.md** - Dashboard de vencimientos
 8. **docs/PDF_GENERATION.md** - Generacion de PDFs con QuestPDF
+9. **docs/SOPORTE_API.md** - Tickets y herramientas de correccion de soporte
 
 ---
 
