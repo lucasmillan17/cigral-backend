@@ -126,6 +126,32 @@ Corrige **de una vez, para un producto**, un lote mal leído: renombra el códig
   - 404: el producto o el ticket no existen, o el producto no tiene existencias ni líneas con ese lote.
 - Rol Administrador: 403 en los dos endpoints.
 
+## Ajuste de stock por conteo físico
+`POST api/Existencias/ajuste` — solo Soporte (Administrador da 403). `AjusteStockRequest` (clases con `init`):
+```json
+{
+  "motivo": "Inventario", "detalle": "estante 4", "ticketId": 3,
+  "lineas": [
+    { "existenciaId": 3050, "cantidadEsperada": 10, "cantidadContada": 7 },
+    { "productoId": 38, "depositoId": 2, "codigoLote": "L99", "numSerie": null, "fechaVencimiento": "2028-02-29", "cantidadEsperada": 0, "cantidadContada": 5 }
+  ]
+}
+```
+- `motivo` es la categoría: `Inventario`, `Rotura`, `Vencimiento`, `Perdida`, `Encontrado` u `Otro` (cualquier otra da 400). `detalle` hasta 500 caracteres. Hace falta **ticket o detalle** (si no, 400 `CorreccionSinMotivo`): con ticket alcanza con la categoría.
+- `lineas`: de 1 a 300 (0 o más de 300 dan 400 `CantidadInvalida`).
+- El cliente manda **lo contado** y el servidor calcula el + o el −. Servicio: `AjusteStockService` (usa `ExistenciaService.AjustarExistenciaExacta`).
+- **Todo o nada**, en una transacción. Ante el primer error se hace rollback y se responde **422** `{ "mensaje": "...", "errores": [{ "orden": 1, "mensaje": "..." }] }` (mismo formato que `aumentar-varios`; `orden` 0 = primera línea).
+- **Línea de una existencia** (`existenciaId`):
+  - si `cantidad` actual != `cantidadEsperada`, error de esa línea: "El stock cambió mientras contabas (el sistema ahora tiene N); revisá la línea". Así no se pisa un movimiento hecho mientras se contaba;
+  - si no, se aplica `contada - actual`; con diferencia 0 no hay movimiento;
+  - si lo contado queda por debajo de lo consignado: "Hay N en consignación; el conteo no puede ser menor";
+  - contado 0 sin consignaciones: la existencia queda en 0 y se borra (como en las otras correcciones; la auditoría registra el borrado).
+- **Línea nueva** (sin `existenciaId`: `productoId` y `depositoId`, más `codigoLote`/`numSerie`/`fechaVencimiento`): se busca o crea el lote y se suma `cantidadContada` (`cantidadEsperada` se ignora). Si esa combinación ya existe, se **suma** a la que hay. Contado 0: se ignora. Valida producto unitario (máximo 1) y que haya serie, lote o código genérico en el producto.
+- Una misma combinación (producto + depósito + lote + serie) en dos líneas da error en la segunda.
+- **Movimientos:** `AjustePositivo` / `AjusteNegativo` con la observación `Corrección de soporte · Ajuste AJ-yyyyMMdd-HHmmss · {motivo} · [Ticket #T ·] [detalle]`. La referencia `AJ-…` no tiene tabla propia: se busca en las observaciones.
+- **Ticket:** un comentario de soporte con el resumen ("Ajuste AJ-…: 12 línea(s) contada(s), 3 con diferencia (+5 / −2 u.)") y las primeras 10 diferencias.
+- **Respuesta 200** (`AjusteStockResponse`): `referencia`, `lineas`, `conDiferencia`, `unidadesSumadas`, `unidadesRestadas` y `diferencias` (`existenciaId`, `productoId`, `productoNombre`, `depositoId`, `depositoNombre`, `codigoLote`, `numSerie`, `antes`, `despues`, `esNueva`).
+
 ## Códigos de error de soporte (`DomainErrorCode`)
 | Código | Valor | Cuándo |
 |---|---|---|

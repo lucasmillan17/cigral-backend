@@ -18,10 +18,12 @@ namespace CigralBackend.Controllers
     public class ExistenciasController : ControllerBase
     {
         private readonly IExistenciaService _existenciaService;
+        private readonly IAjusteStockService _ajusteStockService;
 
-        public ExistenciasController(IExistenciaService existenciaService)
+        public ExistenciasController(IExistenciaService existenciaService, IAjusteStockService ajusteStockService)
         {
             _existenciaService = existenciaService;
+            _ajusteStockService = ajusteStockService;
         }
 
         /// <summary>
@@ -234,6 +236,31 @@ namespace CigralBackend.Controllers
         public async Task<IActionResult> Corregir(int id, [FromBody] ExistenciaCorreccionRequest request)
         {
             return Ok(await _existenciaService.CorregirExistencia(id, request));
+        }
+
+        /// <summary>
+        /// Ajuste de stock por conteo físico: se manda lo contado de cada línea y el sistema calcula la diferencia.
+        /// Todo o nada. Requiere ticket o detalle. Solo soporte.
+        /// </summary>
+        /// <returns>422 con { mensaje, errores: [{ orden, mensaje }] } si alguna línea falla (orden 0 = primera)</returns>
+        [HttpPost("ajuste")]
+        [Authorize(Roles = Roles.Soporte)]
+        [ProducesResponseType(typeof(AjusteStockResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<IActionResult> Ajustar([FromBody] AjusteStockRequest request)
+        {
+            var resultado = await _ajusteStockService.Ajustar(request);
+            if (!resultado.Exito)
+            {
+                return UnprocessableEntity(new
+                {
+                    mensaje = resultado.MensajeGeneral,
+                    errores = resultado.ErroresDetalle
+                });
+            }
+            return Ok(resultado.Datos);
         }
 
         [HttpGet("{id}/stock-disponible")]
