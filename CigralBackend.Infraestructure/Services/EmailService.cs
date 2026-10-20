@@ -58,7 +58,8 @@ namespace CigralBackend.Infraestructure.Services
                 mensaje.From.Add(new MailboxAddress("Cigral WMS", remitente));
                 foreach (var direccion in destino.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                     mensaje.To.Add(MailboxAddress.Parse(direccion));
-                mensaje.Subject = $"[Soporte #{ticket.Id}] {ticket.Titulo}";
+                var etiqueta = ticket.Tipo == TipoTicket.Interfaz ? "Soporte #" + ticket.Id + " · Interfaz" : "Soporte #" + ticket.Id;
+                mensaje.Subject = $"[{etiqueta}] {ticket.Titulo}";
 
                 var cuerpo = new BodyBuilder { HtmlBody = ArmarHtml(ticket, fotos.Count) };
                 foreach (var foto in fotos)
@@ -82,6 +83,113 @@ namespace CigralBackend.Infraestructure.Services
         }
 
         private static string ArmarHtml(Ticket t, int cantidadFotos)
+        {
+            return t.Tipo == TipoTicket.Interfaz ? ArmarHtmlInterfaz(t, cantidadFotos) : ArmarHtmlCodigo(t, cantidadFotos);
+        }
+
+        /// <summary>Aviso de un problema de la interfaz: descripción, contexto técnico y errores recientes.</summary>
+        private static string ArmarHtmlInterfaz(Ticket t, int cantidadFotos)
+        {
+            static string E(string? v) => WebUtility.HtmlEncode(v ?? "");
+
+            var sb = new StringBuilder();
+            sb.Append("<div style=\"font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#1b2230\">");
+            sb.Append($"<h2 style=\"margin:0 0 4px\">Ticket #{t.Id} · Interfaz: {E(t.Titulo)}</h2>");
+            sb.Append($"<p style=\"margin:0 0 16px;color:#5b6474\">{E(t.CreadoPorNombre)} · {t.FechaCreacion:dd/MM/yyyy HH:mm} · {E(t.Pantalla)} · app {E(t.VersionApp)}</p>");
+
+            if (!string.IsNullOrWhiteSpace(t.Descripcion))
+                sb.Append($"<p style=\"margin:0 0 4px\"><b>Descripción</b></p><p style=\"margin:0 0 16px;white-space:pre-wrap\">{E(t.Descripcion)}</p>");
+
+            var ctx = LeerContexto(t.ContextoJson);
+            if (ctx.Filas.Count > 0)
+            {
+                sb.Append("<p style=\"margin:0 0 4px\"><b>Contexto técnico</b></p>");
+                sb.Append("<table cellpadding=\"4\" style=\"border-collapse:collapse;margin-bottom:16px\">");
+                foreach (var (nombre, valor) in ctx.Filas)
+                    sb.Append($"<tr><td style=\"color:#5b6474\">{E(nombre)}</td><td>{E(valor)}</td></tr>");
+                sb.Append("</table>");
+            }
+
+            if (ctx.Errores.Count > 0)
+            {
+                sb.Append("<p style=\"margin:0 0 4px\"><b>Últimos errores</b></p>");
+                sb.Append("<table cellpadding=\"4\" style=\"border-collapse:collapse;margin-bottom:16px\">");
+                sb.Append("<tr style=\"background:#f0f2f6\"><th align=\"left\">Hora</th><th align=\"left\">Tipo</th><th align=\"left\">Método</th><th align=\"left\">Ruta</th><th align=\"left\">Estado</th><th align=\"left\">Mensaje</th></tr>");
+                foreach (var e in ctx.Errores)
+                    sb.Append($"<tr><td>{E(e.Hora)}</td><td>{E(e.Tipo)}</td><td>{E(e.Metodo)}</td><td>{E(e.Ruta)}</td><td>{E(e.Estado)}</td><td>{E(e.Mensaje)}</td></tr>");
+                sb.Append("</table>");
+            }
+
+            sb.Append(cantidadFotos > 0
+                ? "<p style=\"color:#5b6474\">Captura adjunta.</p>"
+                : "<p style=\"color:#5b6474\">Sin captura.</p>");
+            sb.Append("<p style=\"color:#5b6474\">Revisalo en la app: menú Soporte.</p></div>");
+            return sb.ToString();
+        }
+
+        private record ErrorReciente(string? Hora, string? Tipo, string? Metodo, string? Ruta, string? Estado, string? Mensaje);
+        private record DatosContexto(List<(string Nombre, string Valor)> Filas, List<ErrorReciente> Errores);
+
+        /// <summary>
+        /// Saca del JSON de contexto lo que se muestra en el mail. Todo es opcional y un JSON mal formado
+        /// o con otra forma no hace fallar el envío: devuelve lo que pudo leer (o nada).
+        /// </summary>
+        private static DatosContexto LeerContexto(string? json)
+        {
+            var filas = new List<(string, string)>();
+            var errores = new List<ErrorReciente>();
+            if (string.IsNullOrWhiteSpace(json)) return new(filas, errores);
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                var raiz = doc.RootElement;
+                if (raiz.ValueKind != JsonValueKind.Object) return new(filas, errores);
+
+                static string? Texto(JsonElement el, string nombre) =>
+                    el.ValueKind == JsonValueKind.Object && el.TryGetProperty(nombre, out var v) && v.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined or JsonValueKind.Object or JsonValueKind.Array)
+                        ? v.ToString() : null;
+                static string? Dimension(JsonElement raiz, string nombre)
+                {
+                    if (!raiz.TryGetProperty(nombre, out var d)) return null;
+                    var ancho = Texto(d, "ancho");
+                    var alto = Texto(d, "alto");
+                    return ancho != null && alto != null ? $"{ancho} × {alto}" : null;
+                }
+                void Agregar(string nombre, string? valor)
+                {
+                    if (!string.IsNullOrWhiteSpace(valor)) filas.Add((nombre, valor));
+                }
+
+                Agregar("Resolución de la ventana", Dimension(raiz, "ventana"));
+                Agregar("Resolución del monitor", Dimension(raiz, "monitor"));
+                var zoom = Texto(raiz, "zoom");
+                Agregar("Zoom", zoom);
+                Agregar("Tema", Texto(raiz, "tema"));
+                if (raiz.TryGetProperty("pantalla", out var pantalla))
+                    Agregar("Pantalla", Texto(pantalla, "ruta"));
+                Agregar("Error reportado", Texto(raiz, "errorReportado"));
+
+                if (raiz.TryGetProperty("eventos", out var eventos) && eventos.ValueKind == JsonValueKind.Array)
+                {
+                    var lista = new List<ErrorReciente>();
+                    foreach (var e in eventos.EnumerateArray())
+                    {
+                        var tipo = Texto(e, "tipo");
+                        if (tipo == null || tipo == "navegacion") continue;
+                        var detalle = e.TryGetProperty("detalle", out var d) ? d : default;
+                        lista.Add(new ErrorReciente(Texto(e, "hora"), tipo, Texto(detalle, "metodo"), Texto(detalle, "ruta"), Texto(detalle, "estado"), Texto(detalle, "mensaje")));
+                    }
+                    errores.AddRange(lista.Skip(Math.Max(0, lista.Count - 5)));
+                }
+            }
+            catch (Exception)
+            {
+                // JSON inválido o con otra forma: se manda el mail igual con lo que haya.
+            }
+            return new(filas, errores);
+        }
+
+        private static string ArmarHtmlCodigo(Ticket t, int cantidadFotos)
         {
             static string E(string? v) => WebUtility.HtmlEncode(v ?? "");
             // Los separadores GS (0x1D) no se ven en un mail: se muestran como ⟨GS⟩.

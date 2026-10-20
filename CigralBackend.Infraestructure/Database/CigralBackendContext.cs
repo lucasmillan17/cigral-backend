@@ -291,6 +291,7 @@ namespace CigralBackend.Infraestructure.Database
                 entity.Property(e => e.VencimientoEtiqueta).HasMaxLength(30);
                 entity.Property(e => e.CreadoPorNombre).HasMaxLength(200).IsRequired();
                 entity.Property(e => e.VersionApp).HasMaxLength(30);
+                entity.Property(e => e.ContextoJson).HasMaxLength(20000);
                 entity.HasIndex(e => e.Estado);
                 entity.HasIndex(e => e.CreadoPorId);
                 entity.HasIndex(e => e.FechaActualizacion);

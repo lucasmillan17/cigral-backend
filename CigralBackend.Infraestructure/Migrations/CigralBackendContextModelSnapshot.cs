@@ -681,6 +681,10 @@ namespace CigralBackend.Infraestructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("citext");
 
+                    b.Property<string>("ContextoJson")
+                        .HasMaxLength(20000)
+                        .HasColumnType("citext");
+
                     b.Property<int>("CreadoPorId")
                         .HasColumnType("integer");
 
